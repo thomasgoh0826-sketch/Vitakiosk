@@ -1,8 +1,11 @@
 import { execFileSync } from "node:child_process";
 
+const trackedMode = process.argv.includes("--tracked");
 const output = execFileSync(
   "git",
-  ["diff", "--cached", "--name-only", "--diff-filter=ACMR"],
+  trackedMode
+    ? ["ls-files"]
+    : ["diff", "--cached", "--name-only", "--diff-filter=ACMR"],
   { encoding: "utf8" },
 );
 
@@ -31,11 +34,13 @@ function isSensitive(path) {
 
 const rejected = stagedPaths.filter(isSensitive);
 if (rejected.length > 0) {
-  console.error("staged file safety: BLOCKED");
+  console.error(`${trackedMode ? "tracked" : "staged"} file safety: BLOCKED`);
   for (const path of rejected) {
     console.error(`- ${path}`);
   }
   process.exit(1);
 }
 
-console.log(`staged file safety: PASS (${stagedPaths.length} files checked)`);
+console.log(
+  `${trackedMode ? "tracked" : "staged"} file safety: PASS (${stagedPaths.length} files checked)`,
+);

@@ -1,0 +1,65 @@
+name: VitaKiosk CI
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: vitakiosk-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: backend/requirements.txt
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install backend dependencies
+        run: python -m pip install -r backend/requirements.txt
+
+      - name: Install frontend dependencies
+        run: npm ci --prefix frontend
+
+      - name: Verify repository and specifications
+        run: |
+          node scripts/check-repository.mjs
+          node scripts/check-specs.mjs
+          node scripts/check-staged-files.mjs --tracked
+
+      - name: Reject committed secret values
+        shell: bash
+        run: |
+          if git grep -IlE '((OPENAI|ELEVENLABS)_API_KEY|VITAFLOW_API_BASE_URL)=[^[:space:]]+' -- ':!.env.example'; then
+            echo "Potential non-empty provider secret found in a tracked file."
+            exit 1
+          fi
+
+      - name: Test backend
+        run: python -m pytest backend/tests -v -W error
+
+      - name: Test frontend
+        run: npm run test:run --prefix frontend
+
+      - name: Build frontend
+        run: npm run build --prefix frontend
+
+      - name: Audit frontend dependencies
+        run: npm audit --prefix frontend --audit-level=moderate

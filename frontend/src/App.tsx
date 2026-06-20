@@ -43,6 +43,7 @@ function createSessionId() {
 
 function App() {
   const [sessionId] = useState(createSessionId);
+  const [manualEscalationId, setManualEscalationId] = useState<string | null>(null);
   const socket = useKioskSocket(sessionId);
   const voice = useVoiceInteraction({
     sessionId,
@@ -53,19 +54,20 @@ function App() {
   });
   const product = voice.hasResult ? voice.product : MOCK_PRODUCT;
   const promotions = voice.hasResult ? voice.promotions : [MOCK_PROMOTION];
-  const avatarState = voice.state;
+  const avatarState = manualEscalationId
+    ? "pharmacist_escalation"
+    : voice.state;
   const holdDisabled = ["thinking", "speaking", "pharmacist_escalation"].includes(avatarState);
   const connectionCopy = socket.connected ? "Connected" : "Local state mode";
-  const requestAssistance = useCallback(
-    () => () => {
-      void api.escalatePharmacist(
+  const requestAssistance = useCallback(() => {
+    void api
+      .escalatePharmacist(
         "customer requested assistance",
         BRANCH_ID,
         sessionId,
-      );
-    },
-    [sessionId],
-  );
+      )
+      .then((escalation) => setManualEscalationId(escalation.id));
+  }, [sessionId]);
 
   return (
     <div className="kiosk-shell">
@@ -106,7 +108,7 @@ function App() {
           <ErpDataPanel product={product} connected={socket.connected} />
           <PharmacistEscalationPanel
             active={avatarState === "pharmacist_escalation"}
-            escalationId={voice.escalationId}
+            escalationId={manualEscalationId ?? voice.escalationId}
             onRequest={requestAssistance}
           />
         </div>

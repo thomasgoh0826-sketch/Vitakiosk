@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import App from "./App";
@@ -7,14 +7,23 @@ import App from "./App";
 const hookMocks = vi.hoisted(() => ({
   socket: vi.fn(),
   voice: vi.fn(),
+  escalate: vi.fn(),
 }));
 
+vi.mock("./api/client", () => ({
+  api: { escalatePharmacist: hookMocks.escalate },
+}));
 vi.mock("./hooks/useKioskSocket", () => ({ default: hookMocks.socket }));
 vi.mock("./hooks/useVoiceInteraction", () => ({ default: hookMocks.voice }));
 
 
 describe("integrated kiosk panels", () => {
   beforeEach(() => {
+    hookMocks.escalate.mockResolvedValue({
+      id: "ESC-0099",
+      status: "waiting_for_pharmacist",
+      source: "mock_memory",
+    });
     hookMocks.socket.mockReturnValue({
       connected: true,
       state: "idle",
@@ -77,5 +86,18 @@ describe("integrated kiosk panels", () => {
 
     expect(screen.getByText(/Purchasing query PQ-0001/i)).toBeInTheDocument();
     expect(screen.queryByText("Relief Balm")).not.toBeInTheDocument();
+  });
+
+  it("shows immediate local feedback after manual pharmacist request", async () => {
+    render(<App />);
+
+    fireEvent.click(screen.getByRole("button", { name: "Request assistance" }));
+
+    expect(await screen.findByText("Pharmacist requested")).toBeInTheDocument();
+    expect(
+      screen.getAllByRole("alert").some((alert) =>
+        alert.textContent?.includes("ESC-0099"),
+      ),
+    ).toBe(true);
   });
 });
