@@ -1,0 +1,120 @@
+import type {
+  AIResponse,
+  ItemListResponse,
+  MockActionResponse,
+  Poster,
+  ProductSearchResponse,
+  Promotion,
+  TranscriptionResponse,
+} from "../types";
+
+
+const DEFAULT_API_BASE_URL = "http://localhost:8000";
+
+export class ApiError extends Error {
+  constructor(
+    message: string,
+    readonly status: number,
+  ) {
+    super(message);
+    this.name = "ApiError";
+  }
+}
+
+export interface VitaKioskApiClient {
+  transcribe(audio: Blob, sessionId: string): Promise<TranscriptionResponse>;
+  respond(sessionId: string, text: string, branchId: string): Promise<AIResponse>;
+  synthesize(sessionId: string, text: string): Promise<Blob>;
+  searchProducts(query: string, branchId: string): Promise<ProductSearchResponse>;
+  matchPromotions(productId: string, branchId: string): Promise<ItemListResponse<Promotion>>;
+  idlePosters(branchId: string): Promise<ItemListResponse<Poster>>;
+  createPurchasingQuery(query: string, branchId: string): Promise<MockActionResponse>;
+  escalatePharmacist(reason: string, branchId: string, sessionId?: string): Promise<MockActionResponse>;
+}
+
+async function safeErrorMessage(response: Response): Promise<string> {
+  try {
+    const payload = (await response.json()) as { detail?: unknown };
+    return typeof payload.detail === "string" ? payload.detail : "Request failed";
+  } catch {
+    return "Request failed";
+  }
+}
+
+export class VitaKioskApi implements VitaKioskApiClient {
+  constructor(private readonly baseUrl = DEFAULT_API_BASE_URL) {}
+
+  private async json<T>(path: string, init?: RequestInit): Promise<T> {
+    const response = await fetch(`${this.baseUrl}${path}`, init);
+    if (!response.ok) {
+      throw new ApiError(await safeErrorMessage(response), response.status);
+    }
+    return (await response.json()) as T;
+  }
+
+  async transcribe(audio: Blob, sessionId: string): Promise<TranscriptionResponse> {
+    const form = new FormData();
+    form.append("session_id", sessionId);
+    form.append("audio", audio, "voice.webm");
+    return this.json("/api/voice/transcribe", { method: "POST", body: form });
+  }
+
+  respond(sessionId: string, text: string, branchId: string): Promise<AIResponse> {
+    return this.json("/api/ai/respond", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ session_id: sessionId, text, branch_id: branchId }),
+    });
+  }
+
+  async synthesize(sessionId: string, text: string): Promise<Blob> {
+    const response = await fetch(`${this.baseUrl}/api/voice/tts`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ session_id: sessionId, text }),
+    });
+    if (!response.ok) {
+      throw new ApiError(await safeErrorMessage(response), response.status);
+    }
+    return response.blob();
+  }
+
+  searchProducts(query: string, branchId: string): Promise<ProductSearchResponse> {
+    const params = new URLSearchParams({ query, branch_id: branchId });
+    return this.json(`/api/products/search?${params}`);
+  }
+
+  matchPromotions(productId: string, branchId: string): Promise<ItemListResponse<Promotion>> {
+    const params = new URLSearchParams({ product_id: productId, branch_id: branchId });
+    return this.json(`/api/promotions/match?${params}`);
+  }
+
+  idlePosters(branchId: string): Promise<ItemListResponse<Poster>> {
+    const params = new URLSearchParams({ branch_id: branchId });
+    return this.json(`/api/posters/idle?${params}`);
+  }
+
+  createPurchasingQuery(query: string, branchId: string): Promise<MockActionResponse> {
+    return this.json("/api/purchasing-query", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ query, branch_id: branchId }),
+    });
+  }
+
+  escalatePharmacist(
+    reason: string,
+    branchId: string,
+    sessionId?: string,
+  ): Promise<MockActionResponse> {
+    return this.json("/api/escalate-pharmacist", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ reason, branch_id: branchId, session_id: sessionId }),
+    });
+  }
+}
+
+export const api = new VitaKioskApi(
+  import.meta.env.VITE_API_BASE_URL || DEFAULT_API_BASE_URL,
+);

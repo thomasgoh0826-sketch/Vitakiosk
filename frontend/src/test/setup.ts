@@ -11,4 +11,5 @@ vi.mock("lottie-web/build/player/lottie_light", () => ({
 
 afterEach(() => {
   cleanup();
+  vi.unstubAllGlobals();
 });

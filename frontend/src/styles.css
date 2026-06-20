@@ -322,6 +322,16 @@ button:focus-visible {
   font-weight: 900;
 }
 
+.empty-product {
+  min-height: 150px;
+  display: grid;
+  place-content: center;
+  gap: 8px;
+  text-align: center;
+}
+
+.empty-product p { margin: 0; color: var(--muted); font-size: 0.82rem; }
+
 .facts-row {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -387,6 +397,13 @@ button:focus-visible {
   font-weight: 800;
 }
 .pharmacist-panel > span { color: #2a8b43; font-size: 0.78rem; font-weight: 800; }
+
+.pharmacist-panel-active {
+  border-color: #f2a398;
+  background: #fff8f6;
+}
+
+.pharmacist-panel-active > span { color: var(--coral); }
 
 .kiosk-footer {
   justify-content: space-between;
