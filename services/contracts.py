@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import Protocol
 
-from services.models import Product
+from services.models import AIResult, Product
 
 
 class STTAdapter(Protocol):
@@ -19,3 +19,7 @@ class VitaFlowAdapter(Protocol):
 
 class ProductVisionAdapter(Protocol):
     def identify(self, image: bytes) -> str | None: ...
+
+
+class AIBrain(Protocol):
+    def respond(self, text: str, branch_id: str) -> AIResult: ...
