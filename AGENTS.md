@@ -21,6 +21,7 @@
 - The initial application uses mock data and mock adapters only.
 - Do not call OpenAI, ElevenLabs, VitaFlow ERP, Ollama, or any other live provider.
 - Keep provider-neutral adapter contracts so live integrations can be added deliberately.
+- Never switch to a live provider merely because a credential exists; provider selection must be an explicit reviewed configuration change.
 - Credentials must be read from environment variables; never hardcode a key, token, password, database URL, or private key.
 
 ## Protected external path
@@ -42,3 +43,4 @@
 - Avatar states are `idle`, `listening`, `thinking`, `speaking`, `error`, and `pharmacist_escalation`.
 - WebSocket events are session-scoped; local UI state is a safe fallback when disconnected.
 - Missing authoritative data must be shown as unavailable, never synthesized.
+- Before changing an adapter contract, update its feature spec and acceptance evidence mapping.

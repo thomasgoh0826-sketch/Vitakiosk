@@ -1,27 +1,118 @@
 # VitaKiosk AI Pharmacy Kiosk
 
-VitaKiosk is a mock-first pharmacy kiosk for iPad landscape use. It combines an animated assistant, hold-to-speak interaction, safety-first intent handling, fictional product and promotion data, and pharmacist escalation.
+VitaKiosk is a mock-first, live-ready pharmacy kiosk demo for iPad landscape use. It combines a Lottie assistant, press-and-hold browser voice capture, a safety-first intent pipeline, fictional VitaFlow-shaped data, mock WAV speech, and session-scoped WebSocket updates.
 
-## Current status
+The demo does not call OpenAI, ElevenLabs, Ollama, or VitaFlow ERP. It does not read customer or sales records.
 
-The repository skeleton and safety policy are in place. The runnable React frontend and FastAPI backend are developed task-by-task from the approved implementation plan.
+## Safety rules
 
-## Non-negotiable rules
+- VitaFlow ERP is the source of truth for product, stock, price, promotion, and shelf location.
+- AI must not diagnose, prescribe, or replace a pharmacist.
+- Red-flag and diagnosis-seeking cases escalate to a pharmacist.
+- Unknown products create a purchasing query; the kiosk does not guess.
+- Promotion posters show only active, date-valid offers for the current branch.
+- Missing authoritative data is displayed as unavailable.
 
-- VitaFlow ERP remains the source of truth for product, stock, price, promotion, and shelf location.
-- The assistant does not diagnose and does not replace a pharmacist.
-- Red flags escalate; unknown products create purchasing queries.
-- This demo uses fictional mock data and makes no live provider calls.
-- Secrets belong only in a local `.env`, which is ignored by Git.
+## Prerequisites
+
+- Node.js 24 or a compatible current LTS release.
+- npm 11. On Windows PowerShell in this workspace, use `npm.cmd` because script execution policy may block `npm.ps1`.
+- Python 3.12.
+
+## Environment
+
+Copy `.env.example` to a local `.env` only when local overrides are needed:
+
+```powershell
+Copy-Item .env.example .env
+```
+
+Mock mode requires no key. Keep these secret fields empty for the demo:
+
+- `OPENAI_API_KEY`
+- `ELEVENLABS_API_KEY`
+- `ELEVENLABS_VOICE_ID`
+- `VITAFLOW_API_BASE_URL`
+
+`.env` is ignored. Never stage it.
+
+## Install
+
+Run all commands from the repository root.
+
+```powershell
+python -m venv .venv
+.\.venv\Scripts\python.exe -m pip install -r backend\requirements.txt
+npm.cmd install --prefix frontend
+```
+
+## Run backend
+
+```powershell
+.\.venv\Scripts\python.exe -m uvicorn backend.app.main:app --reload --host 127.0.0.1 --port 8000
+```
+
+Open [http://127.0.0.1:8000/docs](http://127.0.0.1:8000/docs) for the local API documentation.
+
+## Run frontend
+
+In a second terminal:
+
+```powershell
+npm.cmd run dev --prefix frontend
+```
+
+Open [http://127.0.0.1:5173](http://127.0.0.1:5173). Use an iPad landscape viewport such as 1024×768 for kiosk review. Browser microphone permission is required for Hold to Speak.
+
+## API surface
+
+| Method | Path | Mock behavior |
+|---|---|---|
+| GET | `/health` | Reports service and provider mode |
+| POST | `/api/voice/transcribe` | Returns deterministic mock transcript |
+| POST | `/api/ai/respond` | Runs safety and mock intent workflow |
+| POST | `/api/voice/tts` | Returns a generated WAV tone |
+| GET | `/api/products/search` | Searches fictional branch-scoped products |
+| GET | `/api/promotions/match` | Filters active branch-aware promotions |
+| GET | `/api/posters/idle` | Returns eligible idle posters |
+| POST | `/api/purchasing-query` | Creates an in-memory mock query |
+| POST | `/api/escalate-pharmacist` | Creates an in-memory mock escalation |
+| WS | `/ws/kiosk/{session_id}` | Sends session-scoped avatar states |
+
+## Test and build
+
+```powershell
+.\.venv\Scripts\python.exe -m pytest backend\tests -v -W error
+npm.cmd run test:run --prefix frontend
+npm.cmd run build --prefix frontend
+npm.cmd audit --prefix frontend --audit-level=moderate
+node scripts/check-repository.mjs
+node scripts/check-specs.mjs
+node scripts/check-staged-files.mjs
+```
+
+Before every commit, inspect staged paths and run the staged-file check. If `.env`, a database, SQLite file, log, backup, customer data, or sales data appears, stop without committing.
+
+## Adapter replacement path
+
+Consumers depend on interfaces in `services/contracts.py` and `frontend/src/components/avatar/AvatarRenderer.ts`. Future work may add:
+
+- OpenAI/Whisper STT and AI adapters.
+- ElevenLabs TTS adapter.
+- VitaFlow HTTP API connector.
+- Rive or Three.js avatar renderer.
+
+Provider selection must be explicit. Adding a credential alone must never activate a live call. Live adapters require new contract tests, red-flag tests, non-invention tests, network failure handling, and security review.
+
+The separate ERP release directory `C:\Users\Admin\Documents\Playground\release` is not an integration endpoint and must not be accessed or modified.
 
 ## Repository layout
 
-- `frontend/`: React/Vite kiosk UI.
-- `backend/`: FastAPI application and tests.
-- `services/`: provider-neutral mock adapters.
-- `spec/`: feature specifications and acceptance criteria.
-- `docs/`: architecture and design documentation.
-- `assets/`: repository-safe visual assets.
+- `frontend/`: React/Vite kiosk and UI tests.
+- `backend/`: FastAPI routes, WebSocket manager, and API tests.
+- `services/`: mock adapters and domain workflows.
+- `spec/`: feature acceptance criteria.
+- `docs/`: architecture and approved design records.
+- `assets/`: repository-safe concepts and visual assets.
 - `reports/`: test-evidence records.
-
-Full setup and run instructions will be maintained here as the runnable skeleton is completed.
+- `scripts/`: repository and staged-file safety checks.
