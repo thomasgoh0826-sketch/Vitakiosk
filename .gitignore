@@ -1,0 +1,56 @@
+# Environment and secrets
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+*.pfx
+credentials.json
+secrets.json
+
+# Python
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+htmlcov/
+
+# Node and frontend builds
+node_modules/
+frontend/node_modules/
+dist/
+frontend/dist/
+coverage/
+frontend/coverage/
+*.tsbuildinfo
+
+# Databases, runtime logs, and backups
+*.db
+*.sqlite
+*.sqlite3
+*.log
+logs/
+*.bak
+*.backup
+backups/
+*.dump
+
+# Private business and generated media data
+customer-data/
+sales-data/
+private-data/
+recordings/
+generated-audio/
+
+# Editors and operating systems
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+
+# Local worktrees
+.worktrees/
