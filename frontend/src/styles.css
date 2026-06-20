@@ -1,0 +1,347 @@
+:root {
+  color: #102758;
+  background: #ffffff;
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  --navy: #102758;
+  --teal: #079b91;
+  --teal-dark: #04756f;
+  --mint: #e8f7f4;
+  --line: #dbe5ea;
+  --muted: #627083;
+  --coral: #df5c4a;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  min-width: 320px;
+  min-height: 100vh;
+  background: #ffffff;
+}
+
+button { font: inherit; }
+
+button:focus-visible {
+  outline: 3px solid rgba(7, 155, 145, 0.32);
+  outline-offset: 3px;
+}
+
+.kiosk-shell {
+  min-height: 100dvh;
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  gap: 12px;
+  padding: max(14px, env(safe-area-inset-top)) max(18px, env(safe-area-inset-right)) max(12px, env(safe-area-inset-bottom)) max(18px, env(safe-area-inset-left));
+}
+
+.kiosk-header,
+.kiosk-footer,
+.panel-title-row,
+.pharmacist-panel,
+.connection-line {
+  display: flex;
+  align-items: center;
+}
+
+.kiosk-header { justify-content: space-between; }
+
+.wordmark {
+  font-size: clamp(2rem, 4vw, 3.35rem);
+  line-height: 1;
+  font-weight: 800;
+  letter-spacing: -0.055em;
+}
+
+.wordmark span { color: var(--teal); }
+
+.connection-line {
+  gap: 9px;
+  color: var(--teal-dark);
+  font-size: 0.95rem;
+  font-weight: 700;
+}
+
+.status-dot {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #44a54e;
+}
+
+.kiosk-layout {
+  min-height: 0;
+  display: grid;
+  grid-template-columns: minmax(260px, 0.72fr) minmax(0, 1.8fr);
+  gap: 14px;
+}
+
+.assistant-column {
+  min-height: 0;
+  display: grid;
+  grid-template-rows: minmax(0, 1fr) auto;
+  gap: 12px;
+}
+
+.assistant-stage {
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  padding: 18px;
+  border: 1px solid var(--line);
+  border-radius: 22px;
+  background: linear-gradient(180deg, #ffffff 0%, #f4fbfa 100%);
+}
+
+.section-heading {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 1.08rem;
+  font-weight: 800;
+}
+
+.section-heading small,
+.source-label,
+.active-label {
+  padding: 5px 9px;
+  border-radius: 7px;
+  background: var(--mint);
+  color: var(--teal-dark);
+  font-size: 0.72rem;
+  font-weight: 800;
+}
+
+.avatar-placeholder {
+  width: min(72%, 250px);
+  aspect-ratio: 1;
+  display: grid;
+  place-items: center;
+  border: 7px solid #e5ecef;
+  border-top-color: var(--teal);
+  border-radius: 50%;
+  transform: rotate(8deg);
+}
+
+.avatar-face {
+  position: relative;
+  width: 80%;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: radial-gradient(circle at 45% 35%, #ffffff, #dff6f2 72%);
+  transform: rotate(-8deg);
+}
+
+.eye {
+  position: absolute;
+  top: 42%;
+  width: 12px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--navy);
+}
+
+.eye-left { left: 31%; }
+.eye-right { right: 31%; }
+
+.smile {
+  position: absolute;
+  left: 38%;
+  bottom: 27%;
+  width: 24%;
+  height: 13%;
+  border-bottom: 6px solid var(--navy);
+  border-radius: 50%;
+}
+
+.waveform {
+  min-height: 50px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.waveform span {
+  width: 3px;
+  border-radius: 999px;
+  background: var(--teal);
+}
+
+.assistant-stage p,
+.promotion-panel p,
+.shelf-panel p,
+.pharmacist-panel p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.82rem;
+  line-height: 1.45;
+}
+
+.speak-region { text-align: center; }
+
+.hold-button {
+  width: 100%;
+  min-height: 84px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  border: 2px solid var(--teal);
+  border-radius: 22px;
+  background: #ffffff;
+  color: var(--navy);
+  font-size: clamp(1.3rem, 2.4vw, 2rem);
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.hold-button:active { background: var(--mint); transform: translateY(1px); }
+
+.microphone {
+  width: 42px;
+  height: 42px;
+  border: 9px solid var(--teal);
+  border-radius: 50% 50% 42% 42%;
+}
+
+.speak-region small { color: var(--muted); font-size: 0.72rem; }
+
+.information-grid {
+  min-height: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1.7fr) minmax(215px, 0.8fr);
+  grid-template-rows: minmax(0, 1.15fr) minmax(0, 0.95fr) minmax(105px, 0.58fr);
+  gap: 12px;
+}
+
+.panel {
+  min-width: 0;
+  padding: 14px 16px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: #ffffff;
+}
+
+.panel h2,
+.panel h3 { margin: 0; }
+.panel h2 { font-size: 1rem; }
+.panel h3 { font-size: clamp(1.1rem, 2vw, 1.55rem); }
+
+.panel-title-row { justify-content: space-between; margin-bottom: 12px; }
+.panel-title-row > span { color: var(--teal-dark); font-size: 0.72rem; font-weight: 750; }
+
+.product-summary {
+  display: grid;
+  grid-template-columns: 92px 1fr;
+  align-items: center;
+  gap: 16px;
+}
+
+.product-summary p { margin: 4px 0 8px; color: var(--muted); font-size: 0.76rem; }
+.product-summary strong { font-size: clamp(1.5rem, 3vw, 2.25rem); }
+
+.product-art {
+  aspect-ratio: 1;
+  display: grid;
+  place-items: center;
+  border-radius: 18px;
+  background: var(--mint);
+  color: var(--teal-dark);
+  font-size: 1.75rem;
+  font-weight: 900;
+}
+
+.facts-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  margin: 12px 0 0;
+  padding-top: 11px;
+  border-top: 1px solid var(--line);
+}
+
+.facts-row div { padding: 0 12px; border-right: 1px solid var(--line); }
+.facts-row div:first-child { padding-left: 0; }
+.facts-row div:last-child { border: 0; }
+.facts-row dt { color: var(--muted); font-size: 0.7rem; }
+.facts-row dd { margin: 2px 0 0; font-weight: 850; }
+
+.promotion-panel { display: flex; flex-direction: column; }
+.active-label { background: #fff0ed; color: var(--coral) !important; }
+
+.poster-content {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 8px;
+  padding: 14px;
+  border: 1px solid #f4a296;
+  border-radius: 12px;
+  background: #fff8f6;
+  color: var(--coral);
+  text-align: center;
+}
+
+.poster-content strong { font-size: clamp(1.05rem, 2vw, 1.45rem); }
+.poster-content span { font-size: 0.78rem; font-weight: 750; }
+.promotion-panel > p { margin-top: 9px; }
+
+.shelf-panel { text-align: center; }
+.shelf-route { display: flex; align-items: center; justify-content: center; gap: 7px; }
+.shelf-route span { padding: 11px 8px; border: 1px solid var(--line); border-radius: 9px; font-size: 0.7rem; }
+.shelf-route i { width: 14px; border-top: 3px dotted #8da0ad; }
+.shelf-route .route-current { border-color: var(--teal); color: var(--teal-dark); font-weight: 850; }
+.shelf-panel > p { margin-top: 12px; color: var(--navy); font-weight: 700; }
+
+.erp-panel dl { margin: 12px 0 0; }
+.erp-panel dl div { display: flex; justify-content: space-between; gap: 10px; margin: 7px 0; font-size: 0.73rem; }
+.erp-panel dt { color: var(--muted); }
+.erp-panel dd { margin: 0; text-align: right; font-weight: 750; }
+
+.pharmacist-panel {
+  grid-column: 1 / -1;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.pharmacist-panel h2 { margin-bottom: 5px; }
+.pharmacist-panel button {
+  min-height: 48px;
+  padding: 0 22px;
+  border: 2px solid var(--teal);
+  border-radius: 10px;
+  background: #ffffff;
+  color: var(--teal-dark);
+  font-weight: 800;
+}
+.pharmacist-panel > span { color: #2a8b43; font-size: 0.78rem; font-weight: 800; }
+
+.kiosk-footer {
+  justify-content: space-between;
+  min-height: 36px;
+  padding: 0 4px;
+  color: var(--muted);
+  font-size: 0.76rem;
+}
+
+.kiosk-footer span:first-child { color: var(--teal-dark); font-weight: 800; }
+.kiosk-footer .status-dot { margin-right: 6px; }
+
+@media (max-width: 850px), (orientation: portrait) {
+  .kiosk-layout { grid-template-columns: 1fr; }
+  .assistant-column { grid-template-columns: 1fr; }
+  .information-grid { grid-template-columns: 1fr; grid-template-rows: auto; }
+  .pharmacist-panel { grid-column: auto; }
+  .avatar-placeholder { width: min(45%, 220px); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { scroll-behavior: auto !important; transition: none !important; animation: none !important; }
+}
