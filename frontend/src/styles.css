@@ -129,6 +129,70 @@ button:focus-visible {
   transform: rotate(8deg);
 }
 
+.lottie-avatar {
+  position: relative;
+  width: min(72%, 250px);
+  aspect-ratio: 1;
+  display: grid;
+  place-items: center;
+  border: 7px solid #e5ecef;
+  border-top-color: var(--teal);
+  border-radius: 50%;
+  overflow: hidden;
+}
+
+.lottie-avatar > div {
+  width: 100%;
+  height: 100%;
+}
+
+.avatar-eye,
+.avatar-mouth {
+  position: absolute;
+  z-index: 2;
+  display: block;
+  background: var(--navy);
+}
+
+.avatar-eye {
+  top: 43%;
+  width: 11px;
+  height: 18px;
+  border-radius: 50%;
+}
+
+.avatar-eye-left { left: 34%; }
+.avatar-eye-right { right: 34%; }
+
+.avatar-mouth {
+  left: 43%;
+  bottom: 29%;
+  width: 14%;
+  height: 8px;
+  border-radius: 0 0 999px 999px;
+  transform: scaleY(var(--mouth-scale));
+  transform-origin: center top;
+  transition: transform 80ms linear;
+}
+
+.avatar-render-listening { border-top-color: #2c73c7; }
+.avatar-render-thinking { border-top-color: #d29a24; }
+.avatar-render-error,
+.avatar-render-pharmacist_escalation { border-top-color: var(--coral); }
+
+.avatar-state-label {
+  min-height: 1.4em;
+  margin: 0 !important;
+  color: var(--navy) !important;
+  font-size: 0.9rem !important;
+  font-weight: 800;
+}
+
+.assistant-pharmacist_escalation {
+  border-color: #f2b0a7;
+  background: #fff8f6;
+}
+
 .avatar-face {
   position: relative;
   width: 80%;
@@ -202,6 +266,7 @@ button:focus-visible {
 }
 
 .hold-button:active { background: var(--mint); transform: translateY(1px); }
+.hold-button-active { background: var(--mint); }
 
 .microphone {
   width: 42px;

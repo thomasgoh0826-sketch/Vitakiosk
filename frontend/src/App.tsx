@@ -1,4 +1,6 @@
 import type { Product } from "./types";
+import AvatarAssistant from "./components/AvatarAssistant";
+import HoldToSpeakButton from "./components/HoldToSpeakButton";
 
 
 const MOCK_PRODUCT: Product = {
@@ -27,31 +29,10 @@ function App() {
 
       <main className="kiosk-layout">
         <div className="assistant-column">
-          <section className="assistant-stage" aria-label="AI assistant">
-            <div className="section-heading">
-              <span>AI assistant</span>
-              <small>Idle</small>
-            </div>
-            <div className="avatar-placeholder" aria-hidden="true">
-              <div className="avatar-face">
-                <span className="eye eye-left" />
-                <span className="eye eye-right" />
-                <span className="smile" />
-              </div>
-            </div>
-            <div className="waveform" aria-hidden="true">
-              {Array.from({ length: 17 }, (_, index) => (
-                <span key={index} style={{ height: `${12 + (index % 5) * 7}px` }} />
-              ))}
-            </div>
-            <p>Ask about a product, price, stock, promotion, or shelf location.</p>
-          </section>
+          <AvatarAssistant state="idle" audioActivity={0} connected />
 
           <section className="speak-region" aria-label="Hold to Speak">
-            <button className="hold-button" type="button">
-              <span className="microphone" aria-hidden="true" />
-              Hold to Speak
-            </button>
+            <HoldToSpeakButton onStart={() => undefined} onStop={() => undefined} disabled={false} />
             <small>Press and hold while speaking</small>
           </section>
         </div>
