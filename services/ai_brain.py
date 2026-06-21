@@ -135,3 +135,46 @@ class MockAIBrain:
 
 
 __all__ = ["Intent", "MockAIBrain"]
+
+
+class LiveAIPlaceholder:
+    """Safety-first placeholder for future OpenAI or Ollama AI adapters.
+
+    Guardrails still run before any AI response path. Non-red-flag live
+    response generation is intentionally not implemented in this mock-first
+    demo, so no external model is called.
+    """
+
+    def __init__(
+        self,
+        *,
+        provider_name: str,
+        guardrails: SafetyGuardrails,
+        escalation_store: EscalationStore,
+    ) -> None:
+        self.provider_name = provider_name
+        self._guardrails = guardrails
+        self._escalation_store = escalation_store
+
+    def respond(self, text: str, branch_id: str) -> AIResult:
+        safe_text = " ".join(text.split())
+        safety = self._guardrails.evaluate(safe_text)
+        if not safety.allowed:
+            escalation = self._escalation_store.create(
+                safety.reason_code or "safety_handoff",
+                branch_id,
+            )
+            return AIResult(
+                intent=Intent.RED_FLAG,
+                message=(
+                    "I cannot assess or diagnose this. "
+                    "A pharmacist has been asked to assist you now."
+                ),
+                requires_pharmacist=True,
+                escalation_id=escalation.id,
+                safety_reason=safety.reason_code,
+            )
+        raise RuntimeError(
+            f"{self.provider_name} AI is a live-provider placeholder and is "
+            "not implemented in the mock-first demo."
+        )

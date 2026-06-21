@@ -63,7 +63,25 @@ The frontend ignores malformed or cross-session events. When WebSocket is unavai
 - `ProductVisionAdapter`: image bytes to product identifier or no match.
 - `AvatarRenderer`: avatar state and normalized audio activity to visual output.
 
-The shipped dependency graph instantiates only mock adapters. Credentials are read only as configuration data; they do not select a provider. Future live adapters must be selected explicitly and must preserve all safety and source-of-truth tests.
+The shipped dependency graph instantiates mock adapters by default through `services.providers.create_provider_bundle`. Credentials are read only as configuration data; they do not select a provider. Future live adapters must be selected explicitly and must preserve all safety and source-of-truth tests.
+
+## Controlled provider mode
+
+`VITAKIOSK_PROVIDER_MODE` stays `mock` and is not a whole-system live switch. Each layer has its own selector:
+
+| Layer | Default | Future explicit values | Required configuration |
+|---|---|---|---|
+| STT | `STT_PROVIDER=mock` | `openai_whisper` | `OPENAI_API_KEY` |
+| TTS | `TTS_PROVIDER=mock` | `elevenlabs` | `ELEVENLABS_API_KEY`, `ELEVENLABS_VOICE_ID` |
+| AI | `AI_PROVIDER=mock` | `openai`, `ollama` | `OPENAI_API_KEY` or `OLLAMA_BASE_URL` |
+| VitaFlow | `VITAFLOW_PROVIDER=mock` | `readonly_api` | `VITAFLOW_API_BASE_URL` |
+| Vision | `VISION_PROVIDER=mock` | `barcode_ocr` | reviewed OCR/barcode configuration |
+
+Live values create placeholder adapters only when explicitly selected. The current placeholders do not call OpenAI, ElevenLabs, Ollama, VitaFlow ERP, or OCR services. Missing configuration fails closed instead of falling back to guessed data.
+
+To enable one live provider later, change exactly one selector in local `.env`, provide only that layer's credential or endpoint, run the backend contract tests, and manually review safety/non-invention behavior before enabling another layer. Tests and CI must keep selectors in mock mode.
+
+The first VitaFlow live integration is constrained to `readonly_api`: it may read approved product, stock, price, promotion, and shelf fields from a reviewed API only. It must not write sales, stock, purchasing, promotion, customer, or shelf data, and it must not inspect the ERP release directory or database directly.
 
 ## Data and persistence
 

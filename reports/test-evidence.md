@@ -5,7 +5,8 @@ Evidence date: 2026-06-21
 | Evidence | Command | Actual result | Status |
 |---|---|---|---|
 | Backend health | `Invoke-WebRequest http://127.0.0.1:8000/health` | `{"status":"ok","service":"vitakiosk-api","provider_mode":"mock"}` | Pass |
-| Backend tests | `.\.venv\Scripts\python.exe -m pytest backend\tests -q -W error` | 41 passed in 0.20s | Pass |
+| Backend tests | `.\.venv\Scripts\python.exe -m pytest backend\tests -q -W error` | 45 passed | Pass |
+| Controlled provider config | `.\.venv\Scripts\python.exe -m pytest backend\tests\test_provider_config.py -q` | 4 passed: provider selectors default to mock, credentials do not auto-enable live providers, invalid selectors fail closed | Pass |
 | Frontend tests | `npm.cmd run test:run --prefix frontend` | 8 files, 26 tests passed | Pass |
 | Shelf map component | `npm.cmd run test:run --prefix frontend -- src/components/ShelfMap.test.tsx` | 2 tests passed: route landmarks and unavailable-location non-invention | Pass |
 | Frontend build | `npm.cmd run build --prefix frontend` | TypeScript and Vite production build completed; 31.81kB CSS and 332.67kB JS before gzip | Pass |

@@ -4,9 +4,35 @@ import os
 from dataclasses import dataclass
 
 
+ALLOWED_STT_PROVIDERS = frozenset({"mock", "openai_whisper"})
+ALLOWED_TTS_PROVIDERS = frozenset({"mock", "elevenlabs"})
+ALLOWED_AI_PROVIDERS = frozenset({"mock", "openai", "ollama"})
+ALLOWED_VITAFLOW_PROVIDERS = frozenset({"mock", "readonly_api"})
+ALLOWED_VISION_PROVIDERS = frozenset({"mock", "barcode_ocr"})
+
+
+def _env_choice(name: str, default: str) -> str:
+    return (os.getenv(name, default) or default).strip().casefold()
+
+
+def _env_text(name: str, default: str = "") -> str:
+    return os.getenv(name, default).strip()
+
+
+def _validate_choice(name: str, value: str, allowed: frozenset[str]) -> None:
+    if value not in allowed:
+        allowed_values = ", ".join(sorted(allowed))
+        raise RuntimeError(f"{name} must be one of: {allowed_values}")
+
+
 @dataclass(frozen=True)
 class Settings:
     provider_mode: str
+    stt_provider: str
+    tts_provider: str
+    ai_provider: str
+    vitaflow_provider: str
+    vision_provider: str
     openai_api_key: str
     elevenlabs_api_key: str
     elevenlabs_voice_id: str
@@ -16,14 +42,45 @@ class Settings:
     @classmethod
     def from_environment(cls) -> "Settings":
         return cls(
-            provider_mode=os.getenv("VITAKIOSK_PROVIDER_MODE", "mock"),
-            openai_api_key=os.getenv("OPENAI_API_KEY", ""),
-            elevenlabs_api_key=os.getenv("ELEVENLABS_API_KEY", ""),
-            elevenlabs_voice_id=os.getenv("ELEVENLABS_VOICE_ID", ""),
-            ollama_base_url=os.getenv("OLLAMA_BASE_URL", "http://localhost:11434"),
-            vitaflow_api_base_url=os.getenv("VITAFLOW_API_BASE_URL", ""),
+            provider_mode=_env_choice("VITAKIOSK_PROVIDER_MODE", "mock"),
+            stt_provider=_env_choice("STT_PROVIDER", "mock"),
+            tts_provider=_env_choice("TTS_PROVIDER", "mock"),
+            ai_provider=_env_choice("AI_PROVIDER", "mock"),
+            vitaflow_provider=_env_choice("VITAFLOW_PROVIDER", "mock"),
+            vision_provider=_env_choice("VISION_PROVIDER", "mock"),
+            openai_api_key=_env_text("OPENAI_API_KEY"),
+            elevenlabs_api_key=_env_text("ELEVENLABS_API_KEY"),
+            elevenlabs_voice_id=_env_text("ELEVENLABS_VOICE_ID"),
+            ollama_base_url=_env_text("OLLAMA_BASE_URL"),
+            vitaflow_api_base_url=_env_text("VITAFLOW_API_BASE_URL"),
         )
+
+    @property
+    def provider_summary(self) -> dict[str, str]:
+        return {
+            "stt": self.stt_provider,
+            "tts": self.tts_provider,
+            "ai": self.ai_provider,
+            "vitaflow": self.vitaflow_provider,
+            "vision": self.vision_provider,
+        }
 
     def validate(self) -> None:
         if self.provider_mode != "mock":
-            raise RuntimeError("Only mock provider mode is enabled in this demo")
+            raise RuntimeError(
+                "VITAKIOSK_PROVIDER_MODE must remain mock; enable live providers "
+                "one layer at a time with the explicit provider selectors"
+            )
+        _validate_choice("STT_PROVIDER", self.stt_provider, ALLOWED_STT_PROVIDERS)
+        _validate_choice("TTS_PROVIDER", self.tts_provider, ALLOWED_TTS_PROVIDERS)
+        _validate_choice("AI_PROVIDER", self.ai_provider, ALLOWED_AI_PROVIDERS)
+        _validate_choice(
+            "VITAFLOW_PROVIDER",
+            self.vitaflow_provider,
+            ALLOWED_VITAFLOW_PROVIDERS,
+        )
+        _validate_choice(
+            "VISION_PROVIDER",
+            self.vision_provider,
+            ALLOWED_VISION_PROVIDERS,
+        )

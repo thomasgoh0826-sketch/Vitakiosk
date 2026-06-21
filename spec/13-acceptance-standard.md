@@ -17,6 +17,10 @@ A feature is accepted only when:
 - Staged paths pass `node scripts/check-staged-files.mjs`.
 - No secret or real business data is tracked.
 - Mock/live provider mode and VitaFlow provenance are explicit.
+- Default provider selectors remain mock unless a task explicitly enables one layer.
+- Credentials alone never activate OpenAI, ElevenLabs, Ollama, VitaFlow, or OCR providers.
+- Live-provider work must be one layer at a time, with tests proving mock-default behavior remains unchanged.
+- VitaFlow live integration must start as read-only only and must not use `C:\Users\Admin\Documents\Playground\release`.
 - Red-flag, unknown-product, and non-invention rules remain covered.
 - Shelf navigation acceptance evidence includes a screenshot of the map route panel at the target iPad landscape viewport; a plain progress stepper is not accepted.
 - Dark neon kiosk acceptance evidence includes a 1024 × 768 screenshot showing the full single-screen composition.

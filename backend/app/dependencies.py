@@ -1,24 +1,17 @@
-from services.ai_brain import MockAIBrain
-from services.poster_engine import PosterEngine
-from services.promotion_engine import PromotionEngine
-from services.safety_guardrails import SafetyGuardrails
-from services.vitaflow_api import MockVitaFlowAPI
-from services.voice_ai import MockSTT, MockTTS
-from services.workflows import EscalationStore, PurchasingQueryStore
+from backend.app.config import Settings
+from services.providers import create_provider_bundle
 
 
-vitaflow = MockVitaFlowAPI()
-promotion_engine = PromotionEngine()
-poster_engine = PosterEngine(promotion_engine)
-guardrails = SafetyGuardrails()
-purchasing_store = PurchasingQueryStore()
-escalation_store = EscalationStore()
-stt = MockSTT()
-tts = MockTTS()
-ai_brain = MockAIBrain(
-    vitaflow=vitaflow,
-    promotion_engine=promotion_engine,
-    guardrails=guardrails,
-    purchasing_store=purchasing_store,
-    escalation_store=escalation_store,
-)
+settings = Settings.from_environment()
+provider_bundle = create_provider_bundle(settings)
+
+vitaflow = provider_bundle.vitaflow
+promotion_engine = provider_bundle.promotion_engine
+poster_engine = provider_bundle.poster_engine
+guardrails = provider_bundle.guardrails
+purchasing_store = provider_bundle.purchasing_store
+escalation_store = provider_bundle.escalation_store
+stt = provider_bundle.stt
+tts = provider_bundle.tts
+ai_brain = provider_bundle.ai_brain
+vision = provider_bundle.vision

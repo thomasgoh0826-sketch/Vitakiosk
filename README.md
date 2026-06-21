@@ -29,9 +29,15 @@ Copy-Item .env.example .env
 
 Mock mode requires no key. Keep these secret fields empty for the demo:
 
+- `STT_PROVIDER=mock`
+- `TTS_PROVIDER=mock`
+- `AI_PROVIDER=mock`
+- `VITAFLOW_PROVIDER=mock`
+- `VISION_PROVIDER=mock`
 - `OPENAI_API_KEY`
 - `ELEVENLABS_API_KEY`
 - `ELEVENLABS_VOICE_ID`
+- `OLLAMA_BASE_URL`
 - `VITAFLOW_API_BASE_URL`
 
 `.env` is ignored. Never stage it.
@@ -103,6 +109,20 @@ Consumers depend on interfaces in `services/contracts.py` and `frontend/src/comp
 - Rive or Three.js avatar renderer.
 
 Provider selection must be explicit. Adding a credential alone must never activate a live call. Live adapters require new contract tests, red-flag tests, non-invention tests, network failure handling, and security review.
+
+Controlled provider mode is per layer:
+
+| Layer | Default | Future selector |
+|---|---|---|
+| STT | `STT_PROVIDER=mock` | `openai_whisper` |
+| TTS | `TTS_PROVIDER=mock` | `elevenlabs` |
+| AI | `AI_PROVIDER=mock` | `openai` or `ollama` |
+| VitaFlow | `VITAFLOW_PROVIDER=mock` | `readonly_api` |
+| Vision | `VISION_PROVIDER=mock` | `barcode_ocr` |
+
+To test a live provider later, edit only one selector in local `.env`, provide only that provider's required key or URL, and rerun backend safety, non-invention, and source-of-truth tests. The current live-provider classes are placeholders and make no network calls.
+
+The first VitaFlow live task must use a reviewed read-only API or sanitized copy. It must not write to VitaFlow and must not read the ERP release directory or database directly.
 
 The separate ERP release directory `C:\Users\Admin\Documents\Playground\release` is not an integration endpoint and must not be accessed or modified.
 

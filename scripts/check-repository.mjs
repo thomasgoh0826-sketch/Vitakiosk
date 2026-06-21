@@ -23,12 +23,23 @@ for (const path of requiredPaths) {
 
 const envExample = readFileSync(".env.example", "utf8");
 for (const key of [
+  "VITAKIOSK_PROVIDER_MODE",
+  "STT_PROVIDER",
+  "TTS_PROVIDER",
+  "AI_PROVIDER",
+  "VITAFLOW_PROVIDER",
+  "VISION_PROVIDER",
   "OPENAI_API_KEY",
   "ELEVENLABS_API_KEY",
   "ELEVENLABS_VOICE_ID",
+  "OLLAMA_BASE_URL",
   "VITAFLOW_API_BASE_URL",
 ]) {
-  assert.match(envExample, new RegExp(`^${key}=$`, "m"));
+  if (key.endsWith("_PROVIDER") || key === "VITAKIOSK_PROVIDER_MODE") {
+    assert.match(envExample, new RegExp(`^${key}=mock$`, "m"));
+  } else {
+    assert.match(envExample, new RegExp(`^${key}=$`, "m"));
+  }
 }
 
 const gitignore = readFileSync(".gitignore", "utf8");

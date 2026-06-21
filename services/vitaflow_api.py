@@ -41,3 +41,23 @@ class MockVitaFlowAPI:
             ),
             None,
         )
+
+
+class ReadOnlyVitaFlowAPI:
+    """Placeholder for the first future live VitaFlow integration.
+
+    The first live connector must stay read-only and must not write customer,
+    stock, purchasing, or sales data.
+    """
+
+    provider_name = "readonly_api"
+
+    def __init__(self, *, base_url: str) -> None:
+        self._base_url = base_url.rstrip("/")
+
+    def search_products(self, query: str, branch_id: str) -> list[Product]:
+        del query, branch_id
+        raise RuntimeError(
+            "Read-only VitaFlow API is a live-provider placeholder and is not "
+            "implemented in the mock-first demo."
+        )

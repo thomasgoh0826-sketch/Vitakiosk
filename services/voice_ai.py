@@ -39,3 +39,36 @@ class MockTTS:
                 frames.extend(struct.pack("<h", sample))
             wav_file.writeframes(bytes(frames))
         return buffer.getvalue()
+
+
+class OpenAIWhisperSTT:
+    """Placeholder adapter for a future explicitly enabled OpenAI Whisper/STT layer."""
+
+    provider_name = "openai_whisper"
+
+    def __init__(self, *, api_key: str) -> None:
+        self._api_key = api_key
+
+    def transcribe(self, audio: bytes, content_type: str) -> str:
+        del audio, content_type
+        raise RuntimeError(
+            "OpenAI Whisper STT is a live-provider placeholder and is not "
+            "implemented in the mock-first demo."
+        )
+
+
+class ElevenLabsTTS:
+    """Placeholder adapter for a future explicitly enabled ElevenLabs TTS layer."""
+
+    provider_name = "elevenlabs"
+
+    def __init__(self, *, api_key: str, voice_id: str) -> None:
+        self._api_key = api_key
+        self._voice_id = voice_id
+
+    def synthesize(self, text: str) -> bytes:
+        del text
+        raise RuntimeError(
+            "ElevenLabs TTS is a live-provider placeholder and is not "
+            "implemented in the mock-first demo."
+        )

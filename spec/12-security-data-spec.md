@@ -11,14 +11,18 @@ Keep secrets and real business data out of the repository and demo runtime.
 ## Acceptance criteria
 
 - `.env.example` contains empty secret values.
+- `.env.example` documents explicit provider selectors with mock defaults: `STT_PROVIDER`, `TTS_PROVIDER`, `AI_PROVIDER`, `VITAFLOW_PROVIDER`, and `VISION_PROVIDER`.
 - `.gitignore` blocks prohibited data patterns while allowing `.env.example`.
 - Staged-file safety exits nonzero for a prohibited staged path.
 - Mock mode makes no provider or ERP network call.
+- Live providers are disabled unless explicitly selected in local `.env`; credentials alone never switch a provider out of mock mode.
+- Backend tests use mock providers only and must not call OpenAI, ElevenLabs, Ollama, VitaFlow ERP, OCR services, or customer/sales data sources.
 - GitHub content is limited to code, docs, fictional mock data, safe assets, tests, and evidence.
 
 ## Test evidence
 
 - `scripts/check-repository.mjs`
 - `scripts/check-staged-files.mjs`
+- `backend/tests/test_provider_config.py`
 - `npm.cmd audit --prefix frontend --audit-level=moderate`
 - Staged-path inspection recorded in `reports/test-evidence.md`.
