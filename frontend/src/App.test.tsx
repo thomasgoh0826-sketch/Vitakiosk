@@ -13,7 +13,7 @@ describe("VitaKiosk shell", () => {
       /Hold to Speak/i,
       /Product/i,
       /Promotion/i,
-      /Shelf navigation/i,
+      /Shelf navigation map/i,
       /ERP data/i,
       /Pharmacist assistance/i,
     ]) {

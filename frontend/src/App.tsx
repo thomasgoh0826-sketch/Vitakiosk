@@ -7,7 +7,7 @@ import HoldToSpeakButton from "./components/HoldToSpeakButton";
 import PharmacistEscalationPanel from "./components/PharmacistEscalationPanel";
 import ProductCard from "./components/ProductCard";
 import PromotionPoster from "./components/PromotionPoster";
-import ShelfNavigationPanel from "./components/ShelfNavigationPanel";
+import ShelfMap from "./components/ShelfMap";
 import useKioskSocket from "./hooks/useKioskSocket";
 import useVoiceInteraction from "./hooks/useVoiceInteraction";
 import type { Product, Promotion } from "./types";
@@ -104,7 +104,7 @@ function App() {
         <div className="information-grid">
           <ProductCard product={product} purchasingQueryId={voice.purchasingQueryId} />
           <PromotionPoster promotion={promotions[0] ?? null} poster={voice.poster} />
-          <ShelfNavigationPanel product={product} />
+          <ShelfMap product={product} />
           <ErpDataPanel product={product} connected={socket.connected} />
           <PharmacistEscalationPanel
             active={avatarState === "pharmacist_escalation"}
