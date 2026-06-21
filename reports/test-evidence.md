@@ -4,20 +4,23 @@ Evidence date: 2026-06-21
 
 | Evidence | Command | Actual result | Status |
 |---|---|---|---|
+| Backend health | `Invoke-WebRequest http://127.0.0.1:8000/health` | `{"status":"ok","service":"vitakiosk-api","provider_mode":"mock"}` | Pass |
 | Backend tests | `.\.venv\Scripts\python.exe -m pytest backend\tests -q -W error` | 41 passed in 0.20s | Pass |
 | Frontend tests | `npm.cmd run test:run --prefix frontend` | 8 files, 26 tests passed | Pass |
 | Shelf map component | `npm.cmd run test:run --prefix frontend -- src/components/ShelfMap.test.tsx` | 2 tests passed: route landmarks and unavailable-location non-invention | Pass |
-| Frontend build | `npm.cmd run build --prefix frontend` | TypeScript and Vite production build completed; 328.22kB JS before gzip | Pass |
+| Frontend build | `npm.cmd run build --prefix frontend` | TypeScript and Vite production build completed; 31.81kB CSS and 332.67kB JS before gzip | Pass |
 | Dependency audit | `npm.cmd audit --prefix frontend --audit-level=moderate` | 0 vulnerabilities | Pass |
 | Repository contract | `node scripts/check-repository.mjs` | Required structure and secret placeholders verified | Pass |
 | Spec coverage | `node scripts/check-specs.mjs` | 13 feature specs passed coverage check | Pass |
 | Staged-file safety | `node scripts/check-staged-files.mjs` | Run before every task commit; no prohibited staged path | Pass |
 | Tracked-file safety | `node scripts/check-staged-files.mjs --tracked` | All tracked paths checked; no prohibited business or secret file | Pass |
 | Protected-path declaration | Review `AGENTS.md`, README, architecture, and spec 07 | Protected ERP release directory is explicitly out of scope and was not accessed | Pass |
-| iPad landscape visual QA | In-app Browser at 1024×768 | 7 regions; document 1024×768; no overflow; no old `.shelf-route` stepper; no framework overlay or console errors/warnings | Pass |
+| Dark neon iPad landscape QA | In-app Browser at 1024×768 | Viewport 1024×768; document 1024×768; dark gradient body background; 9 accessible regions; console errors/warnings: 0 | Pass |
+| Tap voice control QA | Click primary `Tap to Speak` | Ready label present; click entered permission-error path because microphone permission was not granted; `Try Again` and accessible error feedback verified; real listening/Tap to Stop transition not manually verified | Permission boundary |
+| Cinematic kiosk screenshot | In-app Browser `tab.screenshot({ fullPage: false })` | Dark AI bay, primary Tap to Speak, poster-style promotion, shelf map route, ERP provenance, and pharmacist safety panel visible | Pass |
 | Shelf map screenshot | In-app Browser `tab.screenshot({ fullPage: false })` | Cyan route, purple target marker, current-position marker, aisle blocks, and Aisle/Shelf/Level details are visible | Pass |
 | Narrow responsive QA | In-app Browser at 390×844 | 7 regions; document width 375px within viewport; no horizontal overflow; no console errors/warnings | Pass |
-| Escalation interaction QA | Click `Request assistance` on localhost | Avatar changed to `Pharmacist requested`, escalation ID appeared, Hold disabled | Pass |
+| Escalation interaction QA | Click `Request assistance` on localhost | Avatar changed to `Pharmacist requested`; escalation ID `ESC-0002` appeared; primary voice button changed to disabled `Pharmacist Requested` | Pass |
 | Microphone interaction QA | Browser permission and hold/release | Automated MediaRecorder boundary is covered; physical microphone permission was not granted | Not manually verified |
 
 Automated evidence uses fictional mock data and no live provider credential.
@@ -26,16 +29,20 @@ Automated evidence uses fictional mock data and no live provider credential.
 
 | Comparison point | Concept evidence | Render evidence | Result |
 |---|---|---|---|
-| Layout | Left assistant rail plus five right-side information regions | Same structure fits 1024×768 without scroll | Matched |
-| Palette | True white, navy, teal/mint, coral escalation | Computed render and screenshots preserve the same roles | Matched |
-| Typography and controls | Large wordmark, clear panel titles, large hold control | Hierarchy is preserved; Hold control is 84px high | Matched |
-| Data and safety copy | Mock VitaFlow, SG-001, fictional Relief Balm offer | Exact mock provenance and no diagnosis or real medicine claim | Matched |
-| Shelf navigation | Concept stepper was identified as incorrect | Dark indoor floor map with cyan route, purple target, entrance marker, shelf blocks, and location readouts | Corrected per approved map design |
-| Product visual | Concept contains generated fictional packaging | Demo uses a neutral `RE` monogram so no packaging detail is mistaken for ERP truth | Intentional safety deviation |
-| Extra footer controls | Concept proposed two unrequested reset/search controls | Omitted because they were not part of the approved feature scope | Intentional scope deviation |
+| Layout | Approved B direction uses left AI bay, center conversation/product/map deck, and right retail/safety rail | Render fits 1024×768 exactly with no document scroll | Matched |
+| Palette | Approved direction requires dark navy/black, cyan route/glow, purple AI/promo accents, glass panels | Computed body background is dark gradient; screenshot has no white dashboard surface | Matched |
+| Voice control | Main interaction must be `Tap to Speak`, with hold-to-speak only as fallback | Primary button is `Tap to Speak`; Hold appears only inside secondary fallback | Matched |
+| Avatar | Approved direction requires a futuristic AI assistant screen, not a childish/simple face | Render uses holographic core, scanning ring, waveform, and state label | Matched |
+| Promotion | Promotion must look like a poster and only show active branch-aware mock promotion data | Poster frame shows active SG-001 promotion, validity, mock label, and no invented discount | Matched |
+| Shelf navigation | Required as an indoor pharmacy map with current marker, target marker, route, aisle/shelf/level | Screenshot shows Entrance, Aisle 03, Shelf A-03, Level 02, cyan route, purple target | Matched |
+| ERP and safety | ERP must be small floating system panel; pharmacist panel must be safety/escalation oriented | Render shows Mock VitaFlow, SG-001, Mock mode, no customer data, and AI-not-pharmacist safety copy | Matched |
+| Data and safety copy | VitaFlow/mock data is source of truth; no diagnosis, no customer data, no invented stock/price/location | Render uses existing mock product, price, stock, shelf, branch, promotion, and safety messaging only | Matched |
+| Voice permission | Browser microphone permission was not granted during QA | Error path and `Try Again` state verified; real listening path remains covered by code contract and automated MediaRecorder tests only | Intentional evidence limitation |
 
-Concept: `assets/design/vitakiosk-kiosk-concept.png`.
+Concept: `docs/superpowers/specs/2026-06-21-dark-neon-cinematic-kiosk-design.md` and the approved visual companion B direction.
 
 Shelf map acceptance screenshot: [iPad landscape route map](evidence/shelf-map-ipad-landscape.png).
 
-The shelf map screenshot is committed because `spec/13-acceptance-standard.md` explicitly requires map-route screenshot evidence. Other temporary browser QA artifacts remain outside the repository.
+Dark neon kiosk acceptance screenshot: [1024 × 768 Cinematic AI Bay](evidence/dark-neon-kiosk-ipad-landscape.png).
+
+The committed screenshots are limited to mock data and contain no real customer, sales, database, log, backup, token, password, or ERP release data.
