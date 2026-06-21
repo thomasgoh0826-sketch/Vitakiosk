@@ -71,19 +71,21 @@ function App() {
   }, [sessionId]);
 
   return (
-    <div className="kiosk-shell">
+    <div className={`kiosk-shell kiosk-state-${avatarState}`}>
+      <div className="kiosk-ambient-grid" aria-hidden="true" />
       <header className="kiosk-header">
-        <div className="wordmark" aria-label="VitaKiosk">
-          Vita<span>Kiosk</span>
+        <div className="wordmark" aria-label="VitaKiosk Labs">
+          <span className="wordmark-mark" aria-hidden="true">V</span>
+          <span>VitaKiosk <strong>Labs</strong></span>
         </div>
         <div className="connection-line" aria-label="Kiosk connection status">
           <span className="status-dot" aria-hidden="true" />
-          {connectionCopy} · Mock mode
+          {connectionCopy} · Mock mode · No customer data
         </div>
       </header>
 
       <main className="kiosk-layout">
-        <div className="assistant-column">
+        <aside className="assistant-column">
           <AvatarAssistant
             state={avatarState}
             audioActivity={voice.audioActivity}
@@ -108,24 +110,44 @@ function App() {
               />
             </section>
           </section>
-        </div>
+        </aside>
 
-        <div className="information-grid">
+        <section className="clinical-deck" aria-label="AI conversation deck">
+          <div className="conversation-panel panel">
+            <div className="conversation-bubble customer-question">
+              <span>You</span>
+              <p>
+                {voice.hasResult
+                  ? "Voice request received"
+                  : "What can I help you find today?"}
+              </p>
+            </div>
+            <div className="conversation-bubble ai-answer">
+              <span>VitaKiosk AI</span>
+              <p>
+                {voice.responseText
+                  || "Tap to Speak to ask about a product, price, stock, promotion, or shelf location."}
+              </p>
+            </div>
+          </div>
           <ProductCard product={product} purchasingQueryId={voice.purchasingQueryId} />
-          <PromotionPoster promotion={promotions[0] ?? null} poster={voice.poster} />
           <ShelfMap product={product} />
+        </section>
+
+        <aside className="retail-safety-rail">
+          <PromotionPoster promotion={promotions[0] ?? null} poster={voice.poster} />
           <ErpDataPanel product={product} connected={socket.connected} />
           <PharmacistEscalationPanel
             active={avatarState === "pharmacist_escalation"}
             escalationId={manualEscalationId ?? voice.escalationId}
             onRequest={requestAssistance}
           />
-        </div>
+        </aside>
       </main>
 
       <footer className="kiosk-footer">
         <span><i className="status-dot" aria-hidden="true" /> {connectionCopy}</span>
-        <span>Mock VitaFlow · No customer data</span>
+        <span>VitaFlow ERP is the source of truth · Mock-first demo</span>
       </footer>
     </div>
   );
