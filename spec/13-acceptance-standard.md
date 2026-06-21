@@ -18,6 +18,7 @@ A feature is accepted only when:
 - No secret or real business data is tracked.
 - Mock/live provider mode and VitaFlow provenance are explicit.
 - Red-flag, unknown-product, and non-invention rules remain covered.
+- Shelf navigation acceptance evidence includes a screenshot of the map route panel at the target iPad landscape viewport; a plain progress stepper is not accepted.
 
 ## Test evidence
 
