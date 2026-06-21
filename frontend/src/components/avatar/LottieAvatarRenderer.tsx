@@ -29,11 +29,26 @@ function LottieAvatarRenderer({ state, audioActivity }: AvatarRendererProps) {
   }, [state]);
 
   return (
-    <div className={`lottie-avatar avatar-render-${state}`} style={style}>
-      <div ref={animationContainer} aria-hidden="true" />
-      <span className="avatar-eye avatar-eye-left" aria-hidden="true" />
-      <span className="avatar-eye avatar-eye-right" aria-hidden="true" />
-      <span className="avatar-mouth" aria-hidden="true" />
+    <div
+      className={`lottie-avatar avatar-render-${state}`}
+      style={style}
+      data-state={state}
+    >
+      <div
+        className="avatar-lottie-layer"
+        ref={animationContainer}
+        aria-hidden="true"
+      />
+      <div className="avatar-holo-rings" aria-hidden="true">
+        <span />
+        <span />
+        <span />
+      </div>
+      <div className="avatar-holo-core" aria-hidden="true">
+        <span className="avatar-visor" />
+        <span className="avatar-voice-aperture" />
+      </div>
+      <div className="avatar-scan-line" aria-hidden="true" />
     </div>
   );
 }

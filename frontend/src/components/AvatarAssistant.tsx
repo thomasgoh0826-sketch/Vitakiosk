@@ -22,15 +22,31 @@ function AvatarAssistant({ state, audioActivity, connected }: AvatarAssistantPro
 
   return (
     <section className={`assistant-stage assistant-${state}`} aria-label="AI assistant">
-      <div className="section-heading">
-        <span>AI assistant</span>
-        <small>{connected ? "Realtime connected" : "Local state mode"}</small>
+      <div className="assistant-stage-header">
+        <div>
+          <span className="eyebrow">VitaKiosk Labs</span>
+          <h1>AI Pharmacy Assistant</h1>
+        </div>
+        <span className={`assistant-link-state${connected ? " is-connected" : ""}`}>
+          {connected ? "Realtime connected" : "Local state mode"}
+        </span>
       </div>
-      <LottieAvatarRenderer state={state} audioActivity={audioActivity} />
-      <div className="waveform" aria-hidden="true">
-        {Array.from({ length: 17 }, (_, index) => {
-          const base = 10 + (index % 5) * 5;
-          const height = state === "speaking" ? base + audioActivity * 28 : base;
+
+      <div className="avatar-bay">
+        <span className="avatar-bay-label avatar-bay-label-left" aria-hidden="true">
+          SAFE AI
+        </span>
+        <LottieAvatarRenderer state={state} audioActivity={audioActivity} />
+        <span className="avatar-bay-label avatar-bay-label-right" aria-hidden="true">
+          MOCK 01
+        </span>
+      </div>
+
+      <div className="assistant-waveform" aria-hidden="true">
+        {Array.from({ length: 25 }, (_, index) => {
+          const base = 8 + (index % 7) * 4;
+          const energized = ["listening", "speaking"].includes(state);
+          const height = energized ? base + audioActivity * 30 : base;
           return <span key={index} style={{ height: `${height}px` }} />;
         })}
       </div>
@@ -38,8 +54,12 @@ function AvatarAssistant({ state, audioActivity, connected }: AvatarAssistantPro
         className="avatar-state-label"
         role={state === "pharmacist_escalation" ? "alert" : "status"}
       >
+        <span aria-hidden="true" />
         {stateLabel}
       </p>
+      <small className="assistant-safety-copy">
+        Information support only · A pharmacist remains available
+      </small>
     </section>
   );
 }
