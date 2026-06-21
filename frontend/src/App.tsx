@@ -8,6 +8,7 @@ import PharmacistEscalationPanel from "./components/PharmacistEscalationPanel";
 import ProductCard from "./components/ProductCard";
 import PromotionPoster from "./components/PromotionPoster";
 import ShelfMap from "./components/ShelfMap";
+import TapToSpeakButton from "./components/TapToSpeakButton";
 import useKioskSocket from "./hooks/useKioskSocket";
 import useVoiceInteraction from "./hooks/useVoiceInteraction";
 import type { Product, Promotion } from "./types";
@@ -89,15 +90,23 @@ function App() {
             connected={socket.connected}
           />
 
-          <section className="speak-region" aria-label="Hold to Speak">
-            <HoldToSpeakButton
+          <section className="speak-region" aria-label="Voice assistant controls">
+            <TapToSpeakButton
+              state={avatarState}
               onStart={() => void voice.startRecording()}
               onStop={() => void voice.stopRecording()}
-              disabled={holdDisabled}
             />
-            <small aria-live="polite">
-              {voice.error ?? voice.responseText ?? "Press and hold while speaking"}
+            <small className="voice-feedback" aria-live="polite">
+              {voice.error ?? voice.responseText ?? "Tap once to begin"}
             </small>
+            <section className="hold-fallback" aria-label="Hold to Speak fallback">
+              <span>Press-and-hold fallback</span>
+              <HoldToSpeakButton
+                onStart={() => void voice.startRecording()}
+                onStop={() => void voice.stopRecording()}
+                disabled={holdDisabled}
+              />
+            </section>
           </section>
         </div>
 
