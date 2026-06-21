@@ -368,12 +368,275 @@ button:focus-visible {
 .poster-content span { font-size: 0.78rem; font-weight: 750; }
 .promotion-panel > p { margin-top: 9px; }
 
-.shelf-panel { text-align: center; }
-.shelf-route { display: flex; align-items: center; justify-content: center; gap: 7px; }
-.shelf-route span { padding: 11px 8px; border: 1px solid var(--line); border-radius: 9px; font-size: 0.7rem; }
-.shelf-route i { width: 14px; border-top: 3px dotted #8da0ad; }
-.shelf-route .route-current { border-color: var(--teal); color: var(--teal-dark); font-weight: 850; }
-.shelf-panel > p { margin-top: 12px; color: var(--navy); font-weight: 700; }
+.shelf-map-panel {
+  position: relative;
+  min-height: 0;
+  overflow: hidden;
+  padding: 13px 14px;
+  border-color: rgba(36, 224, 238, 0.4);
+  background: linear-gradient(145deg, rgba(7, 17, 38, 0.98), rgba(10, 16, 34, 0.94));
+  box-shadow: inset 0 0 28px rgba(29, 214, 229, 0.08), 0 14px 30px rgba(4, 11, 27, 0.18);
+  color: #f4fbff;
+}
+
+.shelf-map-panel::before {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at 88% 12%, rgba(135, 72, 255, 0.18), transparent 34%);
+  content: "";
+  pointer-events: none;
+}
+
+.shelf-map-heading {
+  position: relative;
+  z-index: 4;
+  align-items: flex-start;
+  margin-bottom: 0;
+}
+
+.shelf-map-heading h2 {
+  margin: 1px 0 0;
+  color: #f5fbff;
+}
+
+.map-kicker {
+  color: #62eff5;
+  font-size: 0.55rem;
+  font-weight: 800;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+}
+
+.map-route-status {
+  padding: 4px 8px;
+  border: 1px solid rgba(74, 235, 241, 0.42);
+  border-radius: 999px;
+  background: rgba(17, 205, 218, 0.1);
+  color: #70f4f5 !important;
+}
+
+.shelf-map-canvas {
+  position: relative;
+  min-height: 140px;
+  margin-top: 7px;
+  overflow: hidden;
+  border: 1px solid rgba(78, 226, 239, 0.36);
+  border-radius: 12px;
+  background: linear-gradient(180deg, rgba(8, 22, 44, 0.96), rgba(5, 12, 28, 0.98));
+  box-shadow: inset 0 0 24px rgba(40, 220, 234, 0.08), 0 0 16px rgba(35, 208, 226, 0.08);
+}
+
+.map-grid {
+  position: absolute;
+  inset: 0;
+  opacity: 0.16;
+  background-image:
+    linear-gradient(rgba(86, 226, 236, 0.24) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(86, 226, 236, 0.24) 1px, transparent 1px);
+  background-size: 20px 20px;
+}
+
+.map-fixture {
+  position: absolute;
+  display: grid;
+  place-items: center;
+  border: 1px solid rgba(118, 149, 190, 0.36);
+  background: linear-gradient(135deg, rgba(34, 54, 82, 0.88), rgba(14, 27, 52, 0.94));
+  box-shadow: inset 0 0 12px rgba(94, 139, 183, 0.12);
+  color: #8ea8c5;
+  font-size: 0.52rem;
+  letter-spacing: 0.08em;
+}
+
+.map-wall-top {
+  top: 6%;
+  left: 18%;
+  width: 28%;
+  height: 17px;
+  border-radius: 4px;
+}
+
+.map-aisle {
+  top: 27%;
+  width: 13%;
+  height: 38%;
+  border-radius: 5px;
+  font-size: 0.85rem;
+  font-weight: 900;
+}
+
+.map-aisle span {
+  display: block;
+  font-size: 0.4rem;
+  font-weight: 700;
+}
+
+.map-aisle-01 { left: 18%; }
+.map-aisle-02 { left: 42%; }
+
+.map-aisle-03 {
+  left: 66%;
+  border-color: rgba(141, 84, 255, 0.8);
+  box-shadow: inset 0 0 15px rgba(129, 73, 255, 0.16), 0 0 12px rgba(129, 73, 255, 0.16);
+  color: #c8b8ff;
+}
+
+.map-counter {
+  right: 3%;
+  bottom: 7%;
+  width: 20%;
+  height: 17px;
+  border-radius: 4px;
+}
+
+.map-route-line {
+  position: absolute;
+  z-index: 2;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+.map-route-line path {
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.route-glow {
+  filter: blur(5px);
+  stroke: rgba(40, 239, 244, 0.28);
+  stroke-width: 17;
+}
+
+.route-core {
+  animation: route-flow 1.2s linear infinite;
+  stroke: #2ceef4;
+  stroke-dasharray: 12 6;
+  stroke-width: 6;
+}
+
+@keyframes route-flow {
+  to { stroke-dashoffset: -18; }
+}
+
+.map-marker {
+  position: absolute;
+  z-index: 3;
+  display: grid;
+  justify-items: center;
+  color: #edfaff;
+  font-size: 0.52rem;
+  font-weight: 850;
+  line-height: 1.1;
+  text-align: center;
+}
+
+.map-marker small {
+  margin-top: 2px;
+  color: #9ab3cc;
+  font-size: 0.44rem;
+}
+
+.map-marker i {
+  position: relative;
+  display: block;
+  width: 16px;
+  height: 16px;
+  margin-bottom: 3px;
+  border-radius: 50% 50% 50% 0;
+  transform: rotate(-45deg);
+}
+
+.map-marker i::after {
+  position: absolute;
+  width: 6px;
+  height: 6px;
+  margin: 5px;
+  border-radius: 50%;
+  background: #071428;
+  content: "";
+}
+
+.map-you-are-here {
+  bottom: 4%;
+  left: 4%;
+}
+
+.map-you-are-here i {
+  background: #38eef3;
+  box-shadow: 0 0 14px rgba(56, 238, 243, 0.82);
+}
+
+.map-target {
+  top: 10%;
+  right: 9%;
+}
+
+.map-target i {
+  background: #9c65ff;
+  box-shadow: 0 0 17px rgba(156, 101, 255, 0.9);
+}
+
+.map-location-data {
+  position: relative;
+  z-index: 2;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+  margin: 7px 0 0;
+}
+
+.map-location-data div {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  padding: 5px 7px;
+  border: 1px solid rgba(88, 221, 234, 0.18);
+  border-radius: 7px;
+  background: rgba(14, 35, 59, 0.72);
+}
+
+.map-location-data dt {
+  color: #7f9db9;
+  font-size: 0.52rem;
+  text-transform: uppercase;
+}
+
+.map-location-data dd {
+  margin: 0;
+  color: #6cf2f3;
+  font-size: 0.7rem;
+  font-weight: 900;
+}
+
+.map-route-summary {
+  position: relative;
+  z-index: 2;
+  margin: 6px 0 0;
+  color: #dcebf6;
+  font-size: 0.62rem;
+  text-align: left;
+}
+
+.map-route-summary span {
+  margin-right: 7px;
+  color: #a786ff;
+  font-size: 0.5rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.map-route-missing {
+  padding: 10px;
+  border-radius: 8px;
+  background: rgba(255, 184, 77, 0.08);
+  color: #ffd295;
+}
+
+.map-unavailable .map-fixture { opacity: 0.52; }
 
 .erp-panel dl { margin: 12px 0 0; }
 .erp-panel dl div { display: flex; justify-content: space-between; gap: 10px; margin: 7px 0; font-size: 0.73rem; }
@@ -422,6 +685,8 @@ button:focus-visible {
   .information-grid { grid-template-columns: 1fr; grid-template-rows: auto; }
   .pharmacist-panel { grid-column: auto; }
   .avatar-placeholder { width: min(45%, 220px); }
+  .shelf-map-canvas { min-height: 230px; }
+  .map-location-data { grid-template-columns: 1fr; }
 }
 
 @media (prefers-reduced-motion: reduce) {

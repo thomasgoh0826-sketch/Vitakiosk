@@ -22,7 +22,10 @@ function ShelfMap({ product }: { product: Product | null }) {
         </span>
       </div>
 
-      <div className={`shelf-map-canvas${hasRoute ? "" : " map-unavailable"}`}>
+      <div
+        className={`shelf-map-canvas${hasRoute ? "" : " map-unavailable"}`}
+        data-testid="pharmacy-map-canvas"
+      >
         <div className="map-grid" aria-hidden="true" />
         <div className="map-fixture map-wall-top" aria-hidden="true">
           PHARMACY
@@ -54,6 +57,7 @@ function ShelfMap({ product }: { product: Product | null }) {
             />
             <path
               className="route-core"
+              data-testid="pharmacy-route-path"
               d="M70 228 L170 228 L170 176 L430 176 L430 82 L500 82"
             />
           </svg>

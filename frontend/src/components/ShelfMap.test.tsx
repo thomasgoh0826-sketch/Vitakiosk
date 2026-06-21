@@ -40,6 +40,13 @@ describe("ShelfMap", () => {
     expect(
       screen.getByText("Entrance → Aisle 03 → Shelf A-03"),
     ).toBeInTheDocument();
+    expect(screen.getByTestId("pharmacy-map-canvas")).toHaveClass(
+      "shelf-map-canvas",
+    );
+    expect(screen.getByTestId("pharmacy-route-path")).toHaveAttribute(
+      "d",
+      "M70 228 L170 228 L170 176 L430 176 L430 82 L500 82",
+    );
   });
 
   it("does not invent a route when VitaFlow has no shelf location", () => {
