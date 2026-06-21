@@ -679,6 +679,13 @@ button:focus-visible {
 .kiosk-footer span:first-child { color: var(--teal-dark); font-weight: 800; }
 .kiosk-footer .status-dot { margin-right: 6px; }
 
+@media (min-width: 851px) and (orientation: landscape) {
+  .kiosk-shell { height: 100dvh; }
+  .information-grid {
+    grid-template-rows: minmax(0, 1fr) minmax(0, 1.2fr) minmax(105px, 0.52fr);
+  }
+}
+
 @media (max-width: 850px), (orientation: portrait) {
   .kiosk-layout { grid-template-columns: 1fr; }
   .assistant-column { grid-template-columns: 1fr; }
