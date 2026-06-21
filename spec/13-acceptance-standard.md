@@ -19,6 +19,9 @@ A feature is accepted only when:
 - Mock/live provider mode and VitaFlow provenance are explicit.
 - Red-flag, unknown-product, and non-invention rules remain covered.
 - Shelf navigation acceptance evidence includes a screenshot of the map route panel at the target iPad landscape viewport; a plain progress stepper is not accepted.
+- Dark neon kiosk acceptance evidence includes a 1024 × 768 screenshot showing the full single-screen composition.
+- The screenshot must show `Tap to Speak` as the primary interaction, a futuristic avatar bay, a poster-style promotion, the map-style shelf route, Mock VitaFlow provenance, and pharmacist safety messaging.
+- A white/light SaaS dashboard treatment or a primary `Hold to Speak` label is not accepted.
 
 ## Test evidence
 

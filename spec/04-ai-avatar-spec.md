@@ -15,6 +15,10 @@ Make system state visible without implying clinical authority.
 ## Acceptance criteria
 
 - Every state has visible and accessible text.
+- The Lottie-first visual reads as an abstract holographic AI assistant and does not use a childish cartoon face.
+- The assistant stage uses visible text and distinct cyan, purple, or safety-red treatments for idle, listening, thinking, speaking, error, and pharmacist escalation.
+- Listening and speaking activity visibly energizes the waveform without changing the renderer adapter contract.
+- The primary interaction state maps to `Tap to Speak`, `Tap to Stop`, `Thinking…`, `Speaking…`, `Try Again`, or `Pharmacist Requested`.
 - `pharmacist_escalation` produces an alert and coral safety treatment.
 - Speaking activity changes waveform and mouth scale within a clamped 0..1 range.
 - Socket disconnection displays local-state mode.
