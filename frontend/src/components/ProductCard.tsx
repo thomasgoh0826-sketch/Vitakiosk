@@ -19,27 +19,33 @@ function ProductCard({ product, purchasingQueryId }: ProductCardProps) {
       </div>
       {product ? (
         <>
-          <div className="product-summary">
-            <div className="product-art" aria-hidden="true">{product.name.slice(0, 2).toUpperCase()}</div>
-            <div>
+          <div className="product-hero">
+            <div className="product-art" aria-hidden="true">
+              <span>{product.name.slice(0, 2).toUpperCase()}</span>
+            </div>
+            <div className="product-identity">
+              <span className="eyebrow">Product verified</span>
               <h3>{product.name}</h3>
               <p>{product.id}</p>
               <strong>{product.price === null ? "Unavailable" : `$${product.price.toFixed(2)}`}</strong>
+              <small>Current VitaFlow product price</small>
             </div>
           </div>
-          <dl className="facts-row">
+          <dl className="product-facts">
             <div><dt>Stock</dt><dd>{displayValue(product.stock, product.unavailable_reason)}</dd></div>
-            <div><dt>Shelf</dt><dd>{displayValue(product.shelf_location, product.unavailable_reason)}</dd></div>
             <div><dt>Branch</dt><dd>{product.branch_id}</dd></div>
+            <div><dt>Shelf</dt><dd>{displayValue(product.shelf_location, product.unavailable_reason)}</dd></div>
+            <div><dt>Source</dt><dd>Mock VitaFlow</dd></div>
           </dl>
         </>
       ) : (
         <div className="empty-product" role="status">
+          <span className="empty-product-orbit" aria-hidden="true" />
           <h3>{purchasingQueryId ? "Product not found" : "Ready for product search"}</h3>
           <p>
             {purchasingQueryId
               ? `Purchasing query ${purchasingQueryId} created. No product details were guessed.`
-              : "Hold the button and ask for a product."}
+              : "Tap to Speak and ask for a product."}
           </p>
         </div>
       )}
