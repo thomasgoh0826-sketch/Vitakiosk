@@ -135,7 +135,11 @@ function App() {
         </section>
 
         <aside className="retail-safety-rail">
-          <PromotionPoster promotion={promotions[0] ?? null} poster={voice.poster} />
+          <PromotionPoster
+            promotion={promotions[0] ?? null}
+            poster={voice.poster}
+            product={product}
+          />
           <ErpDataPanel product={product} connected={socket.connected} />
           <PharmacistEscalationPanel
             active={avatarState === "pharmacist_escalation"}

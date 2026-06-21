@@ -16,6 +16,7 @@ Evidence date: 2026-06-21
 | Tracked-file safety | `node scripts/check-staged-files.mjs --tracked` | All tracked paths checked; no prohibited business or secret file | Pass |
 | Protected-path declaration | Review `AGENTS.md`, README, architecture, and spec 07 | Protected ERP release directory is explicitly out of scope and was not accessed | Pass |
 | Dark neon iPad landscape QA | In-app Browser at 1024×768 | Viewport 1024×768; document 1024×768; dark gradient body background; 9 accessible regions; console errors/warnings: 0 | Pass |
+| Refined premium kiosk visual QA | In-app Browser at 1024x768 | Viewport 1024x768; document 1024x768; no light dashboard panels; holographic avatar, poster campaign display, stronger shelf route map, compact ERP panel, and safety control panel verified; console errors/warnings: 0 | Pass |
 | Tap voice control QA | Click primary `Tap to Speak` | Ready label present; click entered permission-error path because microphone permission was not granted; `Try Again` and accessible error feedback verified; real listening/Tap to Stop transition not manually verified | Permission boundary |
 | Cinematic kiosk screenshot | In-app Browser `tab.screenshot({ fullPage: false })` | Dark AI bay, primary Tap to Speak, poster-style promotion, shelf map route, ERP provenance, and pharmacist safety panel visible | Pass |
 | Shelf map screenshot | In-app Browser `tab.screenshot({ fullPage: false })` | Cyan route, purple target marker, current-position marker, aisle blocks, and Aisle/Shelf/Level details are visible | Pass |
@@ -33,7 +34,7 @@ Automated evidence uses fictional mock data and no live provider credential.
 | Palette | Approved direction requires dark navy/black, cyan route/glow, purple AI/promo accents, glass panels | Computed body background is dark gradient; screenshot has no white dashboard surface | Matched |
 | Voice control | Main interaction must be `Tap to Speak`, with hold-to-speak only as fallback | Primary button is `Tap to Speak`; Hold appears only inside secondary fallback | Matched |
 | Avatar | Approved direction requires a futuristic AI assistant screen, not a childish/simple face | Render uses holographic core, scanning ring, waveform, and state label | Matched |
-| Promotion | Promotion must look like a poster and only show active branch-aware mock promotion data | Poster frame shows active SG-001 promotion, validity, mock label, and no invented discount | Matched |
+| Promotion | Promotion must look like a poster and only show active branch-aware mock promotion data | Poster frame shows active SG-001 promotion, mock VitaFlow price lockup, validity, mock label, and no invented discount | Matched |
 | Shelf navigation | Required as an indoor pharmacy map with current marker, target marker, route, aisle/shelf/level | Screenshot shows Entrance, Aisle 03, Shelf A-03, Level 02, cyan route, purple target | Matched |
 | ERP and safety | ERP must be small floating system panel; pharmacist panel must be safety/escalation oriented | Render shows Mock VitaFlow, SG-001, Mock mode, no customer data, and AI-not-pharmacist safety copy | Matched |
 | Data and safety copy | VitaFlow/mock data is source of truth; no diagnosis, no customer data, no invented stock/price/location | Render uses existing mock product, price, stock, shelf, branch, promotion, and safety messaging only | Matched |
@@ -44,5 +45,7 @@ Concept: `docs/superpowers/specs/2026-06-21-dark-neon-cinematic-kiosk-design.md`
 Shelf map acceptance screenshot: [iPad landscape route map](evidence/shelf-map-ipad-landscape.png).
 
 Dark neon kiosk acceptance screenshot: [1024 × 768 Cinematic AI Bay](evidence/dark-neon-kiosk-ipad-landscape.png).
+
+Refined premium kiosk screenshot: [1024x768 dark neon visual polish](evidence/dark-neon-kiosk-refined-1024x768.png).
 
 The committed screenshots are limited to mock data and contain no real customer, sales, database, log, backup, token, password, or ERP release data.

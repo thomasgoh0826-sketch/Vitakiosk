@@ -1,18 +1,23 @@
-import type { Poster, Promotion } from "../types";
+import type { Poster, Product, Promotion } from "../types";
 
 
 interface PromotionPosterProps {
   promotion: Promotion | null;
   poster: Poster | null;
+  product?: Product | null;
 }
 
-function PromotionPoster({ promotion, poster }: PromotionPosterProps) {
+function PromotionPoster({ promotion, poster, product }: PromotionPosterProps) {
   const title = promotion?.title ?? poster?.title ?? "No active promotion";
   const validity = promotion
     ? `${new Date(promotion.valid_from).toLocaleDateString("en-SG")} — ${new Date(
         promotion.valid_to,
       ).toLocaleDateString("en-SG")}`
     : null;
+  const priceLabel =
+    promotion && typeof product?.price === "number"
+      ? `Mock $${product.price.toFixed(2)}`
+      : "VitaFlow only";
 
   return (
     <section className="panel promotion-panel" aria-label="Promotion">
@@ -33,6 +38,11 @@ function PromotionPoster({ promotion, poster }: PromotionPosterProps) {
               ? `Active for ${promotion.branch_id}`
               : "No active branch promotion is available."}
           </p>
+        </div>
+        <div className="poster-price-lockup" aria-label="Promotion price">
+          <span>Promo price</span>
+          <strong>{priceLabel}</strong>
+          <small>Mock VitaFlow sourced</small>
         </div>
         <dl className="poster-meta">
           <div>
