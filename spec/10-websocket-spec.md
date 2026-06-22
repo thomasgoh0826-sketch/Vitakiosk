@@ -15,6 +15,9 @@ Connect to `/ws/kiosk/{session_id}`. Server events include type, session ID, can
 - Cross-session events are ignored by the frontend.
 - Invalid client states receive a structured error.
 - Disconnect switches the frontend to local state and schedules bounded reconnect.
+- When the frontend starts a new customer session after escalation, local socket
+  state resets to `idle` and the next session must not inherit the previous
+  session's `pharmacist_escalation` state.
 
 ## Test evidence
 

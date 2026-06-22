@@ -56,12 +56,39 @@ function useVoiceInteraction({
   useEffect(
     () => () => {
       releaseMedia();
+      audioElement?.pause?.();
       if (audioUrlRef.current) {
         URL.revokeObjectURL(audioUrlRef.current);
       }
     },
-    [releaseMedia],
+    [audioElement, releaseMedia],
   );
+
+  const reset = useCallback(() => {
+    releaseMedia();
+    if (audioElement) {
+      audioElement.onended = null;
+      audioElement.onerror = null;
+      audioElement.pause?.();
+      audioElement.currentTime = 0;
+    }
+    if (audioUrlRef.current) {
+      URL.revokeObjectURL(audioUrlRef.current);
+      audioUrlRef.current = null;
+    }
+    chunksRef.current = [];
+    setState("idle");
+    setProduct(null);
+    setPromotions([]);
+    setPoster(null);
+    setResponseText("");
+    setPurchasingQueryId(null);
+    setEscalationId(null);
+    setHasResult(false);
+    setError(null);
+    setAudioElement(null);
+    sendState("idle");
+  }, [audioElement, releaseMedia, sendState]);
 
   const startRecording = useCallback(async () => {
     setError(null);
@@ -165,6 +192,7 @@ function useVoiceInteraction({
     error,
     startRecording,
     stopRecording,
+    reset,
   };
 }
 

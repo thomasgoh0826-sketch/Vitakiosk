@@ -2,12 +2,14 @@ interface PharmacistEscalationPanelProps {
   active: boolean;
   escalationId: string | null;
   onRequest: () => void;
+  onStartNewCustomer: () => void;
 }
 
 function PharmacistEscalationPanel({
   active,
   escalationId,
   onRequest,
+  onStartNewCustomer,
 }: PharmacistEscalationPanelProps) {
   return (
     <section
@@ -19,21 +21,21 @@ function PharmacistEscalationPanel({
       </div>
       <div className="pharmacist-copy">
         <span className="eyebrow">
-          {active ? "Safety escalation active" : "Clinical safety"}
+          {active ? "Ticket recorded" : "Clinical safety"}
         </span>
-        <h2>{active ? "Safety handoff active" : "Pharmacist assistance"}</h2>
+        <h2>{active ? "Pharmacist assistance requested" : "Pharmacist assistance"}</h2>
         <p role={active ? "alert" : undefined}>
           {active
-            ? `A pharmacist has been requested${escalationId ? ` · ${escalationId}` : ""}.`
+            ? `A pharmacist has been notified${escalationId ? ` · ${escalationId}` : ""}.`
             : "AI does not diagnose or replace a pharmacist. Request in-store help at any time."}
         </p>
       </div>
-      <button type="button" onClick={onRequest}>
-        <span aria-hidden="true">+</span>
-        Request assistance
+      <button type="button" onClick={active ? onStartNewCustomer : onRequest}>
+        <span aria-hidden="true">{active ? "↻" : "+"}</span>
+        {active ? "Start New Customer" : "Request assistance"}
       </button>
       <span className="pharmacist-availability">
-        {active ? "Escalated" : "Available"}
+        {active ? "Ready to reset" : "Available"}
       </span>
     </section>
   );

@@ -39,6 +39,8 @@ function useKioskSocket(sessionId: string) {
     let reconnectTimer = 0;
     let attempt = 0;
     const baseUrl = import.meta.env.VITE_WS_BASE_URL || DEFAULT_WS_BASE_URL;
+    setConnected(false);
+    setState("idle");
 
     const connect = () => {
       if (disposed || typeof WebSocket !== "function") {

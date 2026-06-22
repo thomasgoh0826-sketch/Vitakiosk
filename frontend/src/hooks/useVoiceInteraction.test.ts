@@ -179,6 +179,35 @@ describe("useVoiceInteraction", () => {
     expect(api.synthesize).not.toHaveBeenCalled();
   });
 
+  it("resets pharmacist escalation state for a new customer without deleting the ticket", async () => {
+    const api = buildApi(true);
+    const sendState = vi.fn();
+    const { result } = renderHook(() =>
+      useVoiceInteraction({
+        sessionId: "session-red",
+        branchId: "SG-001",
+        api,
+        serverState: "idle",
+        sendState,
+      }),
+    );
+
+    await act(async () => result.current.startRecording());
+    await act(async () => result.current.stopRecording());
+
+    expect(result.current.state).toBe("pharmacist_escalation");
+    expect(result.current.escalationId).toBe("ESC-0001");
+
+    act(() => result.current.reset());
+
+    expect(result.current.state).toBe("idle");
+    expect(result.current.escalationId).toBeNull();
+    expect(result.current.responseText).toBe("");
+    expect(result.current.hasResult).toBe(false);
+    expect(result.current.error).toBeNull();
+    expect(sendState).toHaveBeenCalledWith("idle");
+  });
+
   it("accepts pharmacist escalation from the server state", () => {
     const api = buildApi();
     const { result, rerender } = renderHook(

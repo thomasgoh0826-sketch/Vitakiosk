@@ -22,6 +22,10 @@ A feature is accepted only when:
 - Live-provider work must be one layer at a time, with tests proving mock-default behavior remains unchanged.
 - VitaFlow live integration must start as read-only only and must not use `C:\Users\Admin\Documents\Playground\release`.
 - Red-flag, unknown-product, and non-invention rules remain covered.
+- Pharmacist escalation acceptance requires a visible confirmation with the
+  escalation ID when available, a `Start New Customer` / reset action, no browser
+  refresh requirement, an idle ready state after reset, and proof that the
+  original escalation ticket is not canceled by resetting the kiosk UI.
 - Shelf navigation acceptance evidence includes a screenshot of the map route panel at the target iPad landscape viewport; a plain progress stepper is not accepted.
 - Dark neon kiosk acceptance evidence includes a 1024x768 screenshot showing the full single-screen composition.
 - The screenshot must show `Tap to Speak` as the primary interaction, a futuristic avatar bay, a poster-style promotion, the map-style shelf route, Mock VitaFlow provenance, and pharmacist safety messaging.

@@ -7,7 +7,7 @@ Evidence date: 2026-06-23
 | Backend health | `Invoke-WebRequest http://127.0.0.1:8000/health` | `{"status":"ok","service":"vitakiosk-api","provider_mode":"mock"}` | Pass |
 | Backend tests | `.\.venv\Scripts\python.exe -m pytest backend\tests -q -W error` | 45 passed | Pass |
 | Controlled provider config | `.\.venv\Scripts\python.exe -m pytest backend\tests\test_provider_config.py -q` | 4 passed: provider selectors default to mock, credentials do not auto-enable live providers, invalid selectors fail closed | Pass |
-| Frontend tests | `npm.cmd run test:run --prefix frontend` | 14 files, 65 tests passed | Pass |
+| Frontend tests | `npm.cmd run test:run --prefix frontend` | 14 files, 68 tests passed | Pass |
 | Optional Three.js and VRM avatar renderers | `npm.cmd run test:run --prefix frontend -- src/components/avatar/AvatarRenderer.test.ts src/components/avatar/AvatarModel.test.ts src/components/AvatarAssistant.test.tsx src/components/avatar/VrmAvatarRenderer.test.tsx src/hooks/useAvatarIdleMotion.test.ts src/hooks/useAvatarLipSync.test.ts` | Covered in full frontend suite; Lottie default, Three.js renderer state accessibility, VRM renderer state accessibility, Vite-exposed `VITE_VRM_MODEL` config selection, GLB/VRM model URL resolution, alternate `vita-new` model key, VRM-backed marker, fallback marker, expression mapping, reduced-motion idle stability, and amplitude-based mouth movement covered | Pass |
 | GLB humanoid avatar asset | Review `frontend/src/assets/avatar/vitakiosk-avatar.glb` and `docs/avatar-model.md` | Lightweight fictional GLB placeholder exists at the reviewed path; docs explain self-hosted model replacement, licensing, performance, no-runtime-service, and fallback constraints | Pass |
 | VRM self-hosted avatar asset | Review `frontend/src/assets/avatar/vita.vrm`, `docs/avatar-model.md`, and `spec/04-ai-avatar-spec.md` | User-provided local VRM demo model exists at the reviewed self-hosted path; renderer supports `VITE_AVATAR_RENDERER=vrm`, idle motion, blinking, expression mapping, amplitude lip sync, and safe fallback; model is about 15.37 MB and should be optimized before production use when practical | Pass |
@@ -19,7 +19,7 @@ Evidence date: 2026-06-23
 | Responsive kiosk runtime QA | In-app Browser with `VITE_AVATAR_RENDERER=vrm` at 1024x768, 1280x720, 1366x768, 1440x900, 1920x1080, and 768x1024 | Required landscape viewports reported no horizontal overflow and no document scrolling; iPad portrait reported no horizontal overflow with vertical scrolling fallback; VRM portrait panel, Tap to Speak, poster, shelf map, ERP panel, and pharmacist safety panel remained visible/readable | Pass |
 | Three.js avatar runtime QA | `$env:VITE_AVATAR_RENDERER='threejs'; npm.cmd run dev --prefix frontend -- --host 127.0.0.1 --port 5174`; in-app Browser at 1024x768 | Runtime DOM reported `data-avatar-renderer="threejs"`, WebGL `available`, `canvasCount=1`, `lottieCount=0`, viewport/document 1024x768; screenshot saved to `reports/evidence/threejs-avatar-renderer-1024x768.png` | Pass |
 | Shelf map component | `npm.cmd run test:run --prefix frontend -- src/components/ShelfMap.test.tsx` | 2 tests passed: route landmarks and unavailable-location non-invention | Pass |
-| Frontend build | `npm.cmd run build --prefix frontend` | TypeScript and Vite production build completed; default bundle 335.83kB JS before gzip, optional lazy ThreeAvatarRenderer chunk 80.26kB, VrmAvatarRenderer chunk 194.03kB, AvatarModel chunk 862.26kB, CSS bundle 56.83kB, local VRM asset 15,369.46kB, and alternate local VRM asset 16,532.72kB | Pass |
+| Frontend build | `npm.cmd run build --prefix frontend` | TypeScript and Vite production build completed; default bundle 336.43kB JS before gzip, optional lazy ThreeAvatarRenderer chunk 80.26kB, VrmAvatarRenderer chunk 194.03kB, AvatarModel chunk 862.26kB, CSS bundle 56.83kB, local VRM asset 15,369.46kB, and alternate local VRM asset 16,532.72kB | Pass |
 | Dependency audit | `npm.cmd audit --prefix frontend --audit-level=moderate` | 0 vulnerabilities | Pass |
 | Repository contract | `node scripts/check-repository.mjs` | Required structure and secret placeholders verified | Pass |
 | Spec coverage | `node scripts/check-specs.mjs` | 13 feature specs passed coverage check | Pass |
@@ -32,7 +32,7 @@ Evidence date: 2026-06-23
 | Cinematic kiosk screenshot | In-app Browser `tab.screenshot({ fullPage: false })` | Dark AI bay, primary Tap to Speak, poster-style promotion, shelf map route, ERP provenance, and pharmacist safety panel visible | Pass |
 | Shelf map screenshot | In-app Browser `tab.screenshot({ fullPage: false })` | Cyan route, purple target marker, current-position marker, aisle blocks, and Aisle/Shelf/Level details are visible | Pass |
 | Narrow responsive QA | In-app Browser at 390×844 | 7 regions; document width 375px within viewport; no horizontal overflow; no console errors/warnings | Pass |
-| Escalation interaction QA | Click `Request assistance` on localhost | Avatar changed to `Pharmacist requested`; escalation ID `ESC-0002` appeared; primary voice button changed to disabled `Pharmacist Requested` | Pass |
+| Pharmacist escalation reset QA | In-app Browser at 1024x768 on `http://127.0.0.1:5173`; click `Request assistance`, then `Start New Customer`; screenshots `reports/evidence/pharmacist-escalation-confirmation-1024x768.png` and `reports/evidence/pharmacist-escalation-reset-ready-1024x768.png` | Confirmation showed `Pharmacist assistance requested`, `A pharmacist has been notified`, escalation ID `ESC-0051`, and one `Start New Customer` button; clicking reset returned the kiosk to ready state with enabled `Tap to Speak`, normal pharmacist assistance panel, no confirmation text, and no browser refresh | Pass |
 | Microphone interaction QA | Browser permission and hold/release | Automated MediaRecorder boundary is covered; physical microphone permission was not granted | Not manually verified |
 
 Automated evidence uses fictional mock data and no live provider credential.
@@ -71,5 +71,7 @@ Alternate VRM model screenshots: [vita-new 1024x768](evidence/vrm-avatar-vita-ne
 Restored original VRM avatar lighting screenshot: [1024x768](evidence/vrm-avatar-original-lighting-restored-1024x768.png).
 
 Responsive kiosk screenshots: [1024x768](evidence/responsive-kiosk-1024x768.png), [1366x768](evidence/responsive-kiosk-1366x768.png), [1920x1080](evidence/responsive-kiosk-1920x1080.png).
+
+Pharmacist escalation reset screenshots: [confirmation](evidence/pharmacist-escalation-confirmation-1024x768.png), [ready after reset](evidence/pharmacist-escalation-reset-ready-1024x768.png).
 
 The committed screenshots are limited to mock data and contain no real customer, sales, database, log, backup, token, password, or ERP release data.

@@ -1,4 +1,4 @@
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 import { api } from "./api/client";
 import AvatarAssistant from "./components/AvatarAssistant";
@@ -37,13 +37,19 @@ const MOCK_PROMOTION: Promotion = {
 };
 
 const BRANCH_ID = "SG-001";
+let fallbackSessionCounter = 0;
 
 function createSessionId() {
-  return `kiosk-${globalThis.crypto?.randomUUID?.() ?? "demo-session"}`;
+  const randomId = globalThis.crypto?.randomUUID?.();
+  if (randomId) {
+    return `kiosk-${randomId}`;
+  }
+  fallbackSessionCounter += 1;
+  return `kiosk-demo-session-${fallbackSessionCounter}`;
 }
 
 function App() {
-  const [sessionId] = useState(createSessionId);
+  const [sessionId, setSessionId] = useState(createSessionId);
   const [manualEscalationId, setManualEscalationId] = useState<string | null>(null);
   const socket = useKioskSocket(sessionId);
   const voice = useVoiceInteraction({
@@ -58,6 +64,7 @@ function App() {
   const avatarState = manualEscalationId
     ? "pharmacist_escalation"
     : voice.state;
+  const escalationActive = avatarState === "pharmacist_escalation";
   const holdDisabled = ["thinking", "speaking", "pharmacist_escalation"].includes(avatarState);
   const connectionCopy = socket.connected ? "Connected" : "Local state mode";
   const requestAssistance = useCallback(() => {
@@ -69,6 +76,20 @@ function App() {
       )
       .then((escalation) => setManualEscalationId(escalation.id));
   }, [sessionId]);
+  const startNewCustomer = useCallback(() => {
+    setManualEscalationId(null);
+    voice.reset();
+    socket.sendState("idle");
+    setSessionId(createSessionId());
+  }, [socket, voice]);
+
+  useEffect(() => {
+    if (!escalationActive) {
+      return undefined;
+    }
+    const resetTimer = window.setTimeout(startNewCustomer, 15_000);
+    return () => window.clearTimeout(resetTimer);
+  }, [escalationActive, startNewCustomer]);
 
   return (
     <div className={`kiosk-shell kiosk-state-${avatarState}`}>
@@ -142,9 +163,10 @@ function App() {
           />
           <ErpDataPanel product={product} connected={socket.connected} />
           <PharmacistEscalationPanel
-            active={avatarState === "pharmacist_escalation"}
+            active={escalationActive}
             escalationId={manualEscalationId ?? voice.escalationId}
             onRequest={requestAssistance}
+            onStartNewCustomer={startNewCustomer}
           />
         </aside>
       </main>

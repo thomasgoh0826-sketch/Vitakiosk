@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from "@testing-library/react";
+import { act, fireEvent, render, screen } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import App from "./App";
@@ -18,7 +18,17 @@ vi.mock("./hooks/useVoiceInteraction", () => ({ default: hookMocks.voice }));
 
 
 describe("integrated kiosk panels", () => {
+  const startRecording = vi.fn();
+  const stopRecording = vi.fn();
+  const resetVoice = vi.fn();
+  const sendState = vi.fn();
+
   beforeEach(() => {
+    startRecording.mockReset();
+    stopRecording.mockReset();
+    resetVoice.mockReset();
+    sendState.mockReset();
+    hookMocks.escalate.mockReset();
     hookMocks.escalate.mockResolvedValue({
       id: "ESC-0099",
       status: "waiting_for_pharmacist",
@@ -27,7 +37,7 @@ describe("integrated kiosk panels", () => {
     hookMocks.socket.mockReturnValue({
       connected: true,
       state: "idle",
-      sendState: vi.fn(),
+      sendState,
     });
     hookMocks.voice.mockReturnValue({
       state: "idle",
@@ -59,8 +69,9 @@ describe("integrated kiosk panels", () => {
       escalationId: null,
       hasResult: true,
       error: null,
-      startRecording: vi.fn(),
-      stopRecording: vi.fn(),
+      startRecording,
+      stopRecording,
+      reset: resetVoice,
     });
   });
 
@@ -99,5 +110,51 @@ describe("integrated kiosk panels", () => {
         alert.textContent?.includes("ESC-0099"),
       ),
     ).toBe(true);
+  });
+
+  it("starts a new customer session after manual pharmacist escalation without refreshing", async () => {
+    render(<App />);
+    const firstSessionId = hookMocks.voice.mock.calls[0]?.[0]?.sessionId;
+
+    fireEvent.click(screen.getByRole("button", { name: "Request assistance" }));
+
+    expect(await screen.findByText("Pharmacist requested")).toBeInTheDocument();
+    expect(screen.getByText(/ESC-0099/)).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: "Start New Customer" }));
+
+    expect(resetVoice).toHaveBeenCalledTimes(1);
+    expect(sendState).toHaveBeenCalledWith("idle");
+    expect(screen.getByRole("button", { name: "Tap to Speak" })).toBeEnabled();
+    expect(screen.getByText("Pharmacist assistance")).toBeInTheDocument();
+    expect(screen.queryByText("Pharmacist requested")).not.toBeInTheDocument();
+    expect(hookMocks.voice.mock.calls.at(-1)?.[0]?.sessionId).not.toBe(firstSessionId);
+
+    fireEvent.click(screen.getByRole("button", { name: "Tap to Speak" }));
+    expect(startRecording).toHaveBeenCalledTimes(1);
+    expect(hookMocks.escalate).toHaveBeenCalledTimes(1);
+  });
+
+  it("auto-resets the kiosk after showing pharmacist escalation confirmation", async () => {
+    vi.useFakeTimers();
+    try {
+      render(<App />);
+
+      await act(async () => {
+        fireEvent.click(screen.getByRole("button", { name: "Request assistance" }));
+      });
+
+      expect(screen.getByText("Pharmacist requested")).toBeInTheDocument();
+
+      act(() => {
+        vi.advanceTimersByTime(15_000);
+      });
+
+      expect(resetVoice).toHaveBeenCalledTimes(1);
+      expect(sendState).toHaveBeenCalledWith("idle");
+      expect(screen.getByRole("button", { name: "Tap to Speak" })).toBeEnabled();
+    } finally {
+      vi.useRealTimers();
+    }
   });
 });
