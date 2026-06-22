@@ -112,6 +112,7 @@ Consumers depend on interfaces in `services/contracts.py` and `frontend/src/comp
   - Three.js is optional through `VITE_AVATAR_RENDERER=threejs`.
   - When `frontend/src/assets/avatar/vitakiosk-avatar.glb` exists, the Three.js renderer loads the GLB humanoid avatar.
   - If no GLB is available or loading fails, it falls back to the abstract hologram.
+  - Avatar models must be self-hosted from the local repository or a reviewed static asset path. Do not rely on Ready Player Me, cloud avatar editors, avatar creator APIs, or any external avatar runtime service. See `docs/avatar-model.md`.
 
 Provider selection must be explicit. Adding a credential alone must never activate a live call. Live adapters require new contract tests, red-flag tests, non-invention tests, network failure handling, and security review.
 
