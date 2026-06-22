@@ -9,6 +9,7 @@ import LottieAvatarRenderer from "./avatar/LottieAvatarRenderer";
 
 
 const ThreeAvatarRenderer = lazy(() => import("./avatar/ThreeAvatarRenderer"));
+const VrmAvatarRenderer = lazy(() => import("./avatar/VrmAvatarRenderer"));
 
 interface AvatarAssistantProps {
   state: AvatarState;
@@ -34,8 +35,29 @@ function AvatarAssistant({
 }: AvatarAssistantProps) {
   const stateLabel = STATE_LABELS[state];
   const rendererKind = renderer ?? getConfiguredAvatarRenderer();
-  const avatarRenderer =
-    rendererKind === "threejs" ? (
+  const avatarRenderer = (() => {
+    if (rendererKind === "vrm") {
+      return (
+        <Suspense
+          fallback={
+            <div
+              className={`three-avatar vrm-avatar avatar-render-${state} three-avatar-loading`}
+              data-state={state}
+              data-avatar-renderer="vrm"
+              data-avatar-model="loading"
+              data-reduced-motion="pending"
+              role="presentation"
+              aria-hidden="true"
+            />
+          }
+        >
+          <VrmAvatarRenderer state={state} audioActivity={audioActivity} />
+        </Suspense>
+      );
+    }
+
+    if (rendererKind === "threejs") {
+      return (
       <Suspense
         fallback={
           <div
@@ -50,9 +72,11 @@ function AvatarAssistant({
       >
         <ThreeAvatarRenderer state={state} audioActivity={audioActivity} />
       </Suspense>
-    ) : (
-      <LottieAvatarRenderer state={state} audioActivity={audioActivity} />
-    );
+      );
+    }
+
+    return <LottieAvatarRenderer state={state} audioActivity={audioActivity} />;
+  })();
 
   return (
     <section className={`assistant-stage assistant-${state}`} aria-label="AI assistant">

@@ -23,4 +23,11 @@ describe("avatar renderer config", () => {
     expect(getConfiguredAvatarRenderer({ AVATAR_RENDERER: "lottie" })).toBe("lottie");
     expect(getConfiguredAvatarRenderer({ AVATAR_RENDERER: "unknown-live-avatar" })).toBe("lottie");
   });
+
+  it("enables the VRM renderer only when explicitly requested by Vite runtime config", () => {
+    expect(normalizeAvatarRenderer("vrm")).toBe("vrm");
+    expect(normalizeAvatarRenderer("VRM")).toBe("vrm");
+    expect(getConfiguredAvatarRenderer({ VITE_AVATAR_RENDERER: "vrm" })).toBe("vrm");
+    expect(getConfiguredAvatarRenderer({ AVATAR_RENDERER: "vrm" })).toBe("vrm");
+  });
 });

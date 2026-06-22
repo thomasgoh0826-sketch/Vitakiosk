@@ -39,7 +39,7 @@ Mock mode requires no key. Keep these secret fields empty for the demo:
 - `ELEVENLABS_VOICE_ID`
 - `OLLAMA_BASE_URL`
 - `VITAFLOW_API_BASE_URL`
-- `VITE_AVATAR_RENDERER` may be left empty for the default Lottie avatar; set `VITE_AVATAR_RENDERER=threejs` only for reviewed local Three.js avatar testing.
+- `VITE_AVATAR_RENDERER` may be left empty for the default Lottie avatar; set `VITE_AVATAR_RENDERER=threejs` or `VITE_AVATAR_RENDERER=vrm` only for reviewed local 3D avatar testing.
 
 `.env` is ignored. Never stage it.
 
@@ -107,11 +107,14 @@ Consumers depend on interfaces in `services/contracts.py` and `frontend/src/comp
 - OpenAI/Whisper STT and AI adapters.
 - ElevenLabs TTS adapter.
 - VitaFlow HTTP API connector.
-- Rive or Three.js avatar renderer.
+- Rive, Three.js GLB, or Three.js VRM avatar renderer.
   - Lottie is the default.
   - Three.js is optional through `VITE_AVATAR_RENDERER=threejs`.
+  - VRM is optional through `VITE_AVATAR_RENDERER=vrm`.
   - When `frontend/src/assets/avatar/vitakiosk-avatar.glb` exists, the Three.js renderer loads the GLB humanoid avatar.
+  - When `frontend/src/assets/avatar/vita.vrm` exists, the VRM renderer loads the self-hosted character avatar and controls body, face, blinking, expressions, and amplitude-based mouth movement.
   - If no GLB is available or loading fails, it falls back to the abstract hologram.
+  - If no VRM is available or loading fails, it falls back safely without blocking the kiosk UI.
   - Avatar models must be self-hosted from the local repository or a reviewed static asset path. Do not rely on Ready Player Me, cloud avatar editors, avatar creator APIs, or any external avatar runtime service. See `docs/avatar-model.md`.
 
 Provider selection must be explicit. Adding a credential alone must never activate a live call. Live adapters require new contract tests, red-flag tests, non-invention tests, network failure handling, and security review.

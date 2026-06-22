@@ -2,17 +2,25 @@
 
 ## Purpose
 
-The Three.js avatar renderer can load a lightweight GLB humanoid model while keeping Lottie as the default renderer and the abstract hologram as the Three.js fallback.
+The avatar system is renderer-selectable and mock-first:
 
-## Default model path
+- Lottie remains the default kiosk renderer.
+- Three.js can load a lightweight local GLB humanoid model.
+- VRM can load a local self-hosted character model through Three.js and `@pixiv/three-vrm`.
+- If a selected 3D model is missing, invalid, or unsupported by the browser, the UI falls back safely to a holographic abstract avatar instead of crashing.
 
-Place the reviewed avatar model at:
+## Default model paths
+
+Place reviewed self-hosted avatar models at:
 
 ```text
 frontend/src/assets/avatar/vitakiosk-avatar.glb
+frontend/src/assets/avatar/vita.vrm
 ```
 
-The repository includes a tiny fictional VitaKiosk humanoid placeholder at this path so the GLB path can be verified without using any private brand, customer, staff, or patient data.
+The repository includes a tiny fictional VitaKiosk humanoid GLB placeholder so the GLB path can be verified without using any private brand, customer, staff, or patient data.
+
+`vita.vrm` is the current reviewed local VRM demo asset supplied for this project. It is self-hosted, loaded through the local Vite asset pipeline, and does not require customer data, API keys, tokens, avatar cloud services, or private URLs. Its current file size is about 15.37 MB, so future production models should be optimized further for iPad kiosk performance when practical.
 
 ## Renderer selection
 
@@ -29,7 +37,20 @@ $env:VITE_AVATAR_RENDERER='threejs'
 npm.cmd run dev --prefix frontend
 ```
 
-If `vitakiosk-avatar.glb` is absent or a GLB fails to load, the renderer falls back to the existing abstract hologram instead of crashing.
+Enable the VRM renderer locally:
+
+```powershell
+$env:VITE_AVATAR_RENDERER='vrm'
+npm.cmd run dev --prefix frontend
+```
+
+Supported frontend renderer values are:
+
+- `lottie`
+- `threejs`
+- `vrm`
+
+Unknown renderer values fall back to Lottie. If `vita.vrm` is absent or invalid, the VRM renderer falls back safely. If `vitakiosk-avatar.glb` is absent or a GLB fails to load, the Three.js renderer falls back to the existing abstract hologram instead of crashing.
 
 ## Self-hosted avatar source strategy
 
@@ -38,12 +59,12 @@ VitaKiosk must not depend on Ready Player Me services, APIs, avatar creators, cl
 Acceptable model sources include:
 
 - a local `.glb` file committed under `frontend/src/assets/avatar/`,
-- a local `.vrm` file for a future reviewed VRM loader task,
+- a local `.vrm` file,
 - a Blender-exported `.glb`,
 - a VRoid Studio `.vrm` that is either loaded by a future local VRM pipeline or converted/exported to `.glb`,
 - a licensed Sketchfab, CGTrader, or custom model, only when the license allows kiosk/commercial use and redistribution in the deployment package.
 
-The current renderer loads GLB through the local Vite asset pipeline. VRM support is an approved self-hosted model strategy, but it requires a separate reviewed implementation task before the app can load `.vrm` files directly.
+The current renderers load GLB and VRM assets through the local Vite asset pipeline. Any future configured static asset path must be self-hosted, reviewed, and controlled by the VitaKiosk deployment.
 
 ## Replacing `vitakiosk-avatar.glb`
 
@@ -73,12 +94,47 @@ The current renderer loads GLB through the local Vite asset pipeline. VRM suppor
 
 7. Capture new visual evidence before committing if the avatar appearance materially changes.
 
+## Replacing `vita.vrm`
+
+1. Obtain or create a licensed self-hosted VRM model, such as a VRoid Studio export or a custom VRM.
+2. Confirm the model license allows the intended in-store kiosk use and deployment packaging.
+3. Confirm the model does not contain customer data, staff data, sales data, API keys, embedded private URLs, tracking pixels, or remote service dependencies.
+4. Optimize for iPad landscape use:
+   - target 5 MB or less when practical,
+   - review carefully before accepting any model above 10 MB,
+   - reduce texture size and material count,
+   - remove unused meshes, blend shapes, and animation clips.
+5. Rename the reviewed VRM file to `vita.vrm`.
+6. Replace the existing asset at:
+
+   ```text
+   frontend/src/assets/avatar/vita.vrm
+   ```
+
+7. Run:
+
+   ```powershell
+   npm.cmd run test:run --prefix frontend
+   npm.cmd run build --prefix frontend
+   node scripts/check-staged-files.mjs
+   ```
+
+8. Capture new visual evidence before committing if the avatar appearance materially changes.
+
+## Body, face, voice, and AI responsibilities
+
+- Three.js, React Three Fiber, and `@pixiv/three-vrm` control the VRM body, face, expressions, blinking, head movement, idle breathing, scanning effects, and amplitude-based mouth movement.
+- The first lip sync implementation is intentionally simple: current TTS/audio activity drives mouth open/close amplitude only. It does not implement phoneme or viseme timing yet.
+- ElevenLabs or another reviewed TTS provider may later provide the spoken voice audio only; TTS does not control product facts, pharmacy safety, or avatar sourcing.
+- Ollama, OpenAI, or another reviewed AI provider may later provide answer text, emotion hints, or explicit action commands through a reviewed adapter contract.
+- Avatar rendering must remain separate from pharmacy facts. VitaFlow ERP remains the source of truth for product, stock, price, promotion, and shelf location.
+
 ## Runtime loading policy
 
 - Load avatar assets only from the local repository or from a configured self-hosted static asset path.
 - Do not call Ready Player Me, cloud avatar editors, avatar-generation APIs, or third-party model services at runtime.
 - Do not require customer data, API keys, tokens, passwords, or database credentials for avatar rendering.
-- If the local GLB is missing, unavailable, invalid, or fails to load, the Three.js renderer must fall back to the abstract hologram without blocking the kiosk UI.
+- If the local VRM or GLB is missing, unavailable, invalid, or fails to load, the selected 3D renderer must fall back without blocking the kiosk UI.
 
 ## Licensing
 

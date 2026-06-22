@@ -2,7 +2,9 @@ import { describe, expect, it } from "vitest";
 
 import {
   DEFAULT_AVATAR_MODEL_MODULE_KEY,
+  DEFAULT_VRM_AVATAR_MODEL_MODULE_KEY,
   getAvatarModelUrlFromModules,
+  getVrmAvatarModelUrlFromModules,
 } from "./AvatarModel";
 
 
@@ -25,5 +27,17 @@ describe("avatar model asset resolution", () => {
         "../../assets/avatar/alternate-avatar.glb": "/assets/alternate-avatar.glb",
       }),
     ).toBe("/assets/alternate-avatar.glb");
+  });
+
+  it("resolves the preferred VitaKiosk VRM avatar path when it exists", () => {
+    expect(
+      getVrmAvatarModelUrlFromModules({
+        [DEFAULT_VRM_AVATAR_MODEL_MODULE_KEY]: "/assets/vita.vrm",
+      }),
+    ).toBe("/assets/vita.vrm");
+  });
+
+  it("returns null when no VRM model is bundled", () => {
+    expect(getVrmAvatarModelUrlFromModules({})).toBeNull();
   });
 });

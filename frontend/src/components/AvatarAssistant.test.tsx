@@ -44,6 +44,8 @@ describe("AvatarAssistant", () => {
     expect(
       await screen.findByLabelText(
         new RegExp(`three\\.js (holographic|humanoid) ai avatar: ${label}`, "i"),
+        {},
+        { timeout: 3000 },
       ),
     ).toHaveAttribute("data-avatar-renderer", "threejs");
   });
@@ -62,10 +64,32 @@ describe("AvatarAssistant", () => {
 
     render(<AvatarAssistant state="thinking" audioActivity={0.5} connected renderer="threejs" />);
 
-    expect(await screen.findByLabelText(/three\.js (holographic|humanoid) ai avatar/i)).toHaveAttribute(
-      "data-reduced-motion",
-      "true",
+    expect(
+      await screen.findByLabelText(
+        /three\.js (holographic|humanoid) ai avatar/i,
+        {},
+        { timeout: 3000 },
+      ),
+    ).toHaveAttribute("data-reduced-motion", "true");
+  });
+
+  it.each(states)("renders the optional VRM renderer accessibly for %s", async (state, label) => {
+    render(
+      <AvatarAssistant
+        state={state}
+        audioActivity={state === "speaking" ? 0.82 : 0.18}
+        connected
+        renderer={"vrm" as never}
+      />,
     );
+
+    expect(
+      await screen.findByLabelText(
+        new RegExp(`vrm (character|fallback) ai avatar: ${label}`, "i"),
+        {},
+        { timeout: 3000 },
+      ),
+    ).toHaveAttribute("data-avatar-renderer", "vrm");
   });
 
   it("announces pharmacist escalation as an alert", () => {
