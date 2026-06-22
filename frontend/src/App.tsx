@@ -13,7 +13,7 @@ import TapToSpeakButton from "./components/TapToSpeakButton";
 import useKioskSocket from "./hooks/useKioskSocket";
 import useVoiceInteraction from "./hooks/useVoiceInteraction";
 import { MOCK_LEAFLETS } from "./mockLeaflets";
-import type { Leaflet, Product, UiAction } from "./types";
+import type { AvatarState, Leaflet, Product, UiAction } from "./types";
 import { isApprovedUiAction } from "./uiActions";
 
 
@@ -58,6 +58,24 @@ function findLeaflet(leaflets: Leaflet[], action: UiAction) {
     return leaflets.find((leaflet) => leaflet.id === action.campaignId) ?? null;
   }
   return null;
+}
+
+function voiceFeedbackCopy(state: AvatarState, error: string | null) {
+  if (error) {
+    return "Please try again or press Start.";
+  }
+  switch (state) {
+    case "listening":
+      return "Listening...";
+    case "thinking":
+      return "Preparing answer...";
+    case "speaking":
+      return "Speaking...";
+    case "pharmacist_escalation":
+      return "Pharmacist assistance requested.";
+    default:
+      return "Tap once to begin";
+  }
 }
 
 function App() {
@@ -264,7 +282,7 @@ function App() {
               onStop={() => void voice.stopRecording()}
             />
             <small className="voice-feedback" aria-live="polite">
-              {voice.error ?? voice.responseText ?? "Tap once to begin"}
+              {voiceFeedbackCopy(avatarState, voice.error)}
             </small>
             <section className="customer-reset" aria-label="New customer reset">
               <span>Fresh session</span>
@@ -286,7 +304,6 @@ function App() {
             responseText={voice.responseText}
             state={avatarState}
             error={voice.error}
-            hasResult={voice.hasResult}
           />
           <ProductCard product={product} purchasingQueryId={voice.purchasingQueryId} />
           <ShelfMap product={product} />

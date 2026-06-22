@@ -25,9 +25,12 @@ A feature is accepted only when:
 - AI-controlled UI behavior is accepted only when the backend returns structured
   `ui_actions` from the approved action set and the frontend ignores unknown or
   arbitrary action types.
-- Subtitle acceptance requires separate customer transcript and AI response
-  bubbles with customer-facing text only; raw JSON, provider/debug labels, and
-  arbitrary action text are not accepted.
+- Subtitle acceptance requires cinematic AI subtitle mode: the main kiosk UI
+  hides the customer transcript and any `YOU` bubble, shows only the current AI
+  phrase or sentence with at most 1-2 lines, uses `aria-live`, supports
+  reduced-motion users without relying only on animation, and keeps raw JSON,
+  provider/debug labels, arbitrary action text, and full-paragraph AI dumps out
+  of the customer-facing display.
 - Leaflet acceptance requires active, date-valid, branch-aware promotion and
   campaign leaflets, product/category linking from adapter data, touch-friendly
   galleries, enlarged modal view with close/previous/next, and pharmacist

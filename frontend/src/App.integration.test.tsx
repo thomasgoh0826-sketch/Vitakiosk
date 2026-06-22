@@ -118,13 +118,22 @@ describe("integrated kiosk panels", () => {
     expect(screen.getAllByText(/Mock VitaFlow/i).length).toBeGreaterThan(0);
   });
 
-  it("shows customer transcript and AI subtitle as separate conversation bubbles", () => {
+  it("shows cinematic AI subtitle while hiding the customer transcript from the main UI", () => {
+    hookMocks.voice.mockReturnValue({
+      ...hookMocks.voice(),
+      state: "speaking",
+      responseText:
+        "VitaFlow mock price for Relief Balm: $12.50. It is shown from Mock VitaFlow data.",
+    });
+
     render(<App />);
 
-    expect(screen.getByText("what is the price of relief balm")).toBeInTheDocument();
-    expect(
-      screen.getAllByText("VitaFlow mock price for Relief Balm: $12.50.").length,
-    ).toBeGreaterThan(0);
+    expect(screen.queryByText("what is the price of relief balm")).not.toBeInTheDocument();
+    expect(screen.getByText("VitaFlow mock price for Relief Balm: $12.50.")).toBeInTheDocument();
+    expect(screen.queryByText(/It is shown from Mock VitaFlow data/)).not.toBeInTheDocument();
+    expect(screen.getByRole("region", { name: /AI assistant subtitles/i })).toHaveClass(
+      "ai-subtitle-panel",
+    );
     expect(screen.queryByText(/raw json/i)).not.toBeInTheDocument();
   });
 

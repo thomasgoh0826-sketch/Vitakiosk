@@ -9,13 +9,13 @@ describe("VitaKiosk shell", () => {
     render(<App />);
 
     for (const name of [
-      /AI assistant/i,
-      /Voice assistant controls/i,
-      /Product/i,
-      /Promotion/i,
-      /Shelf navigation map/i,
-      /ERP data/i,
-      /Pharmacist assistance/i,
+      /^AI assistant$/i,
+      /^Voice assistant controls$/i,
+      /^Product$/i,
+      /^Promotion$/i,
+      /^Shelf navigation map$/i,
+      /^ERP data$/i,
+      /^Pharmacist assistance$/i,
     ]) {
       expect(screen.getByRole("region", { name })).toBeInTheDocument();
     }

@@ -18,8 +18,10 @@ AI assistant, primary Tap to Speak voice control plus Start/New Customer reset, 
 - The primary landscape view uses a dark navy/black cinematic foundation, glass panels, cyan and purple neon accents, and no plain white dashboard background.
 - The primary voice interaction reads `Tap to Speak` when ready and `Tap to Stop` while listening.
 - The secondary assistant action reads `Start` or `Start New Customer` and resets the kiosk for a fresh customer session without a browser refresh.
-- The top center conversation area separates the customer transcript from the AI response subtitle, with no raw JSON, provider names, or technical debug wording.
-- During thinking or audio preparation, the AI subtitle area shows safe customer-facing progress text such as `Preparing answer...`.
+- The top center conversation area is a cinematic AI subtitle panel; the customer transcript is hidden from the normal customer-facing kiosk UI and may appear only behind an explicit debug/dev flag.
+- AI subtitle copy appears as the current phrase or sentence, with a maximum 1-2 visible lines, large readable type, and no raw JSON, provider names, technical debug wording, or chat-style `YOU` bubble.
+- During thinking or audio preparation, the AI subtitle area shows safe customer-facing progress text such as `Preparing answer…`.
+- Idle, listening, error, and pharmacist escalation states use short subtitle/status copy rather than replaying a full previous AI paragraph.
 - At 1024x768 landscape, the assistant bay, conversation/product deck, promotion poster, shelf map, ERP panel, and pharmacist safety panel fit in one view without document scrolling.
 - The kiosk layout uses responsive grid/flex sizing rather than fixed pixel-only placement; target QA viewports include 1024x768, 1280x720, 1366x768, 1440x900, 1920x1080, and iPad portrait/narrow tablet fallback.
 - Landscape kiosk viewports must not create horizontal overflow and should fit the full assistant/product/promotion/shelf/ERP/safety surface in one viewport without document scrolling.
@@ -38,6 +40,8 @@ AI assistant, primary Tap to Speak voice control plus Start/New Customer reset, 
 
 - `frontend/src/App.test.tsx`
 - `frontend/src/App.integration.test.tsx`
+- `frontend/src/components/AiSubtitle.test.tsx`
+- `frontend/src/hooks/useSubtitlePlayback.test.ts`
 - `frontend/src/components/ShelfMap.test.tsx`
 - `frontend/src/components/avatar/VrmAvatarRenderer.test.tsx`
 - Browser screenshot evidence recorded in `reports/test-evidence.md`, including the 1024x768, 1366x768, and 1920x1080 responsive dark neon compositions.

@@ -14,6 +14,9 @@ MediaRecorder plus browser-side silence detection -> selected STT adapter -> cla
 - Browser-side voice activity detection uses a Web Audio analyser, ignores an initial startup period, and auto-stops after sustained low RMS silence.
 - Silence detection constants are explicitly named `MIN_RECORDING_MS`, `SILENCE_STOP_MS`, and `SILENCE_RMS_THRESHOLD`.
 - The listening flow progresses naturally through `idle -> listening -> thinking -> speaking -> idle` without showing an error for normal silence auto-stop.
+- During `speaking`, AI response text is displayed through provider-neutral subtitle chunks instead of one full paragraph; when exact TTS timing is unavailable, subtitle timing is estimated from phrase chunks and text length.
+- Subtitle chunking splits on natural sentence or phrase boundaries while preserving decimal prices and medicine/product names.
+- During `idle`, `listening`, `thinking`, `error`, and `pharmacist_escalation`, the subtitle area shows short state-appropriate copy and does not expose the customer transcript in the main UI.
 - The secondary `Start` / `Start New Customer` action resets microphone, audio, error, conversation, product-not-found, escalation, and local socket state without a browser refresh.
 - Empty audio is rejected with 422.
 - The demo completes listening, thinking, speaking, and idle states without a provider key.
@@ -32,6 +35,8 @@ MediaRecorder plus browser-side silence detection -> selected STT adapter -> cla
 ## Test evidence
 
 - `frontend/src/App.integration.test.tsx`
+- `frontend/src/components/AiSubtitle.test.tsx`
+- `frontend/src/hooks/useSubtitlePlayback.test.ts`
 - `frontend/src/hooks/useVoiceInteraction.test.ts`
 - `backend/tests/test_api.py`
 - `backend/tests/test_provider_config.py`
