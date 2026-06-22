@@ -165,8 +165,11 @@ function setVrmMaterialGlow(root: Object3D, state: AvatarState, audioActivity: n
       if ("emissiveIntensity" in material) {
         material.emissiveIntensity = Math.max(
           Number(material.emissiveIntensity ?? 0),
-          0.08 + activity * 0.22,
+          0.14 + activity * 0.24,
         );
+      }
+      if ("opacity" in material && typeof material.opacity === "number") {
+        material.opacity = Math.max(material.opacity, 0.96);
       }
       material.needsUpdate = true;
     });
@@ -238,46 +241,49 @@ function VrmCharacterScene({
 
   return (
     <>
-      <ambientLight intensity={0.72} />
+      <ambientLight intensity={1.05} />
+      <hemisphereLight color="#e9fbff" groundColor="#2b145c" intensity={1.85} />
+      <directionalLight color="#f7feff" intensity={2.3} position={[0, 1.9, 2.9]} />
       <spotLight
-        angle={0.38}
-        color={visual.primary}
-        intensity={3.4}
-        penumbra={0.68}
-        position={[1.6, 2.8, 3.2]}
+        angle={0.46}
+        color="#f4feff"
+        intensity={4.8}
+        penumbra={0.82}
+        position={[0.4, 2.45, 3.1]}
       />
-      <pointLight color={visual.secondary} intensity={1.8} position={[-2.2, 1.2, 2.4]} />
+      <pointLight color={visual.primary} intensity={2.4} position={[-1.8, 1.5, 1.8]} />
+      <pointLight color={visual.secondary} intensity={2.2} position={[1.7, 1.1, -1.4]} />
       <pointLight
         color={visual.danger}
         intensity={state === "error" || state === "pharmacist_escalation" ? 1.35 : 0.18}
         position={[0, 0.4, 2.6]}
       />
 
-      <group ref={root} scale={1.18} rotation={[0, Math.PI, 0]}>
+      <group ref={root} scale={2.35} rotation={[0, 0, 0]} position={[0, -1.58, 0]}>
         <primitive object={vrm.scene} />
       </group>
 
       <group ref={scanner}>
-        <mesh position={[0, 0.36, 0]} rotation={[Math.PI / 2, 0, 0]}>
-          <torusGeometry args={[1.08, 0.012, 12, 112]} />
+        <mesh position={[0, 0.18, -0.16]} rotation={[Math.PI / 2, 0, 0]}>
+          <torusGeometry args={[0.98, 0.012, 12, 112]} />
           <meshBasicMaterial
             color={visual.primary}
             opacity={state === "listening" || state === "speaking" ? 0.78 : 0.38}
             transparent
           />
         </mesh>
-        <mesh position={[0, -0.4, 0]} rotation={[Math.PI / 2.45, Math.PI / 6, 0]}>
-          <torusGeometry args={[1.45, 0.01, 12, 112]} />
+        <mesh position={[0, -0.18, -0.12]} rotation={[Math.PI / 2.45, Math.PI / 6, 0]}>
+          <torusGeometry args={[1.26, 0.01, 12, 112]} />
           <meshBasicMaterial color={visual.secondary} opacity={0.34} transparent />
         </mesh>
       </group>
 
-      <mesh position={[0, -1.24, 0]} rotation={[Math.PI / 2, 0, 0]}>
-        <ringGeometry args={[0.72, 1.22, 96]} />
+      <mesh position={[0, -1.28, 0]} rotation={[Math.PI / 2, 0, 0]}>
+        <ringGeometry args={[0.82, 1.38, 96]} />
         <meshBasicMaterial color={visual.primary} opacity={0.22 + activity * 0.28} transparent />
       </mesh>
 
-      <mesh position={[0, 1.36, 0.24]} scale={[0.34 + activity * 0.2, 0.024, 0.024]}>
+      <mesh position={[0, 1.18, 0.24]} scale={[0.32 + activity * 0.2, 0.024, 0.024]}>
         <boxGeometry args={[1, 1, 1]} />
         <meshBasicMaterial
           color={state === "error" || state === "pharmacist_escalation" ? visual.danger : visual.primary}
@@ -427,6 +433,7 @@ function VrmAvatarRenderer({
       data-state={state}
       data-avatar-renderer="vrm"
       data-avatar-model={hasVrmModel ? "vrm" : "fallback"}
+      data-avatar-framing="portrait"
       data-avatar-model-url={resolvedVrmModelUrl ?? undefined}
       data-reduced-motion={String(reducedMotion)}
       data-webgl={webglAvailable ? "available" : "fallback"}
@@ -437,7 +444,7 @@ function VrmAvatarRenderer({
       <div className="three-avatar-canvas-shell" aria-hidden="true">
         {webglAvailable ? (
           <Canvas
-            camera={{ position: [0, 0.22, 4.2], fov: 34 }}
+            camera={{ position: [0, 0.72, 3.05], fov: 30 }}
             dpr={[1, 1.35]}
             frameloop={reducedMotion ? "demand" : "always"}
             gl={{ antialias: true, alpha: true, powerPreference: "low-power" }}

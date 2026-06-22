@@ -26,6 +26,7 @@ describe("VrmAvatarRenderer", () => {
     const avatar = screen.getByLabelText(/vrm character ai avatar/i);
     expect(avatar).toHaveAttribute("data-avatar-renderer", "vrm");
     expect(avatar).toHaveAttribute("data-avatar-model", "vrm");
+    expect(avatar).toHaveAttribute("data-avatar-framing", "portrait");
     expect(avatar).toHaveAttribute("data-avatar-model-url", "/assets/avatar/vita.vrm");
   });
 });
