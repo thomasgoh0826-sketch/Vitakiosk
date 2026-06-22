@@ -27,6 +27,7 @@ describe("VrmAvatarRenderer", () => {
     expect(avatar).toHaveAttribute("data-avatar-renderer", "vrm");
     expect(avatar).toHaveAttribute("data-avatar-model", "vrm");
     expect(avatar).toHaveAttribute("data-avatar-framing", "portrait");
+    expect(avatar).toHaveAttribute("data-avatar-crop", "bust");
     expect(avatar).toHaveClass("vrm-avatar-portrait");
     expect(avatar).not.toHaveClass("three-avatar");
     expect(avatar.querySelector(".vrm-avatar-portrait-shell")).not.toBeNull();

@@ -28,7 +28,7 @@ A feature is accepted only when:
 - A white/light SaaS dashboard treatment or a primary `Hold to Speak` label is not accepted.
 - Optional avatar renderer work must keep Lottie as the default, gate Three.js behind `VITE_AVATAR_RENDERER=threejs`, and prove all avatar states remain accessible.
 - Three.js avatar acceptance requires lazy loading, GLB humanoid support, abstract hologram fallback, WebGL fallback, reduced-motion support, and tests proving Lottie remains the default.
-- VRM avatar acceptance requires lazy loading, local self-hosted VRM support, Lottie/GLB/abstract fallback safety, accessible state labels, reduced-motion support, a relaxed non-T-pose assistant stance, vertical portrait-stage rendering without circular hologram masking when the VRM is loaded, upper-body face/shoulder/torso framing, visible face lighting, and screenshot evidence at 1024 × 768.
+- VRM avatar acceptance requires lazy loading, local self-hosted VRM support, Lottie/GLB/abstract fallback safety, accessible state labels, reduced-motion support, a relaxed non-T-pose assistant stance, no visible raised hands or improvised hand/lower-arm gesture overrides, vertical portrait-stage rendering without circular hologram masking when the VRM is loaded, bust-shot head/face/shoulder/upper-chest framing, visible face lighting, and screenshot evidence at 1024 × 768.
 - Heavy 3D models are not accepted for the iPad landscape kiosk path.
 
 ## Test evidence

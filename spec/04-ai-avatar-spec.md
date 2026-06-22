@@ -43,8 +43,10 @@ Three.js/VRM controls body motion, face expressions, blinking, head movement, id
 - VRM lifelike hooks cover idle breathing, random blinking, slight head movement, state expression mapping, and speaking mouth movement based on clamped `audioActivity`.
 - VRM expression mapping is relaxed, attentive, focused, friendly, concerned, and serious for idle, listening, thinking, speaking, error, and pharmacist escalation.
 - VRM lip sync starts with amplitude-based mouth movement only; phoneme or viseme timing is a future reviewed task.
-- The VRM renderer applies a relaxed assistant portrait pose after model load: arms must not remain horizontally stretched in T-pose, elbows should rest in a natural lowered stance when bones are available, and unavailable pose bones must no-op safely.
-- The VRM renderer frames the avatar as an upper-body kiosk assistant portrait with `data-avatar-framing="portrait"`, readable face lighting, soft key light, and cyan/purple rim glow; it must not present as a tiny ghost-like full-body figure.
+- The VRM renderer applies a relaxed assistant portrait pose after model load: arms must not remain horizontally stretched in T-pose or raised into a gesture, a minimal static upper-arm rest pose may be used only to keep the portrait professional, and hand/lower-arm gesture overrides must remain disabled until verified animation clips or pose presets are reviewed.
+- The VRM renderer frames the avatar as a bust-shot kiosk assistant portrait with `data-avatar-framing="portrait"` and `data-avatar-crop="bust"`: head, face, shoulders, and upper chest must be visible while hands and forearms stay outside the visible frame.
+- VRM hand gestures are a future reviewed task and must not be improvised through manual hand/lower-arm bone animation.
+- The VRM renderer uses readable face lighting, soft key light, and cyan/purple rim glow; it must not present as a tiny ghost-like full-body figure.
 - When a VRM model loads successfully, the renderer uses a vertical portrait AI assistant stage and must not use the circular abstract hologram mask, `border-radius: 50%` shell, radial mask, or black circular crop reserved for abstract fallback visuals.
 - The Three.js renderer respects reduced-motion settings and renders safely when WebGL is unavailable.
 - The Lottie-first visual reads as an abstract holographic AI assistant and does not use a childish cartoon face.

@@ -34,7 +34,7 @@ const EXPRESSION_BY_STATE: Record<AvatarState, AvatarExpression> = {
   pharmacist_escalation: "serious",
 };
 
-const VRM_PORTRAIT_BASE_Y = -2.82;
+const VRM_PORTRAIT_BASE_Y = -2.88;
 const VRM_PORTRAIT_BASE_YAW = 0;
 
 export interface BoneRotation {
@@ -49,14 +49,8 @@ export interface RelaxedAvatarPose {
   upperChest: BoneRotation;
   neck: BoneRotation;
   head: BoneRotation;
-  leftShoulder: BoneRotation;
-  rightShoulder: BoneRotation;
   leftUpperArm: BoneRotation;
   rightUpperArm: BoneRotation;
-  leftLowerArm: BoneRotation;
-  rightLowerArm: BoneRotation;
-  leftHand: BoneRotation;
-  rightHand: BoneRotation;
 }
 
 export function getAvatarExpressionForState(state: AvatarState): AvatarExpression {
@@ -70,7 +64,6 @@ function rotation(x = 0, y = 0, z = 0): BoneRotation {
 export function getRelaxedAvatarPose(state: AvatarState): RelaxedAvatarPose {
   const attentiveLean = state === "listening" ? -0.055 : 0;
   const seriousLean = state === "pharmacist_escalation" ? -0.025 : 0;
-  const alertTension = state === "error" || state === "pharmacist_escalation" ? 0.08 : 0;
 
   return {
     hips: rotation(0.015, 0, 0),
@@ -78,14 +71,8 @@ export function getRelaxedAvatarPose(state: AvatarState): RelaxedAvatarPose {
     upperChest: rotation(-0.015 + attentiveLean * 0.7, 0, 0),
     neck: rotation(0.01 + attentiveLean * 0.4, 0, 0),
     head: rotation(0, 0, 0),
-    leftShoulder: rotation(0.02, 0.02, 0.1),
-    rightShoulder: rotation(0.02, -0.02, -0.1),
-    leftUpperArm: rotation(-0.18 - alertTension, 0.04, 1.08),
-    rightUpperArm: rotation(-0.18 - alertTension, -0.04, -1.08),
-    leftLowerArm: rotation(-0.08, 0.36, 0.08),
-    rightLowerArm: rotation(-0.08, -0.36, -0.08),
-    leftHand: rotation(0.02, 0.06, 0.04),
-    rightHand: rotation(0.02, -0.06, -0.04),
+    leftUpperArm: rotation(0.04, 0.02, -1.18),
+    rightUpperArm: rotation(0.04, -0.02, 1.18),
   };
 }
 
@@ -220,14 +207,8 @@ export function useAvatarIdleMotion({
             z: pose.head.z,
           }),
         },
-        leftShoulder: { rotation: toQuaternionTuple(pose.leftShoulder) },
-        rightShoulder: { rotation: toQuaternionTuple(pose.rightShoulder) },
         leftUpperArm: { rotation: toQuaternionTuple(pose.leftUpperArm) },
         rightUpperArm: { rotation: toQuaternionTuple(pose.rightUpperArm) },
-        leftLowerArm: { rotation: toQuaternionTuple(pose.leftLowerArm) },
-        rightLowerArm: { rotation: toQuaternionTuple(pose.rightLowerArm) },
-        leftHand: { rotation: toQuaternionTuple(pose.leftHand) },
-        rightHand: { rotation: toQuaternionTuple(pose.rightHand) },
       });
 
       applyExpressionWeights(vrm, state, blink);

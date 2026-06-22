@@ -1185,7 +1185,7 @@ button:focus-visible {
 
 .vrm-avatar-portrait-shell {
   position: absolute;
-  inset: 6px 28px 8px;
+  inset: 20px 84px 92px;
   overflow: hidden;
   border-radius: 18px;
   background:

@@ -46,6 +46,7 @@ function AvatarAssistant({
               data-avatar-renderer="vrm"
               data-avatar-model="loading"
               data-avatar-framing="portrait"
+              data-avatar-crop="bust"
               data-avatar-stage="portrait-panel"
               data-reduced-motion="pending"
               role="presentation"

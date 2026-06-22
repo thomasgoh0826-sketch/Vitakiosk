@@ -19,7 +19,7 @@ describe("avatar idle motion helpers", () => {
 
   it("keeps reduced-motion idle frames stable", () => {
     expect(getIdleMotionFrame({ elapsed: 12, state: "thinking", reducedMotion: true })).toEqual({
-      rootY: -2.82,
+      rootY: -2.88,
       bodyY: 0,
       headYaw: 0,
       headPitch: 0,
@@ -28,15 +28,19 @@ describe("avatar idle motion helpers", () => {
     });
   });
 
-  it("keeps arms out of T-pose with a relaxed assistant stance", () => {
+  it("keeps professional bust portraits free of risky hand and gesture overrides", () => {
     const pose = getRelaxedAvatarPose("idle");
 
-    expect(pose.leftUpperArm.z).toBeGreaterThan(0.85);
-    expect(pose.rightUpperArm.z).toBeLessThan(-0.85);
-    expect(Math.abs(pose.leftUpperArm.x)).toBeGreaterThan(0.12);
-    expect(Math.abs(pose.rightUpperArm.x)).toBeGreaterThan(0.12);
-    expect(Math.abs(pose.leftLowerArm.y)).toBeGreaterThan(0.22);
-    expect(Math.abs(pose.rightLowerArm.y)).toBeGreaterThan(0.22);
+    expect(Math.abs(pose.leftUpperArm.z)).toBeLessThan(1.3);
+    expect(Math.abs(pose.rightUpperArm.z)).toBeLessThan(1.3);
+    expect(pose.leftUpperArm.z).toBeLessThan(0);
+    expect(pose.rightUpperArm.z).toBeGreaterThan(0);
+    expect("leftShoulder" in pose).toBe(false);
+    expect("rightShoulder" in pose).toBe(false);
+    expect("leftLowerArm" in pose).toBe(false);
+    expect("rightLowerArm" in pose).toBe(false);
+    expect("leftHand" in pose).toBe(false);
+    expect("rightHand" in pose).toBe(false);
     expect(pose.head.y).toBe(0);
   });
 

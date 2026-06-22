@@ -439,6 +439,7 @@ function VrmAvatarRenderer({
       data-avatar-renderer="vrm"
       data-avatar-model={hasVrmModel ? "vrm" : "fallback"}
       data-avatar-framing="portrait"
+      data-avatar-crop={usesPortraitStage ? "bust" : "fallback"}
       data-avatar-stage={usesPortraitStage ? "portrait-panel" : "abstract-fallback"}
       data-camera-target={usesPortraitStage ? "head-chest" : "fallback"}
       data-avatar-model-url={resolvedVrmModelUrl ?? undefined}
@@ -454,7 +455,7 @@ function VrmAvatarRenderer({
       >
         {webglAvailable ? (
           <Canvas
-            camera={{ position: [0, 0.88, 3.05], fov: 28 }}
+            camera={{ position: [0, 1.05, 2.8], fov: 28 }}
             dpr={[1, 1.35]}
             frameloop={reducedMotion ? "demand" : "always"}
             gl={{ antialias: true, alpha: true, powerPreference: "low-power" }}
