@@ -10,7 +10,7 @@ Make system state visible without implying clinical authority.
 
 The Three.js renderer supports a lightweight GLB humanoid avatar at `frontend/src/assets/avatar/vitakiosk-avatar.glb`. It remains lazy-loaded so the default Lottie kiosk bundle stays lean. If the GLB file is absent, WebGL is unavailable, or model loading fails, the renderer must fall back to the existing abstract hologram without crashing.
 
-The VRM renderer supports a self-hosted local VRM avatar at `frontend/src/assets/avatar/vita.vrm`. It remains optional and lazy-loaded, uses `@pixiv/three-vrm`, and must fall back safely if the VRM file is missing, invalid, WebGL is unavailable, or model loading fails.
+The VRM renderer supports self-hosted local VRM avatars at `frontend/src/assets/avatar/vita.vrm` and `frontend/src/assets/avatar/vita-new.vrm`. It remains optional and lazy-loaded, uses `@pixiv/three-vrm`, and must fall back safely if the selected VRM file is missing, invalid, WebGL is unavailable, or model loading fails.
 
 Avatar model sources must be self-hosted and model-agnostic. Acceptable reviewed sources include local GLB files, Blender-exported GLB files, VRoid Studio VRM files, converted GLB exports, licensed Sketchfab or CGTrader assets, and custom models. The current runtime loads GLB and VRM assets from the local repository asset path; any future static asset path must be explicitly reviewed and must remain self-hosted.
 
@@ -28,10 +28,13 @@ Three.js/VRM controls body motion, face expressions, blinking, head movement, id
 - Lottie remains the default avatar renderer when no renderer config is set.
 - `VITE_AVATAR_RENDERER=threejs` enables the optional Three.js renderer without changing backend, WebSocket, mock data, provider, or safety behavior.
 - `VITE_AVATAR_RENDERER=vrm` enables the optional VRM renderer without changing backend, WebSocket, mock data, provider, or safety behavior.
+- `VITE_VRM_MODEL=vita` selects `frontend/src/assets/avatar/vita.vrm`; `VITE_VRM_MODEL=vita-new` selects `frontend/src/assets/avatar/vita-new.vrm` for controlled visual replacement testing.
 - The Three.js renderer has accessible labels for every avatar state and supports idle, listening, thinking, speaking, error, and pharmacist escalation.
 - The VRM renderer has accessible labels for every avatar state and supports idle, listening, thinking, speaking, error, and pharmacist escalation.
 - When a GLB model is bundled at `frontend/src/assets/avatar/vitakiosk-avatar.glb`, the Three.js renderer loads it as a humanoid AI pharmacist avatar.
 - When a VRM model is bundled at `frontend/src/assets/avatar/vita.vrm`, the VRM renderer loads it as a self-hosted character avatar.
+- When `VITE_VRM_MODEL=vita-new` and `frontend/src/assets/avatar/vita-new.vrm` is bundled, the VRM renderer loads the alternate self-hosted test character and exposes `data-avatar-model-key="vita-new"` for runtime QA.
+- If `VITE_VRM_MODEL=vita-new` is selected but the alternate asset is unavailable or invalid, the renderer must fall back safely instead of silently displaying `vita.vrm` as if the selected test model loaded.
 - If no GLB model is available or it fails to load, the renderer falls back to lightweight geometry, rings, particles, and panels.
 - If no VRM model is available or it fails to load, the renderer falls back safely without crashing the kiosk.
 - GLB and VRM models must stay lightweight enough for iPad landscape kiosk use, with a preferred target of 5 MB or less and review required before accepting models above 10 MB.

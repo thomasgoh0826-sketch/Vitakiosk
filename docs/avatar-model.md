@@ -16,11 +16,14 @@ Place reviewed self-hosted avatar models at:
 ```text
 frontend/src/assets/avatar/vitakiosk-avatar.glb
 frontend/src/assets/avatar/vita.vrm
+frontend/src/assets/avatar/vita-new.vrm
 ```
 
 The repository includes a tiny fictional VitaKiosk humanoid GLB placeholder so the GLB path can be verified without using any private brand, customer, staff, or patient data.
 
 `vita.vrm` is the current reviewed local VRM demo asset supplied for this project. It is self-hosted, loaded through the local Vite asset pipeline, and does not require customer data, API keys, tokens, avatar cloud services, or private URLs. Its current file size is about 15.37 MB, so future production models should be optimized further for iPad kiosk performance when practical.
+
+`vita-new.vrm` is a second reviewed local VRM test asset. It is added as a separate self-hosted model for visual replacement testing and does not delete or overwrite `vita.vrm`. Its current file size is about 16.53 MB, so it is acceptable for controlled visual QA but should still be optimized or replaced with a lighter licensed production model before kiosk rollout.
 
 ## Renderer selection
 
@@ -44,6 +47,14 @@ $env:VITE_AVATAR_RENDERER='vrm'
 npm.cmd run dev --prefix frontend
 ```
 
+Select the second VRM test model locally:
+
+```powershell
+$env:VITE_AVATAR_RENDERER='vrm'
+$env:VITE_VRM_MODEL='vita-new'
+npm.cmd run dev --prefix frontend
+```
+
 Supported frontend renderer values are:
 
 - `lottie`
@@ -51,6 +62,13 @@ Supported frontend renderer values are:
 - `vrm`
 
 Unknown renderer values fall back to Lottie. If `vita.vrm` is absent or invalid, the VRM renderer falls back safely. If `vitakiosk-avatar.glb` is absent or a GLB fails to load, the Three.js renderer falls back to the existing abstract hologram instead of crashing.
+
+Supported local VRM model selector values are:
+
+- `vita` loads `frontend/src/assets/avatar/vita.vrm`.
+- `vita-new` loads `frontend/src/assets/avatar/vita-new.vrm`.
+
+Unknown `VITE_VRM_MODEL` values normalize to `vita`. If `vita-new` is explicitly selected but the asset is unavailable, the renderer falls back safely instead of silently showing the old model and making QA evidence ambiguous.
 
 ## Self-hosted avatar source strategy
 
@@ -120,6 +138,27 @@ The current renderers load GLB and VRM assets through the local Vite asset pipel
    ```
 
 8. Capture new visual evidence before committing if the avatar appearance materially changes.
+
+## Testing an alternate VRM without deleting `vita.vrm`
+
+1. Add the reviewed, licensed, self-hosted test model at:
+
+   ```text
+   frontend/src/assets/avatar/vita-new.vrm
+   ```
+
+2. Keep the existing `frontend/src/assets/avatar/vita.vrm` in place.
+3. Confirm the alternate model does not contain customer data, staff data, sales data, API keys, embedded private URLs, tracking pixels, or runtime calls to external avatar services.
+4. Start the kiosk with the VRM renderer and alternate model selector:
+
+   ```powershell
+   $env:VITE_AVATAR_RENDERER='vrm'
+   $env:VITE_VRM_MODEL='vita-new'
+   npm.cmd run dev --prefix frontend -- --host 127.0.0.1 --port 5173
+   ```
+
+5. Verify the runtime DOM reports `data-avatar-renderer="vrm"` and `data-avatar-model-key="vita-new"`.
+6. Capture screenshot evidence and compare against `VITE_VRM_MODEL='vita'` before accepting the visual change.
 
 ## Body, face, voice, and AI responsibilities
 

@@ -33,6 +33,7 @@ A feature is accepted only when:
 - Optional avatar renderer work must keep Lottie as the default, gate Three.js behind `VITE_AVATAR_RENDERER=threejs`, and prove all avatar states remain accessible.
 - Three.js avatar acceptance requires lazy loading, GLB humanoid support, abstract hologram fallback, WebGL fallback, reduced-motion support, and tests proving Lottie remains the default.
 - VRM avatar acceptance requires lazy loading, local self-hosted VRM support, Lottie/GLB/abstract fallback safety, accessible state labels, reduced-motion support, a relaxed non-T-pose assistant stance, no visible raised hands or improvised hand/lower-arm gesture overrides, vertical full-body chamber rendering without circular hologram masking when the VRM is loaded, full-body or near-full-body framing with the head never cropped, visible face lighting, and screenshot evidence at 1024x768.
+- Alternate VRM model acceptance requires `VITE_VRM_MODEL=vita-new` to load `frontend/src/assets/avatar/vita-new.vrm` without deleting `frontend/src/assets/avatar/vita.vrm`, expose runtime evidence such as `data-avatar-model-key="vita-new"`, and fall back safely if the selected alternate model is unavailable or invalid.
 - VRM hologram orbit acceptance requires the orbit/halo to render as a background effect that does not visibly cross the avatar's face, torso, arms, hands, or dress, with screenshot evidence at 1024x768 and 1366x768.
 - Heavy 3D models are not accepted for the iPad landscape kiosk path.
 

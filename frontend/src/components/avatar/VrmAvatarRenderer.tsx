@@ -23,7 +23,7 @@ import { useAvatarIdleMotion } from "../../hooks/useAvatarIdleMotion";
 import { useAvatarLipSync } from "../../hooks/useAvatarLipSync";
 import type { AvatarState } from "../../types";
 import type { AvatarRendererProps } from "./AvatarRenderer";
-import { getDefaultVrmAvatarModelUrl } from "./AvatarModel";
+import { getDefaultVrmAvatarModelKey, getDefaultVrmAvatarModelUrl, type VrmAvatarModelKey } from "./AvatarModel";
 
 
 const STATE_LABELS: Record<AvatarState, string> = {
@@ -425,12 +425,14 @@ function StaticVrmFallback({ state, audioActivity }: StaticVrmFallbackProps) {
 
 interface VrmAvatarRendererProps extends AvatarRendererProps {
   vrmModelUrl?: string | null;
+  vrmModelKey?: VrmAvatarModelKey;
 }
 
 function VrmAvatarRenderer({
   state,
   audioActivity,
   vrmModelUrl = getDefaultVrmAvatarModelUrl(),
+  vrmModelKey = getDefaultVrmAvatarModelKey(),
 }: VrmAvatarRendererProps) {
   const reducedMotion = usePrefersReducedMotion();
   const webglAvailable = useMemo(canUseWebGL, []);
@@ -458,6 +460,7 @@ function VrmAvatarRenderer({
       data-state={state}
       data-avatar-renderer="vrm"
       data-avatar-model={hasVrmModel ? "vrm" : "fallback"}
+      data-avatar-model-key={hasVrmModel ? vrmModelKey : "fallback"}
       data-avatar-framing={usesPortraitStage ? "full-body" : "fallback"}
       data-avatar-crop={usesPortraitStage ? "full-body" : "fallback"}
       data-avatar-stage={usesPortraitStage ? "full-body-chamber" : "abstract-fallback"}

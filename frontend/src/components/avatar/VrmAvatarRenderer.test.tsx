@@ -26,6 +26,7 @@ describe("VrmAvatarRenderer", () => {
     const avatar = screen.getByLabelText(/vrm character ai avatar/i);
     expect(avatar).toHaveAttribute("data-avatar-renderer", "vrm");
     expect(avatar).toHaveAttribute("data-avatar-model", "vrm");
+    expect(avatar).toHaveAttribute("data-avatar-model-key", "vita");
     expect(avatar).toHaveAttribute("data-avatar-framing", "full-body");
     expect(avatar).toHaveAttribute("data-avatar-crop", "full-body");
     expect(avatar).toHaveAttribute("data-avatar-stage", "full-body-chamber");
@@ -36,6 +37,22 @@ describe("VrmAvatarRenderer", () => {
     expect(avatar.querySelector(".vrm-avatar-portrait-shell")).not.toBeNull();
     expect(avatar.querySelector(".three-avatar-canvas-shell")).toBeNull();
     expect(avatar).toHaveAttribute("data-avatar-model-url", "/assets/avatar/vita.vrm");
+  });
+
+  it("marks the selected vita-new VRM model for runtime verification", () => {
+    render(
+      <VrmAvatarRenderer
+        state="idle"
+        audioActivity={0}
+        vrmModelKey="vita-new"
+        vrmModelUrl="/assets/avatar/vita-new.vrm"
+      />,
+    );
+
+    const avatar = screen.getByLabelText(/vrm character ai avatar/i);
+    expect(avatar).toHaveAttribute("data-avatar-model", "vrm");
+    expect(avatar).toHaveAttribute("data-avatar-model-key", "vita-new");
+    expect(avatar).toHaveAttribute("data-avatar-model-url", "/assets/avatar/vita-new.vrm");
   });
 
   it("does not show technical VRM renderer labels to customers", () => {
