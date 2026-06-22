@@ -3,6 +3,8 @@ from datetime import UTC, datetime
 import pytest
 
 from services.poster_engine import PosterEngine
+from services.leaflet_engine import LeafletEngine
+from services.models import LeafletKind
 from services.product_vision import MockProductVision
 from services.promotion_engine import PromotionEngine
 from services.safety_guardrails import SafetyGuardrails
@@ -62,6 +64,40 @@ def test_idle_posters_use_only_eligible_promotions() -> None:
     assert [poster.id for poster in posters] == ["MOCK-POSTER001"]
     assert posters[0].promotion_id == "MOCK-PR001"
     assert posters[0].source == "mock_vitaflow"
+
+
+def test_leaflets_are_active_current_and_branch_aware() -> None:
+    engine = LeafletEngine()
+
+    leaflets = engine.eligible_for_branch("SG-001", now=NOW)
+
+    assert [leaflet.id for leaflet in leaflets] == [
+        "MOCK-LF-PROMO-001",
+        "MOCK-LF-PROMO-002",
+        "MOCK-LF-CAMP-001",
+    ]
+    assert all(leaflet.active for leaflet in leaflets)
+    assert all(leaflet.branch_id == "SG-001" for leaflet in leaflets)
+
+
+def test_product_leaflets_are_product_and_kind_scoped() -> None:
+    engine = LeafletEngine()
+
+    relief_promotions = engine.for_product(
+        "MOCK-P001",
+        "SG-001",
+        kind=LeafletKind.PROMOTION,
+        now=NOW,
+    )
+    hydration_campaigns = engine.for_product(
+        "MOCK-P002",
+        "SG-001",
+        kind=LeafletKind.CAMPAIGN,
+        now=NOW,
+    )
+
+    assert [leaflet.id for leaflet in relief_promotions] == ["MOCK-LF-PROMO-001"]
+    assert [leaflet.id for leaflet in hydration_campaigns] == ["MOCK-LF-CAMP-001"]
 
 
 def test_mock_stt_returns_deterministic_transcript() -> None:

@@ -1,7 +1,14 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 
 import type { VitaKioskApiClient } from "../api/client";
-import type { AvatarState, Poster, Product, Promotion } from "../types";
+import type {
+  AvatarState,
+  Leaflet,
+  Poster,
+  Product,
+  Promotion,
+  UiAction,
+} from "../types";
 import { calculateAudioActivity, useAudioActivity } from "./useAudioActivity";
 
 
@@ -30,11 +37,15 @@ function useVoiceInteraction({
   const [state, setState] = useState<AvatarState>("idle");
   const [product, setProduct] = useState<Product | null>(null);
   const [promotions, setPromotions] = useState<Promotion[]>([]);
+  const [leaflets, setLeaflets] = useState<Leaflet[]>([]);
+  const [uiActions, setUiActions] = useState<UiAction[]>([]);
   const [poster, setPoster] = useState<Poster | null>(null);
+  const [transcript, setTranscript] = useState("");
   const [responseText, setResponseText] = useState("");
   const [purchasingQueryId, setPurchasingQueryId] = useState<string | null>(null);
   const [escalationId, setEscalationId] = useState<string | null>(null);
   const [hasResult, setHasResult] = useState(false);
+  const [resultId, setResultId] = useState(0);
   const [error, setError] = useState<string | null>(null);
   const [audioElement, setAudioElement] = useState<HTMLAudioElement | null>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
@@ -163,11 +174,15 @@ function useVoiceInteraction({
     setState("idle");
     setProduct(null);
     setPromotions([]);
+    setLeaflets([]);
+    setUiActions([]);
     setPoster(null);
+    setTranscript("");
     setResponseText("");
     setPurchasingQueryId(null);
     setEscalationId(null);
     setHasResult(false);
+    setResultId(0);
     setError(null);
     setAudioElement(null);
     autoStopInProgressRef.current = false;
@@ -226,13 +241,18 @@ function useVoiceInteraction({
       sendState("thinking");
 
       const transcription = await api.transcribe(recording, sessionId);
+      setTranscript(transcription.transcript);
+      setResponseText("Preparing answer...");
       const response = await api.respond(sessionId, transcription.transcript, branchId);
       setHasResult(true);
       setProduct(response.product);
       setPromotions(response.promotions);
+      setLeaflets(response.leaflets ?? []);
+      setUiActions(response.ui_actions ?? []);
       setResponseText(response.message);
       setPurchasingQueryId(response.purchasing_query_id);
       setEscalationId(response.escalation_id);
+      setResultId((current) => current + 1);
 
       if (response.requires_pharmacist) {
         setState("pharmacist_escalation");
@@ -274,11 +294,15 @@ function useVoiceInteraction({
     audioActivity,
     product,
     promotions,
+    leaflets,
+    uiActions,
     poster,
+    transcript,
     responseText,
     purchasingQueryId,
     escalationId,
     hasResult,
+    resultId,
     error,
     startRecording,
     stopRecording,

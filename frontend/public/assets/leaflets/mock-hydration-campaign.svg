@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 640" role="img" aria-label="Mock hydration campaign leaflet">
+  <defs>
+    <linearGradient id="bg" x1="0" x2="1" y1="0" y2="1">
+      <stop offset="0" stop-color="#03101f"/>
+      <stop offset="0.5" stop-color="#06345f"/>
+      <stop offset="1" stop-color="#170b3d"/>
+    </linearGradient>
+  </defs>
+  <rect width="480" height="640" rx="34" fill="url(#bg)"/>
+  <rect x="24" y="24" width="432" height="592" rx="28" fill="none" stroke="#42f5ff" stroke-opacity="0.48" stroke-width="3"/>
+  <path d="M240 132c72 91 108 150 108 214 0 67-49 116-108 116s-108-49-108-116c0-64 36-123 108-214Z" fill="#42f5ff" opacity="0.25"/>
+  <path d="M240 166c54 75 80 122 80 172 0 52-36 88-80 88s-80-36-80-88c0-50 26-97 80-172Z" fill="#42f5ff" opacity="0.72"/>
+  <text x="240" y="84" text-anchor="middle" fill="#dffcff" font-family="Inter, Arial" font-size="28" font-weight="700" letter-spacing="4">VITAKIOSK</text>
+  <text x="240" y="496" text-anchor="middle" fill="#ffffff" font-family="Inter, Arial" font-size="38" font-weight="800">Hydration Health</text>
+  <text x="240" y="542" text-anchor="middle" fill="#42f5ff" font-family="Inter, Arial" font-size="32" font-weight="800">Campaign</text>
+  <text x="240" y="586" text-anchor="middle" fill="#aebdd4" font-family="Inter, Arial" font-size="16">Fictional mock campaign · No diagnosis</text>
+</svg>

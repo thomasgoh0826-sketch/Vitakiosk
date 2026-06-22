@@ -14,6 +14,8 @@ Expose typed mock contracts for the kiosk without provider-specific route logic.
 - Empty audio and empty search values return validation errors.
 - TTS returns `audio/wav` and `X-Voice-Provider: mock_tts`.
 - Product, promotion, poster, query, and escalation responses include mock provenance.
+- AI responses include customer-safe text plus structured `ui_actions` and active branch-valid leaflet data when the workflow calls for UI changes.
+- `ui_actions` must be from the approved action set; no free-form click target, URL, selector, or raw UI instruction is accepted.
 - Backend starts without provider credentials.
 
 ## Test evidence

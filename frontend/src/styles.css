@@ -3418,3 +3418,324 @@ body {
     transition-duration: 0.01ms !important;
   }
 }
+
+/* Controlled subtitle and leaflet action layer */
+
+.subtitle-streaming p::after {
+  content: "▌";
+  display: inline-block;
+  margin-left: 3px;
+  color: var(--neon-cyan);
+  text-shadow: 0 0 10px rgba(66, 245, 255, 0.72);
+}
+
+.leaflet-poster,
+.leaflet-gallery-frame,
+.leaflet-choice-frame,
+.leaflet-empty-frame,
+.leaflet-safety-override {
+  min-height: 100%;
+}
+
+.leaflet-image-stage,
+.leaflet-modal-art,
+.leaflet-card {
+  position: relative;
+  overflow: hidden;
+}
+
+.leaflet-image-stage {
+  min-height: clamp(78px, 12dvh, 150px);
+  display: grid;
+  place-items: center;
+  border: 1px solid rgba(66, 245, 255, 0.28);
+  border-radius: 12px;
+  background:
+    radial-gradient(circle at 50% 40%, rgba(66, 245, 255, 0.16), transparent 34%),
+    linear-gradient(145deg, rgba(5, 17, 38, 0.94), rgba(22, 8, 48, 0.92));
+  box-shadow: inset 0 0 22px rgba(66, 245, 255, 0.08);
+}
+
+.leaflet-image-stage img,
+.leaflet-card img,
+.leaflet-modal-art img {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: cover;
+}
+
+.leaflet-image-stage img {
+  max-height: clamp(86px, 14dvh, 170px);
+  object-fit: contain;
+  filter: drop-shadow(0 0 18px rgba(66, 245, 255, 0.24));
+}
+
+.leaflet-open-button,
+.leaflet-choice-buttons button,
+.leaflet-card button,
+.leaflet-modal-controls button,
+.leaflet-modal-close {
+  border: 1px solid rgba(66, 245, 255, 0.54);
+  color: #eaffff;
+  background:
+    linear-gradient(100deg, rgba(30, 145, 180, 0.24), rgba(120, 76, 255, 0.2)),
+    rgba(4, 12, 28, 0.76);
+  box-shadow: 0 0 18px rgba(66, 245, 255, 0.12);
+  cursor: pointer;
+}
+
+.leaflet-open-button {
+  min-height: clamp(34px, 4.2dvh, 48px);
+  border-radius: 10px;
+  font-size: clamp(0.56rem, 0.62dvw, 0.78rem);
+  font-weight: 850;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.leaflet-choice-frame {
+  justify-content: center;
+  text-align: center;
+}
+
+.leaflet-choice-frame h2,
+.leaflet-gallery-frame h2,
+.leaflet-safety-override h2,
+.leaflet-empty-frame h2 {
+  position: relative;
+  z-index: 2;
+  margin: 0;
+  color: #fff;
+  font-size: clamp(1rem, 1.25dvw, 1.6rem);
+}
+
+.leaflet-choice-frame p,
+.leaflet-gallery-frame p,
+.leaflet-safety-override p,
+.leaflet-empty-frame p {
+  position: relative;
+  z-index: 2;
+  margin: 0;
+  color: var(--text-muted);
+  font-size: clamp(0.58rem, 0.64dvw, 0.82rem);
+  line-height: 1.45;
+}
+
+.leaflet-choice-buttons {
+  position: relative;
+  z-index: 2;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.leaflet-choice-buttons button {
+  min-height: clamp(58px, 8dvh, 88px);
+  border-radius: 14px;
+  color: var(--neon-cyan);
+  font-size: clamp(0.88rem, 1dvw, 1.2rem);
+  font-weight: 900;
+}
+
+.leaflet-gallery-frame {
+  display: grid;
+  grid-template-rows: auto auto minmax(0, 1fr);
+  gap: 9px;
+}
+
+.leaflet-carousel {
+  position: relative;
+  z-index: 2;
+  min-width: 0;
+  display: grid;
+  grid-auto-columns: minmax(150px, 82%);
+  grid-auto-flow: column;
+  gap: 10px;
+  overflow-x: auto;
+  overscroll-behavior-inline: contain;
+  padding: 1px 2px 6px;
+  scroll-snap-type: x mandatory;
+}
+
+.leaflet-card {
+  min-height: 214px;
+  display: grid;
+  grid-template-rows: 78px auto auto 1fr auto;
+  gap: 5px;
+  padding: 8px;
+  border: 1px solid rgba(66, 245, 255, 0.22);
+  border-radius: 12px;
+  background: rgba(4, 12, 29, 0.74);
+  scroll-snap-align: start;
+}
+
+.leaflet-card img {
+  border-radius: 8px;
+  background: rgba(66, 245, 255, 0.08);
+}
+
+.leaflet-card span {
+  color: var(--neon-cyan);
+  font-size: 0.48rem;
+  font-weight: 850;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.leaflet-card h3 {
+  margin: 0;
+  color: #fff;
+  font-size: clamp(0.8rem, 0.9dvw, 1rem);
+  line-height: 1.08;
+}
+
+.leaflet-card p {
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+}
+
+.leaflet-card button {
+  min-height: 34px;
+  border-radius: 9px;
+  font-size: 0.58rem;
+  font-weight: 850;
+}
+
+.leaflet-safety-override {
+  justify-content: center;
+  border-color: rgba(255, 83, 109, 0.62);
+  background:
+    radial-gradient(circle at 50% 24%, rgba(255, 83, 109, 0.24), transparent 30%),
+    linear-gradient(160deg, rgba(52, 10, 32, 0.98), rgba(6, 12, 29, 0.96));
+}
+
+.leaflet-modal-backdrop {
+  position: fixed;
+  z-index: 50;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: clamp(18px, 4dvw, 60px);
+  background:
+    radial-gradient(circle at 50% 40%, rgba(66, 245, 255, 0.16), transparent 34%),
+    rgba(0, 3, 10, 0.72);
+  backdrop-filter: blur(12px);
+}
+
+.leaflet-modal {
+  position: relative;
+  width: min(860px, 90dvw);
+  max-height: min(680px, 86dvh);
+  display: grid;
+  grid-template-columns: minmax(0, 1.05fr) minmax(260px, 0.75fr);
+  gap: clamp(12px, 1.5dvw, 22px);
+  padding: clamp(14px, 1.6dvw, 24px);
+  border: 1px solid rgba(66, 245, 255, 0.42);
+  border-radius: 22px;
+  color: var(--text-primary);
+  background:
+    linear-gradient(145deg, rgba(8, 20, 43, 0.98), rgba(16, 7, 39, 0.98)),
+    var(--panel-glass);
+  box-shadow:
+    inset 0 0 32px rgba(66, 245, 255, 0.07),
+    0 0 44px rgba(66, 245, 255, 0.18),
+    0 24px 70px rgba(0, 0, 0, 0.52);
+}
+
+.leaflet-modal-art {
+  min-height: 420px;
+  border: 1px solid rgba(155, 108, 255, 0.36);
+  border-radius: 16px;
+  background: rgba(5, 12, 28, 0.72);
+}
+
+.leaflet-modal-copy {
+  align-self: center;
+  min-width: 0;
+}
+
+.leaflet-modal-copy h2 {
+  margin: 7px 0;
+  color: #fff;
+  font-size: clamp(1.4rem, 2.3dvw, 2.4rem);
+  line-height: 1;
+}
+
+.leaflet-modal-copy p {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: clamp(0.78rem, 0.95dvw, 1.05rem);
+  line-height: 1.5;
+}
+
+.leaflet-modal-copy dl {
+  display: grid;
+  gap: 8px;
+  margin: 16px 0 0;
+}
+
+.leaflet-modal-copy dl div {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 8px 10px;
+  border: 1px solid rgba(66, 245, 255, 0.14);
+  border-radius: 10px;
+  background: rgba(3, 10, 24, 0.62);
+}
+
+.leaflet-modal-copy dt,
+.leaflet-modal-copy dd {
+  margin: 0;
+  font-size: 0.72rem;
+}
+
+.leaflet-modal-copy dt {
+  color: var(--text-muted);
+}
+
+.leaflet-modal-copy dd {
+  color: #eaffff;
+  font-weight: 800;
+}
+
+.leaflet-modal-close {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  z-index: 2;
+  width: 42px;
+  min-height: 42px;
+  border-radius: 50%;
+  font-size: 1.35rem;
+  line-height: 1;
+}
+
+.leaflet-modal-controls {
+  grid-column: 1 / -1;
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+}
+
+.leaflet-modal-controls button {
+  min-width: 120px;
+  min-height: 44px;
+  border-radius: 999px;
+  font-weight: 850;
+}
+
+@media (max-width: 850px), (orientation: portrait) {
+  .leaflet-modal {
+    grid-template-columns: 1fr;
+    overflow-y: auto;
+  }
+
+  .leaflet-modal-art {
+    min-height: 300px;
+  }
+}

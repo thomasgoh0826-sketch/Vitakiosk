@@ -22,4 +22,9 @@ class ProductVisionAdapter(Protocol):
 
 
 class AIBrain(Protocol):
-    def respond(self, text: str, branch_id: str) -> AIResult: ...
+    def respond(
+        self,
+        text: str,
+        branch_id: str,
+        session_id: str | None = None,
+    ) -> AIResult: ...

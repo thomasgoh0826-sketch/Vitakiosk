@@ -16,7 +16,11 @@ router = APIRouter(prefix="/api/ai", tags=["ai"])
 @router.post("/respond")
 async def respond(request: AIRequest) -> dict[str, Any]:
     await manager.broadcast_state(request.session_id, "thinking", "classifying request")
-    result = ai_brain.respond(request.text, request.branch_id)
+    result = ai_brain.respond(
+        request.text,
+        request.branch_id,
+        session_id=request.session_id,
+    )
     if result.requires_pharmacist:
         await manager.broadcast_state(
             request.session_id,

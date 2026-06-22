@@ -47,3 +47,4 @@
 - WebSocket events are session-scoped; local UI state is a safe fallback when disconnected.
 - Missing authoritative data must be shown as unavailable, never synthesized.
 - Before changing an adapter contract, update its feature spec and acceptance evidence mapping.
+- AI-controlled UI behavior must use structured whitelisted `ui_actions`; the frontend must ignore arbitrary action names or free-text UI instructions.

@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 640" role="img" aria-label="Mock Relief Balm promotion leaflet">
+  <defs>
+    <linearGradient id="bg" x1="0" x2="1" y1="0" y2="1">
+      <stop offset="0" stop-color="#08203f"/>
+      <stop offset="0.55" stop-color="#24135a"/>
+      <stop offset="1" stop-color="#04101f"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="50%" cy="36%" r="42%">
+      <stop offset="0" stop-color="#42f5ff" stop-opacity="0.8"/>
+      <stop offset="1" stop-color="#42f5ff" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <rect width="480" height="640" rx="34" fill="url(#bg)"/>
+  <rect x="24" y="24" width="432" height="592" rx="28" fill="none" stroke="#42f5ff" stroke-opacity="0.42" stroke-width="3"/>
+  <circle cx="240" cy="228" r="146" fill="url(#glow)"/>
+  <rect x="154" y="168" width="172" height="150" rx="34" fill="#0ad1c8" opacity="0.9"/>
+  <rect x="178" y="204" width="124" height="78" rx="12" fill="#eaffff" opacity="0.92"/>
+  <path d="M239 251c25-36 60-39 80-55-4 39-24 72-80 55Z" fill="#079b91"/>
+  <text x="240" y="84" text-anchor="middle" fill="#dffcff" font-family="Inter, Arial" font-size="28" font-weight="700" letter-spacing="4">VITAKIOSK</text>
+  <text x="240" y="398" text-anchor="middle" fill="#ffffff" font-family="Inter, Arial" font-size="44" font-weight="800">Relief Balm</text>
+  <text x="240" y="448" text-anchor="middle" fill="#42f5ff" font-family="Inter, Arial" font-size="32" font-weight="800">Demo Offer</text>
+  <text x="240" y="516" text-anchor="middle" fill="#aebdd4" font-family="Inter, Arial" font-size="20">Active for SG-001</text>
+  <text x="240" y="552" text-anchor="middle" fill="#aebdd4" font-family="Inter, Arial" font-size="16">Fictional mock leaflet · No medical claim</text>
+</svg>

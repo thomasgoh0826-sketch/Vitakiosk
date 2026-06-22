@@ -29,6 +29,36 @@ export interface Promotion {
   source: "mock_vitaflow";
 }
 
+export type LeafletKind = "promotion" | "campaign";
+
+export interface Leaflet {
+  id: string;
+  kind: LeafletKind;
+  title: string;
+  description: string;
+  branch_id: string;
+  active: boolean;
+  valid_from: string;
+  valid_to: string;
+  image_url: string;
+  product_ids: string[];
+  category_tags: string[];
+  display_priority: number;
+  source: "mock_vitaflow";
+}
+
+export type UiAction =
+  | { type: "SHOW_PRODUCT"; productId: string }
+  | { type: "SHOW_PROMOTION_LEAFLET"; promotionId: string }
+  | { type: "OPEN_PROMOTION_MODAL"; promotionId: string }
+  | { type: "SHOW_CAMPAIGN_LEAFLET"; campaignId: string }
+  | { type: "OPEN_CAMPAIGN_MODAL"; campaignId: string }
+  | { type: "SHOW_PROMOTION_GALLERY" }
+  | { type: "SHOW_CAMPAIGN_GALLERY" }
+  | { type: "ASK_PHARMACIST_CONFIRMATION" }
+  | { type: "REQUEST_PHARMACIST_ASSISTANCE" }
+  | { type: "RESET_KIOSK" };
+
 export interface Poster {
   id: string;
   title: string;
@@ -52,6 +82,7 @@ export interface AIResponse {
     | "price_check"
     | "stock_check"
     | "promotion_check"
+    | "campaign_check"
     | "shelf_location"
     | "unknown_product"
     | "red_flag";
@@ -59,6 +90,8 @@ export interface AIResponse {
   requires_pharmacist: boolean;
   product: Product | null;
   promotions: Promotion[];
+  leaflets: Leaflet[];
+  ui_actions: UiAction[];
   purchasing_query_id: string | null;
   escalation_id: string | null;
   safety_reason: string | null;

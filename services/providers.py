@@ -11,6 +11,7 @@ from services.contracts import (
     TTSAdapter,
     VitaFlowAdapter,
 )
+from services.leaflet_engine import LeafletEngine
 from services.poster_engine import PosterEngine
 from services.product_vision import BarcodeOCRVision, MockProductVision
 from services.promotion_engine import PromotionEngine
@@ -28,6 +29,7 @@ class ProviderBundle:
     vitaflow: VitaFlowAdapter
     vision: ProductVisionAdapter
     promotion_engine: PromotionEngine
+    leaflet_engine: LeafletEngine
     poster_engine: PosterEngine
     guardrails: SafetyGuardrails
     purchasing_store: PurchasingQueryStore
@@ -52,6 +54,7 @@ def create_provider_bundle(settings: Settings) -> ProviderBundle:
     settings.validate()
 
     promotion_engine = PromotionEngine()
+    leaflet_engine = LeafletEngine()
     poster_engine = PosterEngine(promotion_engine)
     guardrails = SafetyGuardrails()
     purchasing_store = PurchasingQueryStore()
@@ -65,6 +68,7 @@ def create_provider_bundle(settings: Settings) -> ProviderBundle:
         settings,
         vitaflow=vitaflow,
         promotion_engine=promotion_engine,
+        leaflet_engine=leaflet_engine,
         guardrails=guardrails,
         purchasing_store=purchasing_store,
         escalation_store=escalation_store,
@@ -77,6 +81,7 @@ def create_provider_bundle(settings: Settings) -> ProviderBundle:
         vitaflow=vitaflow,
         vision=vision,
         promotion_engine=promotion_engine,
+        leaflet_engine=leaflet_engine,
         poster_engine=poster_engine,
         guardrails=guardrails,
         purchasing_store=purchasing_store,
@@ -119,6 +124,7 @@ def _create_ai_brain(
     *,
     vitaflow: VitaFlowAdapter,
     promotion_engine: PromotionEngine,
+    leaflet_engine: LeafletEngine,
     guardrails: SafetyGuardrails,
     purchasing_store: PurchasingQueryStore,
     escalation_store: EscalationStore,
@@ -127,6 +133,7 @@ def _create_ai_brain(
         return MockAIBrain(
             vitaflow=vitaflow,
             promotion_engine=promotion_engine,
+            leaflet_engine=leaflet_engine,
             guardrails=guardrails,
             purchasing_store=purchasing_store,
             escalation_store=escalation_store,

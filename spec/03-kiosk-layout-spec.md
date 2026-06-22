@@ -18,6 +18,8 @@ AI assistant, primary Tap to Speak voice control plus Start/New Customer reset, 
 - The primary landscape view uses a dark navy/black cinematic foundation, glass panels, cyan and purple neon accents, and no plain white dashboard background.
 - The primary voice interaction reads `Tap to Speak` when ready and `Tap to Stop` while listening.
 - The secondary assistant action reads `Start` or `Start New Customer` and resets the kiosk for a fresh customer session without a browser refresh.
+- The top center conversation area separates the customer transcript from the AI response subtitle, with no raw JSON, provider names, or technical debug wording.
+- During thinking or audio preparation, the AI subtitle area shows safe customer-facing progress text such as `Preparing answer...`.
 - At 1024x768 landscape, the assistant bay, conversation/product deck, promotion poster, shelf map, ERP panel, and pharmacist safety panel fit in one view without document scrolling.
 - The kiosk layout uses responsive grid/flex sizing rather than fixed pixel-only placement; target QA viewports include 1024x768, 1280x720, 1366x768, 1440x900, 1920x1080, and iPad portrait/narrow tablet fallback.
 - Landscape kiosk viewports must not create horizontal overflow and should fit the full assistant/product/promotion/shelf/ERP/safety surface in one viewport without document scrolling.
@@ -26,6 +28,7 @@ AI assistant, primary Tap to Speak voice control plus Start/New Customer reset, 
 - VRM mode uses a larger full-body holographic assistant chamber without customer-facing technical renderer labels; Lottie remains the default renderer unless the runtime selects VRM or Three.js.
 - VRM orbit/halo decoration is a secondary background effect; it must frame the character without crossing the visible face, torso, arms, hands, or dress.
 - The promotion region is a poster composition rather than a small dashboard card.
+- The promotion region supports product leaflets, campaign leaflets, active branch-valid galleries, no-product-promotion choices, and enlarged leaflet modal display.
 - A small `Hold to Speak` fallback must not appear as the secondary assistant action in the kiosk layout.
 - Shelf navigation is rendered as an indoor map with aisle and shelf blocks, not as a plain progress stepper.
 - The map shows a labelled current position, target shelf marker, route line, Aisle, Shelf, Level, and a readable route summary.

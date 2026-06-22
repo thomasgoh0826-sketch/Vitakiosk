@@ -39,6 +39,27 @@ FastAPI
 8. Web Audio activity drives the waveform and mouth scale during `speaking`.
 9. Playback completion returns to `idle`.
 
+## Controlled UI actions and leaflet flow
+
+`POST /api/ai/respond` may include a `ui_actions` array. These actions are data,
+not commands: the frontend executes only the approved action union for showing a
+product, showing/opening a promotion leaflet, showing/opening a campaign leaflet,
+showing galleries, asking for pharmacist confirmation, requesting pharmacist
+assistance, or resetting the kiosk.
+
+Promotion and campaign leaflets are selected from mock VitaFlow-ready data with
+`active=true`, exact branch match, and current validity dates. Product-specific
+leaflets also require product ID membership; category-linked leaflets use
+adapter-provided tags only. The AI response may reference only those selected
+IDs and must not invent promotion, campaign, price, stock, shelf, or product
+details.
+
+The frontend keeps a whitelist boundary around UI actions and ignores unknown
+action types. A pharmacist escalation closes leaflet modals and takes priority
+over promotion or campaign browsing. Session-scoped confirmations can open a
+previously offered leaflet modal or create a pharmacist ticket, but they do not
+grant arbitrary UI control.
+
 ## Avatar state contract
 
 Canonical states are `idle`, `listening`, `thinking`, `speaking`, `error`, and `pharmacist_escalation`. The socket sends:

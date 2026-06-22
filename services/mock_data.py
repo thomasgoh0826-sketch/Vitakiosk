@@ -1,6 +1,6 @@
 from datetime import UTC, datetime
 
-from services.models import Poster, Product, Promotion
+from services.models import Leaflet, LeafletKind, Poster, Product, Promotion
 
 
 MOCK_PRODUCTS: tuple[Product, ...] = (
@@ -84,5 +84,101 @@ MOCK_POSTERS: tuple[Poster, ...] = (
         branch_id="SG-002",
         promotion_id="MOCK-PR003",
         asset_path="/assets/posters/mock-other-branch.svg",
+    ),
+)
+
+MOCK_LEAFLETS: tuple[Leaflet, ...] = (
+    Leaflet(
+        id="MOCK-LF-PROMO-001",
+        kind=LeafletKind.PROMOTION,
+        title="Relief Balm Demo Leaflet",
+        description=(
+            "Active branch promotion leaflet for Relief Balm. Fictional mock "
+            "content sourced from mock VitaFlow data."
+        ),
+        branch_id="SG-001",
+        active=True,
+        valid_from=datetime(2025, 1, 1, tzinfo=UTC),
+        valid_to=datetime(2030, 12, 31, 23, 59, tzinfo=UTC),
+        image_url="/assets/leaflets/mock-relief-balm-promo.svg",
+        product_ids=("MOCK-P001",),
+        category_tags=("pain-relief", "topical"),
+        display_priority=10,
+    ),
+    Leaflet(
+        id="MOCK-LF-PROMO-002",
+        kind=LeafletKind.PROMOTION,
+        title="Supplement Savings Demo",
+        description=(
+            "General active promotion leaflet for SG-001. Fictional mock "
+            "campaign copy with no medical claim."
+        ),
+        branch_id="SG-001",
+        active=True,
+        valid_from=datetime(2025, 1, 1, tzinfo=UTC),
+        valid_to=datetime(2030, 12, 31, 23, 59, tzinfo=UTC),
+        image_url="/assets/leaflets/mock-supplement-promo.svg",
+        product_ids=(),
+        category_tags=("supplement", "wellness"),
+        display_priority=20,
+    ),
+    Leaflet(
+        id="MOCK-LF-CAMP-001",
+        kind=LeafletKind.CAMPAIGN,
+        title="Hydration Health Campaign",
+        description=(
+            "Branch health campaign leaflet for hydration awareness. Fictional "
+            "mock content; speak to a pharmacist for clinical advice."
+        ),
+        branch_id="SG-001",
+        active=True,
+        valid_from=datetime(2025, 1, 1, tzinfo=UTC),
+        valid_to=datetime(2030, 12, 31, 23, 59, tzinfo=UTC),
+        image_url="/assets/leaflets/mock-hydration-campaign.svg",
+        product_ids=("MOCK-P002",),
+        category_tags=("hydration", "wellness"),
+        display_priority=30,
+    ),
+    Leaflet(
+        id="MOCK-LF-PROMO-INACTIVE",
+        kind=LeafletKind.PROMOTION,
+        title="Inactive Leaflet Demo",
+        description="Inactive mock leaflet that must never render.",
+        branch_id="SG-001",
+        active=False,
+        valid_from=datetime(2025, 1, 1, tzinfo=UTC),
+        valid_to=datetime(2030, 12, 31, 23, 59, tzinfo=UTC),
+        image_url="/assets/leaflets/mock-inactive.svg",
+        product_ids=("MOCK-P001",),
+        category_tags=("inactive",),
+        display_priority=90,
+    ),
+    Leaflet(
+        id="MOCK-LF-CAMP-EXPIRED",
+        kind=LeafletKind.CAMPAIGN,
+        title="Expired Campaign Demo",
+        description="Expired mock campaign that must never render.",
+        branch_id="SG-001",
+        active=True,
+        valid_from=datetime(2024, 1, 1, tzinfo=UTC),
+        valid_to=datetime(2024, 12, 31, 23, 59, tzinfo=UTC),
+        image_url="/assets/leaflets/mock-expired.svg",
+        product_ids=(),
+        category_tags=("expired",),
+        display_priority=95,
+    ),
+    Leaflet(
+        id="MOCK-LF-PROMO-OTHER-BRANCH",
+        kind=LeafletKind.PROMOTION,
+        title="Other Branch Leaflet Demo",
+        description="Other-branch mock leaflet that must never render for SG-001.",
+        branch_id="SG-002",
+        active=True,
+        valid_from=datetime(2025, 1, 1, tzinfo=UTC),
+        valid_to=datetime(2030, 12, 31, 23, 59, tzinfo=UTC),
+        image_url="/assets/leaflets/mock-other-branch.svg",
+        product_ids=("MOCK-P003",),
+        category_tags=("other-branch",),
+        display_priority=99,
     ),
 )

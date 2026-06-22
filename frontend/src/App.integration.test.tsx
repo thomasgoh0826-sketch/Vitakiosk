@@ -63,6 +63,40 @@ describe("integrated kiosk panels", () => {
           source: "mock_vitaflow",
         },
       ],
+      leaflets: [
+        {
+          id: "MOCK-LF-PROMO-001",
+          kind: "promotion",
+          title: "Relief Balm Demo Leaflet",
+          description: "Active branch promotion for Relief Balm.",
+          branch_id: "SG-001",
+          active: true,
+          valid_from: "2025-01-01T00:00:00Z",
+          valid_to: "2030-12-31T23:59:00Z",
+          image_url: "/assets/leaflets/mock-relief-balm-promo.svg",
+          product_ids: ["MOCK-P001"],
+          category_tags: ["pain-relief"],
+          display_priority: 10,
+          source: "mock_vitaflow",
+        },
+        {
+          id: "MOCK-LF-CAMP-001",
+          kind: "campaign",
+          title: "Hydration Health Campaign",
+          description: "Mock branch health campaign.",
+          branch_id: "SG-001",
+          active: true,
+          valid_from: "2025-01-01T00:00:00Z",
+          valid_to: "2030-12-31T23:59:00Z",
+          image_url: "/assets/leaflets/mock-hydration-campaign.svg",
+          product_ids: [],
+          category_tags: ["hydration"],
+          display_priority: 20,
+          source: "mock_vitaflow",
+        },
+      ],
+      uiActions: [],
+      transcript: "what is the price of relief balm",
       poster: null,
       responseText: "VitaFlow mock price for Relief Balm: $12.50.",
       purchasingQueryId: null,
@@ -80,8 +114,92 @@ describe("integrated kiosk panels", () => {
 
     expect(screen.getAllByText("Relief Balm").length).toBeGreaterThan(0);
     expect(screen.getByText("$12.50")).toBeInTheDocument();
-    expect(screen.getByText("Relief Balm Demo Offer")).toBeInTheDocument();
+    expect(screen.getByText("Relief Balm Demo Leaflet")).toBeInTheDocument();
     expect(screen.getAllByText(/Mock VitaFlow/i).length).toBeGreaterThan(0);
+  });
+
+  it("shows customer transcript and AI subtitle as separate conversation bubbles", () => {
+    render(<App />);
+
+    expect(screen.getByText("what is the price of relief balm")).toBeInTheDocument();
+    expect(
+      screen.getAllByText("VitaFlow mock price for Relief Balm: $12.50.").length,
+    ).toBeGreaterThan(0);
+    expect(screen.queryByText(/raw json/i)).not.toBeInTheDocument();
+  });
+
+  it("executes whitelisted promotion leaflet and modal actions only", () => {
+    hookMocks.voice.mockReturnValue({
+      ...hookMocks.voice(),
+      uiActions: [
+        { type: "SHOW_PROMOTION_LEAFLET", promotionId: "MOCK-LF-PROMO-001" },
+        { type: "OPEN_PROMOTION_MODAL", promotionId: "MOCK-LF-PROMO-001" },
+        { type: "NAVIGATE_UNSAFE_DEBUG_PAGE", url: "https://example.invalid" },
+      ],
+    });
+
+    render(<App />);
+
+    expect(screen.getAllByText("Relief Balm Demo Leaflet").length).toBeGreaterThan(0);
+    expect(screen.getByRole("dialog", { name: /leaflet preview/i })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Close leaflet preview" })).toBeInTheDocument();
+    expect(screen.queryByText(/NAVIGATE_UNSAFE_DEBUG_PAGE/i)).not.toBeInTheDocument();
+  });
+
+  it("shows promotion and campaign choices when a product has no specific promotion", () => {
+    hookMocks.voice.mockReturnValue({
+      ...hookMocks.voice(),
+      product: {
+        id: "MOCK-P002",
+        name: "Hydration Salts",
+        branch_id: "SG-001",
+        price: 8.9,
+        stock: 24,
+        shelf_location: "B-07",
+        source: "mock_vitaflow",
+        unavailable_reason: null,
+      },
+      promotions: [],
+      uiActions: [{ type: "SHOW_PRODUCT", productId: "MOCK-P002" }],
+      responseText:
+        "This product does not have a specific promotion now. I can show you other active promotions or health campaigns if you are interested.",
+    });
+
+    render(<App />);
+
+    expect(screen.getByRole("button", { name: "Promotion" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Campaign" })).toBeInTheDocument();
+  });
+
+  it("shows general promotion and campaign galleries from controlled actions", () => {
+    hookMocks.voice.mockReturnValue({
+      ...hookMocks.voice(),
+      uiActions: [{ type: "SHOW_CAMPAIGN_GALLERY" }],
+      responseText: "Here are the active branch health campaigns.",
+    });
+
+    render(<App />);
+
+    expect(screen.getByText("Campaign gallery")).toBeInTheDocument();
+    expect(screen.getByText("Hydration Health Campaign")).toBeInTheDocument();
+  });
+
+  it("keeps pharmacist escalation ahead of promotion modal actions", () => {
+    hookMocks.voice.mockReturnValue({
+      ...hookMocks.voice(),
+      state: "pharmacist_escalation",
+      escalationId: "ESC-0100",
+      uiActions: [
+        { type: "OPEN_PROMOTION_MODAL", promotionId: "MOCK-LF-PROMO-001" },
+        { type: "REQUEST_PHARMACIST_ASSISTANCE" },
+      ],
+    });
+
+    render(<App />);
+
+    expect(screen.getByText("Pharmacist assistance requested")).toBeInTheDocument();
+    expect(screen.getByText(/ESC-0100/)).toBeInTheDocument();
+    expect(screen.queryByRole("dialog", { name: /leaflet preview/i })).not.toBeInTheDocument();
   });
 
   it("shows purchasing query and no guessed product for unknown input", () => {

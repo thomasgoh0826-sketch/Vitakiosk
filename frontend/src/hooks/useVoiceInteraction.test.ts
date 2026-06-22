@@ -101,6 +101,8 @@ function buildApi(redFlag = false) {
             requires_pharmacist: true,
             product: null,
             promotions: [],
+            leaflets: [],
+            ui_actions: [{ type: "REQUEST_PHARMACIST_ASSISTANCE" }],
             purchasing_query_id: null,
             escalation_id: "ESC-0001",
             safety_reason: "red_flag",
@@ -112,6 +114,27 @@ function buildApi(redFlag = false) {
             requires_pharmacist: false,
             product,
             promotions: [promotion],
+            leaflets: [
+              {
+                id: "MOCK-LF-PROMO-001",
+                kind: "promotion",
+                title: "Relief Balm Demo Leaflet",
+                description: "Active branch promotion for Relief Balm.",
+                branch_id: "SG-001",
+                active: true,
+                valid_from: "2025-01-01T00:00:00Z",
+                valid_to: "2030-12-31T23:59:00Z",
+                image_url: "/assets/leaflets/mock-relief-balm-promo.svg",
+                product_ids: ["MOCK-P001"],
+                category_tags: ["pain-relief"],
+                display_priority: 10,
+                source: "mock_vitaflow",
+              },
+            ],
+            ui_actions: [
+              { type: "SHOW_PRODUCT", productId: "MOCK-P001" },
+              { type: "SHOW_PROMOTION_LEAFLET", promotionId: "MOCK-LF-PROMO-001" },
+            ],
             purchasing_query_id: null,
             escalation_id: null,
             safety_reason: null,
@@ -186,6 +209,12 @@ describe("useVoiceInteraction", () => {
     expect(api.synthesize).toHaveBeenCalledTimes(1);
     expect(result.current.product).toEqual(product);
     expect(result.current.promotions).toEqual([promotion]);
+    expect(result.current.transcript).toBe("price of relief balm");
+    expect(result.current.leaflets[0].id).toBe("MOCK-LF-PROMO-001");
+    expect(result.current.uiActions.map((action) => action.type)).toEqual([
+      "SHOW_PRODUCT",
+      "SHOW_PROMOTION_LEAFLET",
+    ]);
     expect(result.current.poster?.id).toBe("MOCK-POSTER001");
     expect(sendState).toHaveBeenCalledWith("idle");
   });

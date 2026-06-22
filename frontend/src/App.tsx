@@ -1,16 +1,20 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { api } from "./api/client";
 import AvatarAssistant from "./components/AvatarAssistant";
+import ConversationPanel from "./components/ConversationPanel";
 import ErpDataPanel from "./components/ErpDataPanel";
+import LeafletModal from "./components/LeafletModal";
 import PharmacistEscalationPanel from "./components/PharmacistEscalationPanel";
 import ProductCard from "./components/ProductCard";
-import PromotionPoster from "./components/PromotionPoster";
+import PromotionPoster, { type PromotionPanelMode } from "./components/PromotionPoster";
 import ShelfMap from "./components/ShelfMap";
 import TapToSpeakButton from "./components/TapToSpeakButton";
 import useKioskSocket from "./hooks/useKioskSocket";
 import useVoiceInteraction from "./hooks/useVoiceInteraction";
-import type { Product, Promotion } from "./types";
+import { MOCK_LEAFLETS } from "./mockLeaflets";
+import type { Leaflet, Product, UiAction } from "./types";
+import { isApprovedUiAction } from "./uiActions";
 
 
 const MOCK_PRODUCT: Product = {
@@ -22,17 +26,6 @@ const MOCK_PRODUCT: Product = {
   shelf_location: "A-03",
   source: "mock_vitaflow",
   unavailable_reason: null,
-};
-
-const MOCK_PROMOTION: Promotion = {
-  id: "MOCK-PR001",
-  title: "Relief Balm Demo Offer",
-  branch_id: "SG-001",
-  product_ids: ["MOCK-P001"],
-  active: true,
-  valid_from: "2025-01-01T00:00:00Z",
-  valid_to: "2030-12-31T23:59:00Z",
-  source: "mock_vitaflow",
 };
 
 const BRANCH_ID = "SG-001";
@@ -47,9 +40,35 @@ function createSessionId() {
   return `kiosk-demo-session-${fallbackSessionCounter}`;
 }
 
+function isLeafletActiveForBranch(leaflet: Leaflet, branchId: string) {
+  const now = Date.now();
+  return (
+    leaflet.active
+    && leaflet.branch_id === branchId
+    && Date.parse(leaflet.valid_from) <= now
+    && now <= Date.parse(leaflet.valid_to)
+  );
+}
+
+function findLeaflet(leaflets: Leaflet[], action: UiAction) {
+  if ("promotionId" in action) {
+    return leaflets.find((leaflet) => leaflet.id === action.promotionId) ?? null;
+  }
+  if ("campaignId" in action) {
+    return leaflets.find((leaflet) => leaflet.id === action.campaignId) ?? null;
+  }
+  return null;
+}
+
 function App() {
   const [sessionId, setSessionId] = useState(createSessionId);
   const [manualEscalationId, setManualEscalationId] = useState<string | null>(null);
+  const [promotionPanelMode, setPromotionPanelMode] =
+    useState<PromotionPanelMode>("idle");
+  const [selectedLeafletId, setSelectedLeafletId] = useState<string | null>(null);
+  const [modalLeafletId, setModalLeafletId] = useState<string | null>(null);
+  const [pharmacistConfirmationRequested, setPharmacistConfirmationRequested] =
+    useState(false);
   const socket = useKioskSocket(sessionId);
   const voice = useVoiceInteraction({
     sessionId,
@@ -59,12 +78,21 @@ function App() {
     sendState: socket.sendState,
   });
   const product = voice.hasResult ? voice.product : MOCK_PRODUCT;
-  const promotions = voice.hasResult ? voice.promotions : [MOCK_PROMOTION];
+  const leaflets = useMemo(
+    () => (voice.hasResult ? (voice.leaflets ?? []) : MOCK_LEAFLETS)
+      .filter((leaflet) => isLeafletActiveForBranch(leaflet, BRANCH_ID)),
+    [voice.hasResult, voice.leaflets],
+  );
+  const uiActions = useMemo(
+    () => (voice.uiActions ?? []).filter(isApprovedUiAction),
+    [voice.uiActions],
+  );
   const avatarState = manualEscalationId
     ? "pharmacist_escalation"
     : voice.state;
   const escalationActive = avatarState === "pharmacist_escalation";
   const connectionCopy = socket.connected ? "Connected" : "Local state mode";
+
   const requestAssistance = useCallback(() => {
     void api
       .escalatePharmacist(
@@ -74,12 +102,130 @@ function App() {
       )
       .then((escalation) => setManualEscalationId(escalation.id));
   }, [sessionId]);
+
   const startNewCustomer = useCallback(() => {
     setManualEscalationId(null);
+    setPharmacistConfirmationRequested(false);
+    setPromotionPanelMode("idle");
+    setSelectedLeafletId(null);
+    setModalLeafletId(null);
     voice.reset();
     socket.sendState("idle");
     setSessionId(createSessionId());
   }, [socket, voice]);
+
+  const showPromotionGallery = useCallback(() => {
+    setPromotionPanelMode("promotion_gallery");
+    setSelectedLeafletId(null);
+    setModalLeafletId(null);
+  }, []);
+
+  const showCampaignGallery = useCallback(() => {
+    setPromotionPanelMode("campaign_gallery");
+    setSelectedLeafletId(null);
+    setModalLeafletId(null);
+  }, []);
+
+  const openLeaflet = useCallback((leaflet: Leaflet) => {
+    setSelectedLeafletId(leaflet.id);
+    setModalLeafletId(leaflet.id);
+  }, []);
+
+  useEffect(() => {
+    if (!voice.hasResult) {
+      return;
+    }
+
+    if (escalationActive) {
+      setModalLeafletId(null);
+      return;
+    }
+
+    let panelWasControlled = false;
+    for (const action of uiActions) {
+      switch (action.type) {
+        case "SHOW_PROMOTION_LEAFLET": {
+          const leaflet = findLeaflet(leaflets, action);
+          if (leaflet) {
+            setSelectedLeafletId(leaflet.id);
+            setPromotionPanelMode("product_promotion");
+            panelWasControlled = true;
+          }
+          break;
+        }
+        case "OPEN_PROMOTION_MODAL": {
+          const leaflet = findLeaflet(leaflets, action);
+          if (leaflet) {
+            setSelectedLeafletId(leaflet.id);
+            setPromotionPanelMode("product_promotion");
+            setModalLeafletId(leaflet.id);
+            panelWasControlled = true;
+          }
+          break;
+        }
+        case "SHOW_CAMPAIGN_LEAFLET": {
+          const leaflet = findLeaflet(leaflets, action);
+          if (leaflet) {
+            setSelectedLeafletId(leaflet.id);
+            setPromotionPanelMode("product_campaign");
+            panelWasControlled = true;
+          }
+          break;
+        }
+        case "OPEN_CAMPAIGN_MODAL": {
+          const leaflet = findLeaflet(leaflets, action);
+          if (leaflet) {
+            setSelectedLeafletId(leaflet.id);
+            setPromotionPanelMode("product_campaign");
+            setModalLeafletId(leaflet.id);
+            panelWasControlled = true;
+          }
+          break;
+        }
+        case "SHOW_PROMOTION_GALLERY":
+          showPromotionGallery();
+          panelWasControlled = true;
+          break;
+        case "SHOW_CAMPAIGN_GALLERY":
+          showCampaignGallery();
+          panelWasControlled = true;
+          break;
+        case "ASK_PHARMACIST_CONFIRMATION":
+          setPharmacistConfirmationRequested(true);
+          break;
+        case "REQUEST_PHARMACIST_ASSISTANCE":
+          setModalLeafletId(null);
+          break;
+        case "RESET_KIOSK":
+          startNewCustomer();
+          panelWasControlled = true;
+          break;
+        case "SHOW_PRODUCT":
+          break;
+      }
+    }
+
+    const productHasPromotion = Boolean(
+      product && leaflets.some((leaflet) =>
+        leaflet.kind === "promotion" && leaflet.product_ids.includes(product.id),
+      ),
+    );
+    if (!panelWasControlled && product && !productHasPromotion) {
+      setPromotionPanelMode("product_options");
+      setSelectedLeafletId(null);
+      setModalLeafletId(null);
+    }
+  }, [
+    escalationActive,
+    leaflets,
+    product,
+    showCampaignGallery,
+    showPromotionGallery,
+    startNewCustomer,
+    uiActions,
+    voice.hasResult,
+    voice.resultId,
+  ]);
 
   useEffect(() => {
     if (!escalationActive) {
@@ -135,42 +281,45 @@ function App() {
         </aside>
 
         <section className="clinical-deck" aria-label="AI conversation deck">
-          <div className="conversation-panel panel">
-            <div className="conversation-bubble customer-question">
-              <span>You</span>
-              <p>
-                {voice.hasResult
-                  ? "Voice request received"
-                  : "What can I help you find today?"}
-              </p>
-            </div>
-            <div className="conversation-bubble ai-answer">
-              <span>VitaKiosk AI</span>
-              <p>
-                {voice.responseText
-                  || "Tap to Speak to ask about a product, price, stock, promotion, or shelf location."}
-              </p>
-            </div>
-          </div>
+          <ConversationPanel
+            transcript={voice.transcript ?? ""}
+            responseText={voice.responseText}
+            state={avatarState}
+            error={voice.error}
+            hasResult={voice.hasResult}
+          />
           <ProductCard product={product} purchasingQueryId={voice.purchasingQueryId} />
           <ShelfMap product={product} />
         </section>
 
         <aside className="retail-safety-rail">
           <PromotionPoster
-            promotion={promotions[0] ?? null}
-            poster={voice.poster}
+            mode={promotionPanelMode}
+            leaflets={leaflets}
+            selectedLeafletId={selectedLeafletId}
             product={product}
+            safetyOverride={escalationActive}
+            onOpenLeaflet={openLeaflet}
+            onShowPromotions={showPromotionGallery}
+            onShowCampaigns={showCampaignGallery}
           />
           <ErpDataPanel product={product} connected={socket.connected} />
           <PharmacistEscalationPanel
             active={escalationActive}
+            confirmationRequested={pharmacistConfirmationRequested}
             escalationId={manualEscalationId ?? voice.escalationId}
             onRequest={requestAssistance}
             onStartNewCustomer={startNewCustomer}
           />
         </aside>
       </main>
+
+      <LeafletModal
+        leaflets={leaflets}
+        activeLeafletId={escalationActive ? null : modalLeafletId}
+        onClose={() => setModalLeafletId(null)}
+        onSelect={setModalLeafletId}
+      />
 
       <footer className="kiosk-footer">
         <span><i className="status-dot" aria-hidden="true" /> {connectionCopy}</span>

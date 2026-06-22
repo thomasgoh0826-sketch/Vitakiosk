@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 640" role="img" aria-label="Mock supplement promotion leaflet">
+  <defs>
+    <linearGradient id="bg" x1="0" x2="1" y1="0" y2="1">
+      <stop offset="0" stop-color="#050b19"/>
+      <stop offset="0.45" stop-color="#122d57"/>
+      <stop offset="1" stop-color="#31135b"/>
+    </linearGradient>
+  </defs>
+  <rect width="480" height="640" rx="34" fill="url(#bg)"/>
+  <rect x="26" y="26" width="428" height="588" rx="26" fill="none" stroke="#9b6cff" stroke-opacity="0.58" stroke-width="3"/>
+  <path d="M122 220c0-78 236-78 236 0v52c0 78-236 78-236 0Z" fill="#42f5ff" opacity="0.18"/>
+  <circle cx="177" cy="246" r="54" fill="#42f5ff" opacity="0.72"/>
+  <circle cx="240" cy="246" r="54" fill="#9b6cff" opacity="0.72"/>
+  <circle cx="303" cy="246" r="54" fill="#54e38e" opacity="0.7"/>
+  <text x="240" y="88" text-anchor="middle" fill="#dffcff" font-family="Inter, Arial" font-size="28" font-weight="700" letter-spacing="4">VITAKIOSK</text>
+  <text x="240" y="392" text-anchor="middle" fill="#ffffff" font-family="Inter, Arial" font-size="40" font-weight="800">Supplement</text>
+  <text x="240" y="438" text-anchor="middle" fill="#42f5ff" font-family="Inter, Arial" font-size="34" font-weight="800">Savings Demo</text>
+  <text x="240" y="510" text-anchor="middle" fill="#aebdd4" font-family="Inter, Arial" font-size="20">Active branch promotion</text>
+  <text x="240" y="548" text-anchor="middle" fill="#aebdd4" font-family="Inter, Arial" font-size="16">Fictional mock leaflet · Ask pharmacist for advice</text>
+</svg>

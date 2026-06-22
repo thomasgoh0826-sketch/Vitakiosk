@@ -22,6 +22,18 @@ A feature is accepted only when:
 - Live-provider work must be one layer at a time, with tests proving mock-default behavior remains unchanged.
 - VitaFlow live integration must start as read-only only and must not use `C:\Users\Admin\Documents\Playground\release`.
 - Red-flag, unknown-product, and non-invention rules remain covered.
+- AI-controlled UI behavior is accepted only when the backend returns structured
+  `ui_actions` from the approved action set and the frontend ignores unknown or
+  arbitrary action types.
+- Subtitle acceptance requires separate customer transcript and AI response
+  bubbles with customer-facing text only; raw JSON, provider/debug labels, and
+  arbitrary action text are not accepted.
+- Leaflet acceptance requires active, date-valid, branch-aware promotion and
+  campaign leaflets, product/category linking from adapter data, touch-friendly
+  galleries, enlarged modal view with close/previous/next, and pharmacist
+  escalation priority over promotion browsing.
+- Red-flag safety acceptance requires no promotion/campaign leaflet or modal to
+  appear before pharmacist escalation.
 - Voice-flow acceptance requires `Tap to Speak` as the main control, manual
   `Tap to Stop` fallback, browser-side silence auto-stop, and a secondary
   `Start` / `Start New Customer` reset action instead of a small `Hold to

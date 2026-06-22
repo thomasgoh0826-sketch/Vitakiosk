@@ -41,6 +41,19 @@ def test_ai_response_returns_authoritative_product(client: TestClient) -> None:
     assert payload["intent"] == "price_check"
     assert payload["product"]["id"] == "MOCK-P001"
     assert payload["product"]["price"] == 12.5
+    assert payload["ui_actions"][0] == {
+        "type": "SHOW_PRODUCT",
+        "productId": "MOCK-P001",
+        "promotionId": None,
+        "campaignId": None,
+    }
+    assert payload["ui_actions"][1]["type"] == "SHOW_PROMOTION_LEAFLET"
+    assert payload["ui_actions"][1]["promotionId"] == "MOCK-LF-PROMO-001"
+    assert [leaflet["id"] for leaflet in payload["leaflets"]] == [
+        "MOCK-LF-PROMO-001",
+        "MOCK-LF-PROMO-002",
+        "MOCK-LF-CAMP-001",
+    ]
     assert payload["source"] == "mock_vitaflow"
 
 
@@ -60,6 +73,31 @@ def test_ai_red_flag_creates_escalation(client: TestClient) -> None:
     assert payload["requires_pharmacist"] is True
     assert payload["escalation_id"].startswith("ESC-")
     assert payload["product"] is None
+    assert payload["leaflets"] == []
+    assert [action["type"] for action in payload["ui_actions"]] == [
+        "REQUEST_PHARMACIST_ASSISTANCE"
+    ]
+
+
+def test_ai_general_campaign_returns_controlled_gallery_action(client: TestClient) -> None:
+    response = client.post(
+        "/api/ai/respond",
+        json={
+            "session_id": "session-campaign",
+            "text": "what health campaign do you have?",
+            "branch_id": "SG-001",
+        },
+    )
+
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload["intent"] == "campaign_check"
+    assert [action["type"] for action in payload["ui_actions"]] == [
+        "SHOW_CAMPAIGN_GALLERY"
+    ]
+    assert [leaflet["id"] for leaflet in payload["leaflets"]] == [
+        "MOCK-LF-CAMP-001"
+    ]
 
 
 def test_tts_returns_mock_wav(client: TestClient) -> None:

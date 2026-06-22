@@ -102,6 +102,109 @@ def test_price_response_uses_exact_vitaflow_product_fact() -> None:
     assert result.source == "mock_vitaflow"
 
 
+def test_product_query_returns_controlled_leaflet_action() -> None:
+    brain, _, _ = build_brain()
+
+    result = brain.respond(
+        "show me relief balm",
+        branch_id="SG-001",
+        session_id="session-promo",
+    )
+
+    assert result.product is not None
+    assert result.product.id == "MOCK-P001"
+    assert [action.type for action in result.ui_actions] == [
+        "SHOW_PRODUCT",
+        "SHOW_PROMOTION_LEAFLET",
+    ]
+    assert result.ui_actions[0].productId == "MOCK-P001"
+    assert result.ui_actions[1].promotionId == "MOCK-LF-PROMO-001"
+    assert [leaflet.id for leaflet in result.leaflets] == [
+        "MOCK-LF-PROMO-001",
+        "MOCK-LF-PROMO-002",
+        "MOCK-LF-CAMP-001",
+    ]
+    assert "active promotion" in result.message.casefold()
+    assert "enlarge" in result.message.casefold()
+
+
+def test_confirmation_opens_pending_promotion_modal() -> None:
+    brain, _, _ = build_brain()
+
+    brain.respond("show me relief balm", branch_id="SG-001", session_id="session-open")
+    result = brain.respond("yes", branch_id="SG-001", session_id="session-open")
+
+    assert [action.type for action in result.ui_actions] == [
+        "OPEN_PROMOTION_MODAL",
+    ]
+    assert result.ui_actions[0].promotionId == "MOCK-LF-PROMO-001"
+    assert "opening" in result.message.casefold()
+
+
+def test_product_without_specific_promotion_offers_galleries_without_guessing() -> None:
+    brain, _, _ = build_brain()
+
+    result = brain.respond("show me hydration salts", branch_id="SG-001")
+
+    assert result.product is not None
+    assert result.product.id == "MOCK-P002"
+    assert result.promotions == ()
+    assert [action.type for action in result.ui_actions] == ["SHOW_PRODUCT"]
+    assert "does not have a specific promotion" in result.message.casefold()
+    assert {leaflet.kind for leaflet in result.leaflets} == {"promotion", "campaign"}
+
+
+def test_general_promotion_query_returns_only_active_branch_leaflets() -> None:
+    brain, _, _ = build_brain()
+
+    result = brain.respond("any promotion?", branch_id="SG-001")
+
+    assert result.intent is Intent.PROMOTION_CHECK
+    assert [action.type for action in result.ui_actions] == ["SHOW_PROMOTION_GALLERY"]
+    assert [leaflet.id for leaflet in result.leaflets] == [
+        "MOCK-LF-PROMO-001",
+        "MOCK-LF-PROMO-002",
+    ]
+    assert all(leaflet.active for leaflet in result.leaflets)
+    assert all(leaflet.branch_id == "SG-001" for leaflet in result.leaflets)
+
+
+def test_general_campaign_query_returns_campaign_gallery() -> None:
+    brain, _, _ = build_brain()
+
+    result = brain.respond("what health campaign do you have?", branch_id="SG-001")
+
+    assert result.intent is Intent.CAMPAIGN_CHECK
+    assert [action.type for action in result.ui_actions] == ["SHOW_CAMPAIGN_GALLERY"]
+    assert [leaflet.id for leaflet in result.leaflets] == ["MOCK-LF-CAMP-001"]
+
+
+def test_pharmacist_confirmation_creates_ticket_after_asking() -> None:
+    brain, _, escalations = build_brain()
+
+    first = brain.respond(
+        "how should I use relief balm",
+        branch_id="SG-001",
+        session_id="session-pharmacist",
+    )
+    second = brain.respond(
+        "yes",
+        branch_id="SG-001",
+        session_id="session-pharmacist",
+    )
+
+    assert [action.type for action in first.ui_actions] == [
+        "SHOW_PRODUCT",
+        "SHOW_PROMOTION_LEAFLET",
+        "ASK_PHARMACIST_CONFIRMATION",
+    ]
+    assert second.requires_pharmacist is True
+    assert second.escalation_id == escalations.items[0].id
+    assert [action.type for action in second.ui_actions] == [
+        "REQUEST_PHARMACIST_ASSISTANCE"
+    ]
+
+
 def test_product_counselling_is_non_diagnostic_and_hands_off() -> None:
     brain, _, _ = build_brain()
 
@@ -110,3 +213,18 @@ def test_product_counselling_is_non_diagnostic_and_hands_off() -> None:
     assert "pharmacist" in result.message.casefold()
     assert "you have" not in result.message.casefold()
     assert result.requires_pharmacist is False
+
+
+def test_red_flag_returns_only_pharmacist_action() -> None:
+    vitaflow = CountingVitaFlow()
+    brain, _, _ = build_brain(vitaflow=vitaflow)
+
+    result = brain.respond("I cannot breathe, any promotion?", branch_id="SG-001")
+
+    assert result.intent is Intent.RED_FLAG
+    assert result.requires_pharmacist is True
+    assert result.leaflets == ()
+    assert [action.type for action in result.ui_actions] == [
+        "REQUEST_PHARMACIST_ASSISTANCE"
+    ]
+    assert vitaflow.search_count == 0

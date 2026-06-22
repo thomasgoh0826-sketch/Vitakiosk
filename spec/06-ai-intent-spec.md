@@ -6,7 +6,7 @@ Classify requests deterministically before any future model integration.
 
 ## Required intents
 
-`product_search`, `product_counselling`, `price_check`, `stock_check`, `promotion_check`, `shelf_location`, `unknown_product`, and `red_flag`.
+`product_search`, `product_counselling`, `price_check`, `stock_check`, `promotion_check`, `campaign_check`, `shelf_location`, `unknown_product`, and `red_flag`.
 
 ## Acceptance criteria
 
@@ -19,9 +19,15 @@ Classify requests deterministically before any future model integration.
 - Product counselling remains non-diagnostic and recommends pharmacist review.
 - Price, stock, promotion, and shelf responses reproduce adapter facts exactly.
 - Unknown products return no product and create one purchasing query.
+- Backend AI responses may include only structured whitelisted `ui_actions`; arbitrary UI instructions are not valid output.
+- Product-specific promotion and campaign actions reference only adapter-provided leaflet IDs.
+- General promotion and campaign queries return active branch-valid leaflets only.
+- Red-flag responses return pharmacist escalation actions and do not return promotion or campaign leaflets first.
+- Session-scoped affirmative confirmations may open a pending leaflet modal or create pharmacist assistance, but they must not execute arbitrary UI behavior.
 
 ## Test evidence
 
 - `backend/tests/test_ai_brain.py`
 - `backend/tests/test_services.py`
 - `backend/tests/test_provider_config.py`
+- `backend/tests/test_api.py`
