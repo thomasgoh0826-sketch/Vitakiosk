@@ -43,8 +43,8 @@ function AvatarAssistant({
             data-state={state}
             data-avatar-renderer="threejs"
             data-reduced-motion="pending"
-            role="img"
-            aria-label={`Three.js holographic AI avatar: ${stateLabel}`}
+            role="presentation"
+            aria-hidden="true"
           />
         }
       >

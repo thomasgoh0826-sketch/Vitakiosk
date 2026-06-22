@@ -107,7 +107,11 @@ Consumers depend on interfaces in `services/contracts.py` and `frontend/src/comp
 - OpenAI/Whisper STT and AI adapters.
 - ElevenLabs TTS adapter.
 - VitaFlow HTTP API connector.
-- Rive or Three.js avatar renderer. Lottie is the default; Three.js is optional through `VITE_AVATAR_RENDERER=threejs`.
+- Rive or Three.js avatar renderer.
+  - Lottie is the default.
+  - Three.js is optional through `VITE_AVATAR_RENDERER=threejs`.
+  - When `frontend/src/assets/avatar/vitakiosk-avatar.glb` exists, the Three.js renderer loads the GLB humanoid avatar.
+  - If no GLB is available or loading fails, it falls back to the abstract hologram.
 
 Provider selection must be explicit. Adding a credential alone must never activate a live call. Live adapters require new contract tests, red-flag tests, non-invention tests, network failure handling, and security review.
 

@@ -42,7 +42,9 @@ describe("AvatarAssistant", () => {
     );
 
     expect(
-      await screen.findByLabelText(new RegExp(`three\\.js holographic ai avatar: ${label}`, "i")),
+      await screen.findByLabelText(
+        new RegExp(`three\\.js (holographic|humanoid) ai avatar: ${label}`, "i"),
+      ),
     ).toHaveAttribute("data-avatar-renderer", "threejs");
   });
 
@@ -60,7 +62,7 @@ describe("AvatarAssistant", () => {
 
     render(<AvatarAssistant state="thinking" audioActivity={0.5} connected renderer="threejs" />);
 
-    expect(await screen.findByLabelText(/three\.js holographic ai avatar/i)).toHaveAttribute(
+    expect(await screen.findByLabelText(/three\.js (holographic|humanoid) ai avatar/i)).toHaveAttribute(
       "data-reduced-motion",
       "true",
     );

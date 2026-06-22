@@ -8,7 +8,7 @@ Make system state visible without implying clinical authority.
 
 `AvatarRenderer` receives an `AvatarState` and normalized `audioActivity`. Lottie light player remains the default implementation. Three.js is available only as an optional renderer selected by `VITE_AVATAR_RENDERER=threejs` or an explicit frontend renderer prop; unknown values fall back to Lottie.
 
-The Three.js renderer is a lightweight abstract hologram, not a heavy character model. It is lazy-loaded so the default Lottie kiosk bundle remains lean, and it must provide a non-crashing fallback when WebGL is unavailable.
+The Three.js renderer supports a lightweight GLB humanoid avatar at `frontend/src/assets/avatar/vitakiosk-avatar.glb`. It remains lazy-loaded so the default Lottie kiosk bundle stays lean. If the GLB file is absent, WebGL is unavailable, or model loading fails, the renderer must fall back to the existing abstract hologram without crashing.
 
 ## States
 
@@ -20,7 +20,10 @@ The Three.js renderer is a lightweight abstract hologram, not a heavy character 
 - Lottie remains the default avatar renderer when no renderer config is set.
 - `VITE_AVATAR_RENDERER=threejs` enables the optional Three.js renderer without changing backend, WebSocket, mock data, provider, or safety behavior.
 - The Three.js renderer has accessible labels for every avatar state and supports idle, listening, thinking, speaking, error, and pharmacist escalation.
-- The Three.js renderer uses lightweight geometry, rings, particles, and panels; no heavy 3D model is required at this stage.
+- When a GLB model is bundled at `frontend/src/assets/avatar/vitakiosk-avatar.glb`, the Three.js renderer loads it as a humanoid AI pharmacist avatar.
+- If no GLB model is available or it fails to load, the renderer falls back to lightweight geometry, rings, particles, and panels.
+- The GLB model must stay lightweight enough for iPad landscape kiosk use.
+- Basic animation hooks cover breathing, listening glow, thinking orbit, speaking pulse, error glow, and pharmacist escalation glow even when the model has no rigged animation clips.
 - The Three.js renderer respects reduced-motion settings and renders safely when WebGL is unavailable.
 - The Lottie-first visual reads as an abstract holographic AI assistant and does not use a childish cartoon face.
 - The assistant stage uses visible text and distinct cyan, purple, or safety-red treatments for idle, listening, thinking, speaking, error, and pharmacist escalation.
@@ -35,5 +38,7 @@ The Three.js renderer is a lightweight abstract hologram, not a heavy character 
 
 - `frontend/src/components/AvatarAssistant.test.tsx`
 - `frontend/src/components/avatar/AvatarRenderer.test.ts`
+- `frontend/src/components/avatar/AvatarModel.test.ts`
+- `frontend/src/components/avatar/ThreeAvatarRenderer.test.tsx`
 - `frontend/src/hooks/useAudioActivity.test.ts`
 - `frontend/src/hooks/useKioskSocket.test.ts`

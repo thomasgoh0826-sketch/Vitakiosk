@@ -1,9 +1,20 @@
 import { Canvas, useFrame } from "@react-three/fiber";
-import { useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
-import type { Group } from "three";
+import { useGLTF } from "@react-three/drei";
+import {
+  Component,
+  Suspense,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type CSSProperties,
+  type ReactNode,
+} from "react";
+import { Color, type Group, type Material, type Mesh, type Object3D } from "three";
 
 import type { AvatarState } from "../../types";
 import type { AvatarRendererProps } from "./AvatarRenderer";
+import { getDefaultAvatarModelUrl } from "./AvatarModel";
 
 
 const STATE_LABELS: Record<AvatarState, string> = {
@@ -234,6 +245,155 @@ function HologramScene({ state, audioActivity, reducedMotion }: HologramScenePro
   );
 }
 
+function setModelMaterialGlow(root: Object3D, state: AvatarState, audioActivity: number) {
+  const visual = STATE_VISUALS[state];
+  const activity = clamp01(audioActivity);
+  const emissiveColor = new Color(visual.primary);
+
+  root.traverse((child) => {
+    const mesh = child as Mesh;
+    if (!mesh.isMesh || !mesh.material) {
+      return;
+    }
+
+    const materials = Array.isArray(mesh.material) ? mesh.material : [mesh.material];
+    materials.forEach((material: Material) => {
+      if ("emissive" in material && material.emissive instanceof Color) {
+        material.emissive.copy(emissiveColor);
+      }
+      if ("emissiveIntensity" in material) {
+        material.emissiveIntensity = 0.18 + activity * 0.42;
+      }
+      if ("metalness" in material) {
+        material.metalness = Math.max(Number(material.metalness ?? 0), 0.28);
+      }
+      if ("roughness" in material) {
+        material.roughness = Math.min(Number(material.roughness ?? 0.55), 0.48);
+      }
+      material.needsUpdate = true;
+    });
+  });
+}
+
+interface HumanoidAvatarSceneProps {
+  state: AvatarState;
+  audioActivity: number;
+  reducedMotion: boolean;
+  modelUrl: string;
+}
+
+function HumanoidAvatarScene({
+  state,
+  audioActivity,
+  reducedMotion,
+  modelUrl,
+}: HumanoidAvatarSceneProps) {
+  const modelGroup = useRef<Group>(null);
+  const orbit = useRef<Group>(null);
+  const { scene, animations } = useGLTF(modelUrl);
+  const visual = STATE_VISUALS[state];
+  const activity = clamp01(audioActivity);
+
+  useEffect(() => {
+    setModelMaterialGlow(scene, state, activity);
+  }, [activity, scene, state]);
+
+  useFrame(({ clock }, delta) => {
+    if (reducedMotion) {
+      return;
+    }
+
+    const elapsed = clock.getElapsedTime();
+    const speakingPulse = state === "speaking" ? activity * 0.055 : 0;
+    const alertPulse = state === "error" || state === "pharmacist_escalation"
+      ? Math.sin(elapsed * 3.2) * 0.025
+      : 0;
+    const breathing = Math.sin(elapsed * 1.18) * 0.018;
+
+    if (modelGroup.current) {
+      modelGroup.current.rotation.y = Math.sin(elapsed * 0.34) * 0.09;
+      modelGroup.current.position.y = -0.55 + breathing;
+      modelGroup.current.scale.setScalar(1 + speakingPulse + alertPulse);
+    }
+
+    if (orbit.current) {
+      orbit.current.rotation.z += delta * visual.speed * 1.6;
+      orbit.current.rotation.y = Math.sin(elapsed * 0.48) * 0.16;
+    }
+  });
+
+  return (
+    <>
+      <ambientLight intensity={0.56} />
+      <spotLight
+        angle={0.44}
+        color={visual.primary}
+        intensity={2.8}
+        penumbra={0.72}
+        position={[1.8, 3.6, 3.6]}
+      />
+      <pointLight color={visual.secondary} intensity={1.6} position={[-2.4, 1.2, 2.6]} />
+      <pointLight color={visual.danger} intensity={state === "idle" ? 0.16 : 0.72} position={[0, -0.8, 2.8]} />
+
+      <group ref={modelGroup}>
+        <primitive object={scene} scale={1.26} rotation={[0, 0, 0]} />
+      </group>
+
+      <group ref={orbit}>
+        <mesh position={[0, 0.2, 0]} rotation={[Math.PI / 2, 0, 0]}>
+          <torusGeometry args={[1.08, 0.012, 12, 96]} />
+          <meshBasicMaterial
+            color={visual.primary}
+            opacity={state === "listening" || state === "speaking" ? 0.82 : 0.38}
+            transparent
+          />
+        </mesh>
+        <mesh position={[0, -0.42, 0]} rotation={[Math.PI / 2.4, Math.PI / 5, 0]}>
+          <torusGeometry args={[1.48, 0.01, 12, 112]} />
+          <meshBasicMaterial color={visual.secondary} opacity={0.36} transparent />
+        </mesh>
+      </group>
+
+      <mesh position={[0, -1.22, 0]} rotation={[Math.PI / 2, 0, 0]}>
+        <ringGeometry args={[0.72, 1.16, 96]} />
+        <meshBasicMaterial color={visual.primary} opacity={0.22 + activity * 0.24} transparent />
+      </mesh>
+
+      <mesh position={[0, 1.58, 0.18]} scale={[0.42 + activity * 0.18, 0.028, 0.028]}>
+        <boxGeometry args={[1, 1, 1]} />
+        <meshBasicMaterial
+          color={state === "error" || state === "pharmacist_escalation" ? visual.danger : visual.primary}
+          opacity={0.72}
+          transparent
+        />
+      </mesh>
+
+      <group visible={animations.length > 0} />
+    </>
+  );
+}
+
+interface AvatarSceneBoundaryProps {
+  children: ReactNode;
+  fallback: ReactNode;
+}
+
+interface AvatarSceneBoundaryState {
+  hasError: boolean;
+}
+
+class AvatarSceneBoundary extends Component<AvatarSceneBoundaryProps, AvatarSceneBoundaryState> {
+  state: AvatarSceneBoundaryState = { hasError: false };
+
+  static getDerivedStateFromError(): AvatarSceneBoundaryState {
+    return { hasError: true };
+  }
+
+  render() {
+    return this.state.hasError ? this.props.fallback : this.props.children;
+  }
+}
+
 interface StaticHologramProps {
   state: AvatarState;
   audioActivity: number;
@@ -270,12 +430,22 @@ function StaticHologram({ state, audioActivity }: StaticHologramProps) {
   );
 }
 
-function ThreeAvatarRenderer({ state, audioActivity }: AvatarRendererProps) {
+interface ThreeAvatarRendererProps extends AvatarRendererProps {
+  avatarModelUrl?: string | null;
+}
+
+function ThreeAvatarRenderer({
+  state,
+  audioActivity,
+  avatarModelUrl = getDefaultAvatarModelUrl(),
+}: ThreeAvatarRendererProps) {
   const reducedMotion = usePrefersReducedMotion();
   const webglAvailable = useMemo(canUseWebGL, []);
   const visual = STATE_VISUALS[state];
   const activity = clamp01(audioActivity);
   const stateLabel = STATE_LABELS[state];
+  const resolvedAvatarModelUrl = avatarModelUrl ?? null;
+  const hasAvatarModel = resolvedAvatarModelUrl !== null;
   const style = {
     "--three-avatar-primary": visual.primary,
     "--three-avatar-secondary": visual.secondary,
@@ -289,32 +459,67 @@ function ThreeAvatarRenderer({ state, audioActivity }: AvatarRendererProps) {
       className={`three-avatar avatar-render-${state}`}
       data-state={state}
       data-avatar-renderer="threejs"
+      data-avatar-model={hasAvatarModel ? "glb" : "abstract-fallback"}
+      data-avatar-model-url={resolvedAvatarModelUrl ?? undefined}
       data-reduced-motion={String(reducedMotion)}
       data-webgl={webglAvailable ? "available" : "fallback"}
       role="img"
-      aria-label={`Three.js holographic AI avatar: ${stateLabel}`}
+      aria-label={`Three.js ${hasAvatarModel ? "humanoid" : "holographic"} AI avatar: ${stateLabel}`}
       style={style}
     >
       <div className="three-avatar-canvas-shell" aria-hidden="true">
         {webglAvailable ? (
           <Canvas
-            camera={{ position: [0, 0, 4.6], fov: 42 }}
+            camera={{ position: [0, 0.12, 4.5], fov: 40 }}
             dpr={[1, 1.45]}
             frameloop={reducedMotion ? "demand" : "always"}
             gl={{ antialias: true, alpha: true, powerPreference: "low-power" }}
           >
-            <HologramScene
-              state={state}
-              audioActivity={activity}
-              reducedMotion={reducedMotion}
-            />
+            {hasAvatarModel ? (
+              <AvatarSceneBoundary
+                fallback={
+                  <HologramScene
+                    state={state}
+                    audioActivity={activity}
+                    reducedMotion={reducedMotion}
+                  />
+                }
+              >
+                <Suspense
+                  fallback={
+                    <HologramScene
+                      state={state}
+                      audioActivity={activity}
+                      reducedMotion={reducedMotion}
+                    />
+                  }
+                >
+                  <HumanoidAvatarScene
+                    state={state}
+                    audioActivity={activity}
+                    reducedMotion={reducedMotion}
+                    modelUrl={resolvedAvatarModelUrl}
+                  />
+                </Suspense>
+              </AvatarSceneBoundary>
+            ) : (
+              <HologramScene
+                state={state}
+                audioActivity={activity}
+                reducedMotion={reducedMotion}
+              />
+            )}
           </Canvas>
         ) : (
           <StaticHologram state={state} audioActivity={activity} />
         )}
       </div>
       <span className="three-avatar-state-chip" aria-hidden="true">
-        {state === "pharmacist_escalation" ? "Safety handoff" : state.replace("_", " ")}
+        {state === "pharmacist_escalation"
+          ? "Safety handoff"
+          : hasAvatarModel
+            ? "GLB avatar"
+            : state.replace("_", " ")}
       </span>
     </div>
   );

@@ -7,11 +7,12 @@ Evidence date: 2026-06-22
 | Backend health | `Invoke-WebRequest http://127.0.0.1:8000/health` | `{"status":"ok","service":"vitakiosk-api","provider_mode":"mock"}` | Pass |
 | Backend tests | `.\.venv\Scripts\python.exe -m pytest backend\tests -q -W error` | 45 passed | Pass |
 | Controlled provider config | `.\.venv\Scripts\python.exe -m pytest backend\tests\test_provider_config.py -q` | 4 passed: provider selectors default to mock, credentials do not auto-enable live providers, invalid selectors fail closed | Pass |
-| Frontend tests | `npm.cmd run test:run --prefix frontend` | 9 files, 36 tests passed | Pass |
-| Optional Three.js avatar renderer | `npm.cmd run test:run --prefix frontend -- src/components/AvatarAssistant.test.tsx src/components/avatar/AvatarRenderer.test.ts` | 2 files, 18 tests passed; Lottie default, Three.js renderer state accessibility, config selection, and reduced-motion fallback covered | Pass |
+| Frontend tests | `npm.cmd run test:run --prefix frontend` | 11 files, 41 tests passed | Pass |
+| Optional Three.js avatar renderer | `npm.cmd run test:run --prefix frontend -- src/components/AvatarAssistant.test.tsx src/components/avatar/AvatarRenderer.test.ts src/components/avatar/AvatarModel.test.ts src/components/avatar/ThreeAvatarRenderer.test.tsx` | 4 files, 23 tests passed; Lottie default, Three.js renderer state accessibility, config selection, GLB model URL resolution, GLB-backed renderer marker, and abstract fallback covered | Pass |
+| GLB humanoid avatar asset | Review `frontend/src/assets/avatar/vitakiosk-avatar.glb` and `docs/avatar-model.md` | Lightweight fictional GLB placeholder exists at the reviewed path; docs explain Ready Player Me replacement and fallback constraints | Pass |
 | Three.js avatar runtime QA | `$env:VITE_AVATAR_RENDERER='threejs'; npm.cmd run dev --prefix frontend -- --host 127.0.0.1 --port 5174`; in-app Browser at 1024x768 | Runtime DOM reported `data-avatar-renderer="threejs"`, WebGL `available`, `canvasCount=1`, `lottieCount=0`, viewport/document 1024x768; screenshot saved to `reports/evidence/threejs-avatar-renderer-1024x768.png` | Pass |
 | Shelf map component | `npm.cmd run test:run --prefix frontend -- src/components/ShelfMap.test.tsx` | 2 tests passed: route landmarks and unavailable-location non-invention | Pass |
-| Frontend build | `npm.cmd run build --prefix frontend` | TypeScript and Vite production build completed; default bundle 335.08kB JS before gzip, optional lazy ThreeAvatarRenderer chunk 861.65kB before gzip | Pass |
+| Frontend build | `npm.cmd run build --prefix frontend` | TypeScript and Vite production build completed; default bundle 335.07kB JS before gzip, optional lazy ThreeAvatarRenderer chunk 940.89kB before gzip | Pass |
 | Dependency audit | `npm.cmd audit --prefix frontend --audit-level=moderate` | 0 vulnerabilities | Pass |
 | Repository contract | `node scripts/check-repository.mjs` | Required structure and secret placeholders verified | Pass |
 | Spec coverage | `node scripts/check-specs.mjs` | 13 feature specs passed coverage check | Pass |

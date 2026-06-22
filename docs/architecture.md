@@ -61,7 +61,7 @@ The frontend ignores malformed or cross-session events. When WebSocket is unavai
 - `AIBrain`: text and branch to typed AI result.
 - `VitaFlowAdapter`: query and branch to authoritative product records.
 - `ProductVisionAdapter`: image bytes to product identifier or no match.
-- `AvatarRenderer`: avatar state and normalized audio activity to visual output. Lottie remains the default renderer; `VITE_AVATAR_RENDERER=threejs` lazy-loads the optional lightweight Three.js hologram renderer.
+- `AvatarRenderer`: avatar state and normalized audio activity to visual output. Lottie remains the default renderer; `VITE_AVATAR_RENDERER=threejs` lazy-loads the optional Three.js renderer. When `frontend/src/assets/avatar/vitakiosk-avatar.glb` is bundled, the renderer loads the GLB humanoid avatar. Missing or failed GLB loads fall back to the abstract hologram without changing backend, WebSocket, provider, or safety contracts.
 
 The shipped dependency graph instantiates mock adapters by default through `services.providers.create_provider_bundle`. Credentials are read only as configuration data; they do not select a provider. Future live adapters must be selected explicitly and must preserve all safety and source-of-truth tests.
 
