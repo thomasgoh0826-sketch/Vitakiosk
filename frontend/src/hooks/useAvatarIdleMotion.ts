@@ -1,7 +1,8 @@
 import { useFrame } from "@react-three/fiber";
 import type { VRM } from "@pixiv/three-vrm";
 import { useRef, type RefObject } from "react";
-import type { Group, Object3D } from "three";
+import { Euler, Quaternion } from "three";
+import type { Group } from "three";
 
 import type { AvatarState } from "../types";
 
@@ -79,10 +80,10 @@ export function getRelaxedAvatarPose(state: AvatarState): RelaxedAvatarPose {
     head: rotation(0, 0, 0),
     leftShoulder: rotation(0.02, 0.02, 0.1),
     rightShoulder: rotation(0.02, -0.02, -0.1),
-    leftUpperArm: rotation(-0.24 - alertTension, 0.06, 1.18),
-    rightUpperArm: rotation(-0.24 - alertTension, -0.06, -1.18),
-    leftLowerArm: rotation(-0.06, 0.48, 0.12),
-    rightLowerArm: rotation(-0.06, -0.48, -0.12),
+    leftUpperArm: rotation(-0.18 - alertTension, 0.04, 1.08),
+    rightUpperArm: rotation(-0.18 - alertTension, -0.04, -1.08),
+    leftLowerArm: rotation(-0.08, 0.36, 0.08),
+    rightLowerArm: rotation(-0.08, -0.36, -0.08),
     leftHand: rotation(0.02, 0.06, 0.04),
     rightHand: rotation(0.02, -0.06, -0.04),
   };
@@ -155,14 +156,9 @@ function applyExpressionWeights(vrm: VRM, state: AvatarState, blink: number) {
   }
 }
 
-function applyBoneRotation(bone: Object3D | null, pose: BoneRotation, weight = 1) {
-  if (!bone) {
-    return;
-  }
-
-  bone.rotation.x = pose.x * weight;
-  bone.rotation.y = pose.y * weight;
-  bone.rotation.z = pose.z * weight;
+function toQuaternionTuple(pose: BoneRotation): [number, number, number, number] {
+  const quaternion = new Quaternion().setFromEuler(new Euler(pose.x, pose.y, pose.z, "XYZ"));
+  return [quaternion.x, quaternion.y, quaternion.z, quaternion.w];
 }
 
 export function useAvatarIdleMotion({
@@ -200,45 +196,39 @@ export function useAvatarIdleMotion({
 
     if (vrm) {
       const pose = getRelaxedAvatarPose(state);
-      const hips = vrm.humanoid.getNormalizedBoneNode("hips");
-      const head = vrm.humanoid.getNormalizedBoneNode("head");
-      const neck = vrm.humanoid.getNormalizedBoneNode("neck");
-      const chest = vrm.humanoid.getNormalizedBoneNode("chest");
-      const upperChest = vrm.humanoid.getNormalizedBoneNode("upperChest");
-      const leftShoulder = vrm.humanoid.getNormalizedBoneNode("leftShoulder");
-      const rightShoulder = vrm.humanoid.getNormalizedBoneNode("rightShoulder");
-      const leftUpperArm = vrm.humanoid.getNormalizedBoneNode("leftUpperArm");
-      const rightUpperArm = vrm.humanoid.getNormalizedBoneNode("rightUpperArm");
-      const leftLowerArm = vrm.humanoid.getNormalizedBoneNode("leftLowerArm");
-      const rightLowerArm = vrm.humanoid.getNormalizedBoneNode("rightLowerArm");
-      const leftHand = vrm.humanoid.getNormalizedBoneNode("leftHand");
-      const rightHand = vrm.humanoid.getNormalizedBoneNode("rightHand");
-
-      applyBoneRotation(hips, pose.hips);
-      applyBoneRotation(chest, {
-        x: pose.chest.x,
-        y: pose.chest.y,
-        z: pose.chest.z + Math.sin(elapsed * 0.45) * 0.018,
+      vrm.humanoid.setNormalizedPose({
+        hips: { rotation: toQuaternionTuple(pose.hips) },
+        chest: {
+          rotation: toQuaternionTuple({
+            x: pose.chest.x,
+            y: pose.chest.y,
+            z: pose.chest.z + Math.sin(elapsed * 0.45) * 0.018,
+          }),
+        },
+        upperChest: { rotation: toQuaternionTuple(pose.upperChest) },
+        neck: {
+          rotation: toQuaternionTuple({
+            x: pose.neck.x + frame.headPitch * 0.22,
+            y: pose.neck.y + frame.headYaw * 0.24,
+            z: pose.neck.z,
+          }),
+        },
+        head: {
+          rotation: toQuaternionTuple({
+            x: pose.head.x + frame.headPitch,
+            y: pose.head.y + frame.headYaw,
+            z: pose.head.z,
+          }),
+        },
+        leftShoulder: { rotation: toQuaternionTuple(pose.leftShoulder) },
+        rightShoulder: { rotation: toQuaternionTuple(pose.rightShoulder) },
+        leftUpperArm: { rotation: toQuaternionTuple(pose.leftUpperArm) },
+        rightUpperArm: { rotation: toQuaternionTuple(pose.rightUpperArm) },
+        leftLowerArm: { rotation: toQuaternionTuple(pose.leftLowerArm) },
+        rightLowerArm: { rotation: toQuaternionTuple(pose.rightLowerArm) },
+        leftHand: { rotation: toQuaternionTuple(pose.leftHand) },
+        rightHand: { rotation: toQuaternionTuple(pose.rightHand) },
       });
-      applyBoneRotation(upperChest, pose.upperChest);
-      applyBoneRotation(neck, {
-        x: pose.neck.x + frame.headPitch * 0.22,
-        y: pose.neck.y + frame.headYaw * 0.24,
-        z: pose.neck.z,
-      });
-      applyBoneRotation(leftShoulder, pose.leftShoulder);
-      applyBoneRotation(rightShoulder, pose.rightShoulder);
-      applyBoneRotation(leftUpperArm, pose.leftUpperArm);
-      applyBoneRotation(rightUpperArm, pose.rightUpperArm);
-      applyBoneRotation(leftLowerArm, pose.leftLowerArm);
-      applyBoneRotation(rightLowerArm, pose.rightLowerArm);
-      applyBoneRotation(leftHand, pose.leftHand);
-      applyBoneRotation(rightHand, pose.rightHand);
-      if (head) {
-        head.rotation.y = pose.head.y + frame.headYaw;
-        head.rotation.x = pose.head.x + frame.headPitch;
-        head.rotation.z = pose.head.z;
-      }
 
       applyExpressionWeights(vrm, state, blink);
     }

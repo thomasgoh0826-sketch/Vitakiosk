@@ -45,6 +45,7 @@ Three.js/VRM controls body motion, face expressions, blinking, head movement, id
 - VRM lip sync starts with amplitude-based mouth movement only; phoneme or viseme timing is a future reviewed task.
 - The VRM renderer applies a relaxed assistant portrait pose after model load: arms must not remain horizontally stretched in T-pose, elbows should rest in a natural lowered stance when bones are available, and unavailable pose bones must no-op safely.
 - The VRM renderer frames the avatar as an upper-body kiosk assistant portrait with `data-avatar-framing="portrait"`, readable face lighting, soft key light, and cyan/purple rim glow; it must not present as a tiny ghost-like full-body figure.
+- When a VRM model loads successfully, the renderer uses a vertical portrait AI assistant stage and must not use the circular abstract hologram mask, `border-radius: 50%` shell, radial mask, or black circular crop reserved for abstract fallback visuals.
 - The Three.js renderer respects reduced-motion settings and renders safely when WebGL is unavailable.
 - The Lottie-first visual reads as an abstract holographic AI assistant and does not use a childish cartoon face.
 - The assistant stage uses visible text and distinct cyan, purple, or safety-red treatments for idle, listening, thinking, speaking, error, and pharmacist escalation.

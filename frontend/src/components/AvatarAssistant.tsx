@@ -41,10 +41,12 @@ function AvatarAssistant({
         <Suspense
           fallback={
             <div
-              className={`three-avatar vrm-avatar avatar-render-${state} three-avatar-loading`}
+              className={`vrm-avatar-portrait vrm-avatar avatar-render-${state} vrm-avatar-loading`}
               data-state={state}
               data-avatar-renderer="vrm"
               data-avatar-model="loading"
+              data-avatar-framing="portrait"
+              data-avatar-stage="portrait-panel"
               data-reduced-motion="pending"
               role="presentation"
               aria-hidden="true"

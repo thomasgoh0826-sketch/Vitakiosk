@@ -228,11 +228,11 @@ function VrmCharacterScene({
   useFrame(({ clock }, delta) => {
     vrm.update(delta);
 
+    const elapsed = clock.getElapsedTime();
     if (reducedMotion) {
       return;
     }
 
-    const elapsed = clock.getElapsedTime();
     if (scanner.current) {
       scanner.current.rotation.z += delta * visual.speed * 1.7;
       scanner.current.rotation.y = Math.sin(elapsed * 0.5) * 0.22;
@@ -419,6 +419,7 @@ function VrmAvatarRenderer({
   const stateLabel = STATE_LABELS[state];
   const resolvedVrmModelUrl = vrmModelUrl ?? null;
   const hasVrmModel = resolvedVrmModelUrl !== null;
+  const usesPortraitStage = hasVrmModel;
   const style = {
     "--three-avatar-primary": visual.primary,
     "--three-avatar-secondary": visual.secondary,
@@ -429,11 +430,17 @@ function VrmAvatarRenderer({
 
   return (
     <div
-      className={`three-avatar vrm-avatar avatar-render-${state}`}
+      className={
+        usesPortraitStage
+          ? `vrm-avatar-portrait vrm-avatar avatar-render-${state}`
+          : `three-avatar vrm-avatar avatar-render-${state}`
+      }
       data-state={state}
       data-avatar-renderer="vrm"
       data-avatar-model={hasVrmModel ? "vrm" : "fallback"}
       data-avatar-framing="portrait"
+      data-avatar-stage={usesPortraitStage ? "portrait-panel" : "abstract-fallback"}
+      data-camera-target={usesPortraitStage ? "head-chest" : "fallback"}
       data-avatar-model-url={resolvedVrmModelUrl ?? undefined}
       data-reduced-motion={String(reducedMotion)}
       data-webgl={webglAvailable ? "available" : "fallback"}
@@ -441,10 +448,13 @@ function VrmAvatarRenderer({
       aria-label={`VRM ${hasVrmModel ? "character" : "fallback"} AI avatar: ${stateLabel}`}
       style={style}
     >
-      <div className="three-avatar-canvas-shell" aria-hidden="true">
+      <div
+        className={usesPortraitStage ? "vrm-avatar-portrait-shell" : "three-avatar-canvas-shell"}
+        aria-hidden="true"
+      >
         {webglAvailable ? (
           <Canvas
-            camera={{ position: [0, 0.72, 3.05], fov: 30 }}
+            camera={{ position: [0, 0.88, 3.05], fov: 28 }}
             dpr={[1, 1.35]}
             frameloop={reducedMotion ? "demand" : "always"}
             gl={{ antialias: true, alpha: true, powerPreference: "low-power" }}
