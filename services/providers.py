@@ -12,12 +12,13 @@ from services.contracts import (
     VitaFlowAdapter,
 )
 from services.leaflet_engine import LeafletEngine
+from services.openai_stt import OpenAIWhisperSTT
 from services.poster_engine import PosterEngine
 from services.product_vision import BarcodeOCRVision, MockProductVision
 from services.promotion_engine import PromotionEngine
 from services.safety_guardrails import SafetyGuardrails
 from services.vitaflow_api import MockVitaFlowAPI, ReadOnlyVitaFlowAPI
-from services.voice_ai import ElevenLabsTTS, MockSTT, MockTTS, OpenAIWhisperSTT
+from services.voice_ai import ElevenLabsTTS, MockSTT, MockTTS
 from services.workflows import EscalationStore, PurchasingQueryStore
 
 
@@ -46,9 +47,10 @@ def _require(value: str, env_var: str, provider: str) -> str:
 def create_provider_bundle(settings: Settings) -> ProviderBundle:
     """Create independently swappable provider adapters.
 
-    Mock adapters remain the default. Live provider placeholders are returned
-    only when their explicit provider selector is set; credentials alone never
-    switch an adapter to live behavior.
+    Mock adapters remain the default. Live providers are returned only when
+    their explicit provider selector is set; credentials alone never switch an
+    adapter to live behavior. STT has an implemented OpenAI Whisper adapter;
+    other live-provider selectors remain reviewed placeholders.
     """
 
     settings.validate()

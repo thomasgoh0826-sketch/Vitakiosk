@@ -242,6 +242,25 @@ function useVoiceInteraction({
 
       const transcription = await api.transcribe(recording, sessionId);
       setTranscript(transcription.transcript);
+      if (
+        transcription.clarification_needed
+        || transcription.transcript.trim().length === 0
+      ) {
+        setProduct(null);
+        setPromotions([]);
+        setLeaflets([]);
+        setUiActions([]);
+        setPoster(null);
+        setPurchasingQueryId(null);
+        setEscalationId(null);
+        setHasResult(false);
+        setResponseText(
+          "I did not catch that clearly. Please tap to speak and try again.",
+        );
+        setState("idle");
+        sendState("idle");
+        return;
+      }
       setResponseText("Preparing answer...");
       const response = await api.respond(sessionId, transcription.transcript, branchId);
       setHasResult(true);

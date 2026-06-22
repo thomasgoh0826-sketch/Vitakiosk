@@ -87,11 +87,13 @@ class FakeAudioContext {
   }
 }
 
-function buildApi(redFlag = false) {
+function buildApi(redFlag = false, unclear = false) {
   return {
     transcribe: vi.fn().mockResolvedValue({
-      transcript: redFlag ? "I cannot breathe" : "price of relief balm",
+      transcript: unclear ? "" : redFlag ? "I cannot breathe" : "price of relief balm",
       provider: "mock_stt",
+      language: unclear ? "unknown" : "english",
+      clarification_needed: unclear,
     }),
     respond: vi.fn().mockResolvedValue(
       redFlag
@@ -278,6 +280,33 @@ describe("useVoiceInteraction", () => {
     expect(result.current.state).toBe("pharmacist_escalation");
     expect(result.current.escalationId).toBe("ESC-0001");
     expect(api.synthesize).not.toHaveBeenCalled();
+  });
+
+  it("asks for clarification and does not call AI when speech is unclear", async () => {
+    const api = buildApi(false, true);
+    const sendState = vi.fn();
+    const { result } = renderHook(() =>
+      useVoiceInteraction({
+        sessionId: "session-unclear",
+        branchId: "SG-001",
+        api,
+        serverState: "idle",
+        sendState,
+      }),
+    );
+
+    await act(async () => result.current.startRecording());
+    await act(async () => result.current.stopRecording());
+
+    expect(result.current.state).toBe("idle");
+    expect(result.current.transcript).toBe("");
+    expect(result.current.responseText).toBe(
+      "I did not catch that clearly. Please tap to speak and try again.",
+    );
+    expect(result.current.hasResult).toBe(false);
+    expect(api.respond).not.toHaveBeenCalled();
+    expect(api.synthesize).not.toHaveBeenCalled();
+    expect(sendState).toHaveBeenCalledWith("idle");
   });
 
   it("resets pharmacist escalation state for a new customer without deleting the ticket", async () => {

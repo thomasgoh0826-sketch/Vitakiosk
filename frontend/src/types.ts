@@ -98,9 +98,18 @@ export interface AIResponse {
   source: string;
 }
 
+export type TranscriptionLanguage =
+  | "english"
+  | "chinese"
+  | "malay"
+  | "mixed"
+  | "unknown";
+
 export interface TranscriptionResponse {
   transcript: string;
-  provider: "mock_stt";
+  provider: "mock_stt" | "openai_whisper";
+  language: TranscriptionLanguage;
+  clarification_needed: boolean;
 }
 
 export interface ItemListResponse<T> {

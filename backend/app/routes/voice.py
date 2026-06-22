@@ -15,13 +15,18 @@ router = APIRouter(prefix="/api/voice", tags=["voice"])
 async def transcribe(
     session_id: str = Form(min_length=1, max_length=80),
     audio: UploadFile = File(),
-) -> dict[str, str]:
+) -> dict[str, str | bool]:
     content = await audio.read()
     if not content:
         raise HTTPException(status_code=422, detail="Audio payload is empty")
     await manager.broadcast_state(session_id, "thinking", "transcribing")
-    transcript = stt.transcribe(content, audio.content_type or "application/octet-stream")
-    return {"transcript": transcript, "provider": "mock_stt"}
+    result = stt.transcribe(content, audio.content_type or "application/octet-stream")
+    return {
+        "transcript": result.transcript,
+        "provider": result.provider,
+        "language": result.language,
+        "clarification_needed": result.clarification_needed,
+    }
 
 
 @router.post("/tts")

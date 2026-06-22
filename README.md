@@ -2,7 +2,7 @@
 
 VitaKiosk is a mock-first, live-ready pharmacy kiosk demo for iPad landscape use. It combines a Lottie assistant, tap-to-speak browser voice capture with silence auto-stop, a safety-first intent pipeline, fictional VitaFlow-shaped data, mock WAV speech, and session-scoped WebSocket updates.
 
-The demo does not call OpenAI, ElevenLabs, Ollama, or VitaFlow ERP. It does not read customer or sales records.
+By default, the demo does not call OpenAI, ElevenLabs, Ollama, or VitaFlow ERP. It does not read customer or sales records. Whisper/OpenAI STT is available only for reviewed local testing when `STT_PROVIDER=openai_whisper` and a local `OPENAI_API_KEY` are set in `.env`.
 
 ## Safety rules
 
@@ -45,6 +45,24 @@ Mock mode requires no key. Keep these secret fields empty for the demo:
 
 `.env` is ignored. Never stage it.
 
+### Optional local Whisper STT test
+
+Use this only after backend/frontend mock tests pass and only with a key stored in local `.env`:
+
+```powershell
+STT_PROVIDER=openai_whisper
+OPENAI_API_KEY=
+```
+
+Then start the normal backend and frontend. Test short phrases such as:
+
+- “Where is Panadol?”
+- “这个 probiotic 有 promotion 吗?”
+- “Ada ubat batuk?”
+- “I am pregnant, can I take this supplement?”
+
+Expected behavior: the customer transcript appears in the left subtitle bubble, unclear speech asks the customer to try again, and red-flag wording still stops normal recommendation flow and escalates to pharmacist. Do not save or commit real customer audio, transcripts, logs, or recordings.
+
 ## Install
 
 Run all commands from the repository root.
@@ -80,7 +98,7 @@ Open [http://127.0.0.1:5175](http://127.0.0.1:5175). Use an iPad landscape viewp
 | Method | Path | Mock behavior |
 |---|---|---|
 | GET | `/health` | Reports service and provider mode |
-| POST | `/api/voice/transcribe` | Returns deterministic mock transcript |
+| POST | `/api/voice/transcribe` | Returns deterministic mock transcript plus provider/language/clarification metadata; optional Whisper STT only when explicitly enabled locally |
 | POST | `/api/ai/respond` | Runs safety and mock intent workflow |
 | POST | `/api/voice/tts` | Returns a generated WAV tone |
 | GET | `/api/products/search` | Searches fictional branch-scoped products |
@@ -106,11 +124,12 @@ Before every commit, inspect staged paths and run the staged-file check. If `.en
 
 ## Adapter replacement path
 
-Consumers depend on interfaces in `services/contracts.py` and `frontend/src/components/avatar/AvatarRenderer.ts`. Future work may add:
+Consumers depend on interfaces in `services/contracts.py` and `frontend/src/components/avatar/AvatarRenderer.ts`. Current and future adapters include:
 
-- OpenAI/Whisper STT and AI adapters.
-- ElevenLabs TTS adapter.
-- VitaFlow HTTP API connector.
+- OpenAI/Whisper STT adapter for explicit local testing through `STT_PROVIDER=openai_whisper`.
+- OpenAI/Ollama AI adapters as future reviewed work.
+- ElevenLabs TTS adapter as future reviewed work.
+- VitaFlow HTTP API connector as future reviewed work.
 - Rive, Three.js GLB, or Three.js VRM avatar renderer.
   - Lottie is the default.
   - Three.js is optional through `VITE_AVATAR_RENDERER=threejs`.
@@ -121,7 +140,7 @@ Consumers depend on interfaces in `services/contracts.py` and `frontend/src/comp
   - If no VRM is available or loading fails, it falls back safely without blocking the kiosk UI.
   - Avatar models must be self-hosted from the local repository or a reviewed static asset path. Do not rely on Ready Player Me, cloud avatar editors, avatar creator APIs, or any external avatar runtime service. See `docs/avatar-model.md`.
 
-Provider selection must be explicit. Adding a credential alone must never activate a live call. Live adapters require new contract tests, red-flag tests, non-invention tests, network failure handling, and security review.
+Provider selection must be explicit. Adding a credential alone must never activate a live call. Live adapters require contract tests, red-flag tests, non-invention tests, network failure handling, and security review.
 
 Controlled provider mode is per layer:
 
@@ -133,7 +152,7 @@ Controlled provider mode is per layer:
 | VitaFlow | `VITAFLOW_PROVIDER=mock` | `readonly_api` |
 | Vision | `VISION_PROVIDER=mock` | `barcode_ocr` |
 
-To test a live provider later, edit only one selector in local `.env`, provide only that provider's required key or URL, and rerun backend safety, non-invention, and source-of-truth tests. The current live-provider classes are placeholders and make no network calls.
+To test a live provider locally, edit only one selector in local `.env`, provide only that provider's required key or URL, and rerun backend safety, non-invention, and source-of-truth tests. The STT adapter can call OpenAI only when `STT_PROVIDER=openai_whisper` is explicitly selected; the TTS, AI, VitaFlow, and vision live classes remain placeholders until separate reviewed tasks implement them.
 
 The first VitaFlow live task must use a reviewed read-only API or sanitized copy. It must not write to VitaFlow and must not read the ERP release directory or database directly.
 

@@ -103,7 +103,10 @@ def test_product_leaflets_are_product_and_kind_scoped() -> None:
 def test_mock_stt_returns_deterministic_transcript() -> None:
     transcript = MockSTT().transcribe(b"mock audio", "audio/webm")
 
-    assert transcript == "show me pain relief products"
+    assert transcript.transcript == "show me pain relief products"
+    assert transcript.provider == "mock_stt"
+    assert transcript.language == "english"
+    assert transcript.clarification_needed is False
 
 
 def test_mock_stt_rejects_empty_audio() -> None:

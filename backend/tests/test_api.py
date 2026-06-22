@@ -12,6 +12,8 @@ def test_transcribe_accepts_audio(client: TestClient) -> None:
     assert response.json() == {
         "transcript": "show me pain relief products",
         "provider": "mock_stt",
+        "language": "english",
+        "clarification_needed": False,
     }
 
 

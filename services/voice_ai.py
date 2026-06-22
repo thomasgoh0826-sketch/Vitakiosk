@@ -5,13 +5,22 @@ import math
 import struct
 import wave
 
+from services.models import TranscriptionResult
+
 
 class MockSTT:
-    def transcribe(self, audio: bytes, content_type: str) -> str:
+    provider_name = "mock_stt"
+
+    def transcribe(self, audio: bytes, content_type: str) -> TranscriptionResult:
         del content_type
         if not audio:
             raise ValueError("Audio payload is empty")
-        return "show me pain relief products"
+        return TranscriptionResult(
+            transcript="show me pain relief products",
+            provider=self.provider_name,
+            language="english",
+            clarification_needed=False,
+        )
 
 
 class MockTTS:
@@ -39,22 +48,6 @@ class MockTTS:
                 frames.extend(struct.pack("<h", sample))
             wav_file.writeframes(bytes(frames))
         return buffer.getvalue()
-
-
-class OpenAIWhisperSTT:
-    """Placeholder adapter for a future explicitly enabled OpenAI Whisper/STT layer."""
-
-    provider_name = "openai_whisper"
-
-    def __init__(self, *, api_key: str) -> None:
-        self._api_key = api_key
-
-    def transcribe(self, audio: bytes, content_type: str) -> str:
-        del audio, content_type
-        raise RuntimeError(
-            "OpenAI Whisper STT is a live-provider placeholder and is not "
-            "implemented in the mock-first demo."
-        )
 
 
 class ElevenLabsTTS:

@@ -108,6 +108,14 @@ class Escalation:
     source: str = "mock_memory"
 
 
+@dataclass(frozen=True)
+class TranscriptionResult:
+    transcript: str
+    provider: str
+    language: str = "unknown"
+    clarification_needed: bool = False
+
+
 class Intent(str, Enum):
     PRODUCT_SEARCH = "product_search"
     PRODUCT_COUNSELLING = "product_counselling"

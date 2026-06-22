@@ -2,11 +2,11 @@ from __future__ import annotations
 
 from typing import Protocol
 
-from services.models import AIResult, Product
+from services.models import AIResult, Product, TranscriptionResult
 
 
 class STTAdapter(Protocol):
-    def transcribe(self, audio: bytes, content_type: str) -> str: ...
+    def transcribe(self, audio: bytes, content_type: str) -> TranscriptionResult: ...
 
 
 class TTSAdapter(Protocol):

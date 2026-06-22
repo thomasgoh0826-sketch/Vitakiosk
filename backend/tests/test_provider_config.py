@@ -2,6 +2,7 @@ import pytest
 
 from backend.app.config import Settings
 from services.ai_brain import MockAIBrain
+from services.openai_stt import OpenAIWhisperSTT
 from services.product_vision import MockProductVision
 from services.providers import create_provider_bundle
 from services.vitaflow_api import MockVitaFlowAPI
@@ -84,6 +85,31 @@ def test_credentials_do_not_auto_enable_live_providers(
     assert isinstance(bundle.ai_brain, MockAIBrain)
     assert isinstance(bundle.vitaflow, MockVitaFlowAPI)
     assert isinstance(bundle.vision, MockProductVision)
+
+
+def test_openai_whisper_stt_requires_explicit_provider_selection(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    clear_provider_env(monkeypatch)
+    monkeypatch.setenv("STT_PROVIDER", "openai_whisper")
+    monkeypatch.setenv("OPENAI_API_KEY", "not-real-openai-test-value")
+
+    bundle = create_provider_bundle(Settings.from_environment())
+
+    assert isinstance(bundle.stt, OpenAIWhisperSTT)
+    assert isinstance(bundle.tts, MockTTS)
+    assert isinstance(bundle.ai_brain, MockAIBrain)
+    assert isinstance(bundle.vitaflow, MockVitaFlowAPI)
+
+
+def test_openai_whisper_stt_fails_closed_without_api_key(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    clear_provider_env(monkeypatch)
+    monkeypatch.setenv("STT_PROVIDER", "openai_whisper")
+
+    with pytest.raises(RuntimeError, match="OPENAI_API_KEY"):
+        create_provider_bundle(Settings.from_environment())
 
 
 def test_invalid_provider_selector_is_rejected(

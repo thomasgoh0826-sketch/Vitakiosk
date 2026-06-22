@@ -2,11 +2,11 @@
 
 ## Purpose
 
-Connect tap-to-speak browser audio to the safety-first mock response pipeline.
+Connect tap-to-speak browser audio to the safety-first response pipeline while keeping STT mock by default and Whisper/OpenAI STT explicitly opt-in.
 
 ## Flow
 
-MediaRecorder plus browser-side silence detection -> mock STT -> safety guardrails -> intent and mock VitaFlow lookup -> mock TTS WAV -> Web Audio playback.
+MediaRecorder plus browser-side silence detection -> selected STT adapter -> clarification gate -> safety guardrails -> intent and mock VitaFlow lookup -> mock TTS WAV -> Web Audio playback.
 
 ## Acceptance criteria
 
@@ -19,6 +19,11 @@ MediaRecorder plus browser-side silence detection -> mock STT -> safety guardrai
 - The demo completes listening, thinking, speaking, and idle states without a provider key.
 - `STT_PROVIDER` and `TTS_PROVIDER` default to `mock`.
 - OpenAI Whisper and ElevenLabs credentials do not activate live voice providers unless the matching provider selector is explicitly changed.
+- `STT_PROVIDER=openai_whisper` is the only supported live STT selector and requires `OPENAI_API_KEY` from local environment variables.
+- Whisper/OpenAI STT accepts the existing voice upload payload and returns transcript text, provider, detected or inferred language, and clarification status.
+- STT supports English, Chinese, Malay, and mixed Malaysian-style speech metadata while preserving product and medicine names in the transcript text.
+- Unclear speech returns `clarification_needed=true`; the frontend asks the customer to try again and must not call AI response, product recommendation, TTS, or promotion flow for that unclear transcript.
+- STT remains conversion-only and must not diagnose, prescribe, recommend products, or generate medical advice.
 - Tests must not call OpenAI Whisper, ElevenLabs, or any external speech provider.
 - Red-flag responses stop before TTS playback.
 - Microphone denial, unsupported recording, and playback failure enter `error` with actionable text, and `Start` can reset the kiosk afterward.
@@ -30,4 +35,5 @@ MediaRecorder plus browser-side silence detection -> mock STT -> safety guardrai
 - `frontend/src/hooks/useVoiceInteraction.test.ts`
 - `backend/tests/test_api.py`
 - `backend/tests/test_provider_config.py`
+- `backend/tests/test_openai_stt.py`
 - Manual microphone evidence in `reports/test-evidence.md`.
