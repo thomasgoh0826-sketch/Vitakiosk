@@ -21,5 +21,9 @@ export function normalizeAvatarRenderer(value: string | undefined | null): Avata
 export function getConfiguredAvatarRenderer(
   env: AvatarRendererEnv = import.meta.env as AvatarRendererEnv,
 ): AvatarRendererKind {
-  return normalizeAvatarRenderer(env.AVATAR_RENDERER ?? env.VITE_AVATAR_RENDERER);
+  const viteRenderer = normalizeAvatarRenderer(env.VITE_AVATAR_RENDERER);
+  if (viteRenderer === "threejs") {
+    return viteRenderer;
+  }
+  return normalizeAvatarRenderer(env.AVATAR_RENDERER);
 }

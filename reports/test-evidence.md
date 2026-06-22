@@ -9,6 +9,7 @@ Evidence date: 2026-06-22
 | Controlled provider config | `.\.venv\Scripts\python.exe -m pytest backend\tests\test_provider_config.py -q` | 4 passed: provider selectors default to mock, credentials do not auto-enable live providers, invalid selectors fail closed | Pass |
 | Frontend tests | `npm.cmd run test:run --prefix frontend` | 9 files, 36 tests passed | Pass |
 | Optional Three.js avatar renderer | `npm.cmd run test:run --prefix frontend -- src/components/AvatarAssistant.test.tsx src/components/avatar/AvatarRenderer.test.ts` | 2 files, 18 tests passed; Lottie default, Three.js renderer state accessibility, config selection, and reduced-motion fallback covered | Pass |
+| Three.js avatar runtime QA | `$env:VITE_AVATAR_RENDERER='threejs'; npm.cmd run dev --prefix frontend -- --host 127.0.0.1 --port 5174`; in-app Browser at 1024x768 | Runtime DOM reported `data-avatar-renderer="threejs"`, WebGL `available`, `canvasCount=1`, `lottieCount=0`, viewport/document 1024x768; screenshot saved to `reports/evidence/threejs-avatar-renderer-1024x768.png` | Pass |
 | Shelf map component | `npm.cmd run test:run --prefix frontend -- src/components/ShelfMap.test.tsx` | 2 tests passed: route landmarks and unavailable-location non-invention | Pass |
 | Frontend build | `npm.cmd run build --prefix frontend` | TypeScript and Vite production build completed; default bundle 335.08kB JS before gzip, optional lazy ThreeAvatarRenderer chunk 861.65kB before gzip | Pass |
 | Dependency audit | `npm.cmd audit --prefix frontend --audit-level=moderate` | 0 vulnerabilities | Pass |

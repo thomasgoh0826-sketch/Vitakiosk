@@ -14,6 +14,12 @@ describe("avatar renderer config", () => {
     expect(getConfiguredAvatarRenderer({ AVATAR_RENDERER: "threejs" })).toBe("threejs");
     expect(getConfiguredAvatarRenderer({ AVATAR_RENDERER: "THREEJS" })).toBe("threejs");
     expect(getConfiguredAvatarRenderer({ VITE_AVATAR_RENDERER: "threejs" })).toBe("threejs");
+    expect(
+      getConfiguredAvatarRenderer({
+        AVATAR_RENDERER: "",
+        VITE_AVATAR_RENDERER: "threejs",
+      }),
+    ).toBe("threejs");
     expect(getConfiguredAvatarRenderer({ AVATAR_RENDERER: "lottie" })).toBe("lottie");
     expect(getConfiguredAvatarRenderer({ AVATAR_RENDERER: "unknown-live-avatar" })).toBe("lottie");
   });
