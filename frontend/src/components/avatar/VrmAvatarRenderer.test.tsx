@@ -14,7 +14,7 @@ describe("VrmAvatarRenderer", () => {
     );
   });
 
-  it("marks the renderer as VRM-backed when a local VRM model URL is available", () => {
+  it("marks the renderer as VRM-backed with full-body chamber framing when a local VRM model URL is available", () => {
     render(
       <VrmAvatarRenderer
         state="speaking"
@@ -26,8 +26,10 @@ describe("VrmAvatarRenderer", () => {
     const avatar = screen.getByLabelText(/vrm character ai avatar/i);
     expect(avatar).toHaveAttribute("data-avatar-renderer", "vrm");
     expect(avatar).toHaveAttribute("data-avatar-model", "vrm");
-    expect(avatar).toHaveAttribute("data-avatar-framing", "portrait");
-    expect(avatar).toHaveAttribute("data-avatar-crop", "bust");
+    expect(avatar).toHaveAttribute("data-avatar-framing", "full-body");
+    expect(avatar).toHaveAttribute("data-avatar-crop", "full-body");
+    expect(avatar).toHaveAttribute("data-avatar-stage", "full-body-chamber");
+    expect(avatar).toHaveAttribute("data-camera-target", "full-body");
     expect(avatar).toHaveClass("vrm-avatar-portrait");
     expect(avatar).not.toHaveClass("three-avatar");
     expect(avatar.querySelector(".vrm-avatar-portrait-shell")).not.toBeNull();

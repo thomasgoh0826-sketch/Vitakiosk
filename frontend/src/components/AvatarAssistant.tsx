@@ -45,9 +45,9 @@ function AvatarAssistant({
               data-state={state}
               data-avatar-renderer="vrm"
               data-avatar-model="loading"
-              data-avatar-framing="portrait"
-              data-avatar-crop="bust"
-              data-avatar-stage="portrait-panel"
+              data-avatar-framing="full-body"
+              data-avatar-crop="full-body"
+              data-avatar-stage="full-body-chamber"
               data-reduced-motion="pending"
               role="presentation"
               aria-hidden="true"

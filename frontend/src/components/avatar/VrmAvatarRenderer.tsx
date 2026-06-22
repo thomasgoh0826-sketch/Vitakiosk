@@ -1,4 +1,4 @@
-import { Canvas, useFrame, useLoader } from "@react-three/fiber";
+import { Canvas, useFrame, useLoader, useThree } from "@react-three/fiber";
 import { VRM, VRMLoaderPlugin, VRMUtils } from "@pixiv/three-vrm";
 import {
   Component,
@@ -202,6 +202,18 @@ interface VrmCharacterSceneProps {
   modelUrl: string;
 }
 
+function VrmFullBodyCamera() {
+  const { camera } = useThree();
+
+  useEffect(() => {
+    camera.position.set(0, 0.8, 4.2);
+    camera.lookAt(0, -0.34, 0);
+    camera.updateProjectionMatrix();
+  }, [camera]);
+
+  return null;
+}
+
 function VrmCharacterScene({
   state,
   audioActivity,
@@ -259,7 +271,7 @@ function VrmCharacterScene({
         position={[0, 0.4, 2.6]}
       />
 
-      <group ref={root} scale={2.35} rotation={[0, 0, 0]} position={[0, -1.58, 0]}>
+      <group ref={root} scale={2.18} rotation={[0, 0, 0]} position={[0, -0.86, 0]}>
         <primitive object={vrm.scene} />
       </group>
 
@@ -438,10 +450,10 @@ function VrmAvatarRenderer({
       data-state={state}
       data-avatar-renderer="vrm"
       data-avatar-model={hasVrmModel ? "vrm" : "fallback"}
-      data-avatar-framing="portrait"
-      data-avatar-crop={usesPortraitStage ? "bust" : "fallback"}
-      data-avatar-stage={usesPortraitStage ? "portrait-panel" : "abstract-fallback"}
-      data-camera-target={usesPortraitStage ? "head-chest" : "fallback"}
+      data-avatar-framing={usesPortraitStage ? "full-body" : "fallback"}
+      data-avatar-crop={usesPortraitStage ? "full-body" : "fallback"}
+      data-avatar-stage={usesPortraitStage ? "full-body-chamber" : "abstract-fallback"}
+      data-camera-target={usesPortraitStage ? "full-body" : "fallback"}
       data-avatar-model-url={resolvedVrmModelUrl ?? undefined}
       data-reduced-motion={String(reducedMotion)}
       data-webgl={webglAvailable ? "available" : "fallback"}
@@ -455,11 +467,12 @@ function VrmAvatarRenderer({
       >
         {webglAvailable ? (
           <Canvas
-            camera={{ position: [0, 1.05, 2.8], fov: 28 }}
+            camera={{ position: [0, 0.8, 4.2], fov: 36 }}
             dpr={[1, 1.35]}
             frameloop={reducedMotion ? "demand" : "always"}
             gl={{ antialias: true, alpha: true, powerPreference: "low-power" }}
           >
+            {hasVrmModel ? <VrmFullBodyCamera /> : null}
             {hasVrmModel ? (
               <AvatarSceneBoundary
                 fallback={

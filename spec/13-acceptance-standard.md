@@ -23,7 +23,7 @@ A feature is accepted only when:
 - VitaFlow live integration must start as read-only only and must not use `C:\Users\Admin\Documents\Playground\release`.
 - Red-flag, unknown-product, and non-invention rules remain covered.
 - Shelf navigation acceptance evidence includes a screenshot of the map route panel at the target iPad landscape viewport; a plain progress stepper is not accepted.
-- Dark neon kiosk acceptance evidence includes a 1024 × 768 screenshot showing the full single-screen composition.
+- Dark neon kiosk acceptance evidence includes a 1024x768 screenshot showing the full single-screen composition.
 - The screenshot must show `Tap to Speak` as the primary interaction, a futuristic avatar bay, a poster-style promotion, the map-style shelf route, Mock VitaFlow provenance, and pharmacist safety messaging.
 - A white/light SaaS dashboard treatment or a primary `Hold to Speak` label is not accepted.
 - Responsive kiosk acceptance evidence must include screenshot or browser-measured evidence for at least 1024x768, 1366x768, and 1920x1080.
@@ -32,7 +32,7 @@ A feature is accepted only when:
 - VRM/Three.js avatar canvases must resize with their assistant stage; VRM mode must not expose customer-facing technical renderer labels.
 - Optional avatar renderer work must keep Lottie as the default, gate Three.js behind `VITE_AVATAR_RENDERER=threejs`, and prove all avatar states remain accessible.
 - Three.js avatar acceptance requires lazy loading, GLB humanoid support, abstract hologram fallback, WebGL fallback, reduced-motion support, and tests proving Lottie remains the default.
-- VRM avatar acceptance requires lazy loading, local self-hosted VRM support, Lottie/GLB/abstract fallback safety, accessible state labels, reduced-motion support, a relaxed non-T-pose assistant stance, no visible raised hands or improvised hand/lower-arm gesture overrides, vertical portrait-stage rendering without circular hologram masking when the VRM is loaded, bust-shot head/face/shoulder/upper-chest framing, visible face lighting, and screenshot evidence at 1024 × 768.
+- VRM avatar acceptance requires lazy loading, local self-hosted VRM support, Lottie/GLB/abstract fallback safety, accessible state labels, reduced-motion support, a relaxed non-T-pose assistant stance, no visible raised hands or improvised hand/lower-arm gesture overrides, vertical full-body chamber rendering without circular hologram masking when the VRM is loaded, full-body or near-full-body framing with the head never cropped, visible face lighting, and screenshot evidence at 1024x768.
 - Heavy 3D models are not accepted for the iPad landscape kiosk path.
 
 ## Test evidence
