@@ -1,15 +1,16 @@
 # VitaKiosk Test Evidence
 
-Evidence date: 2026-06-21
+Evidence date: 2026-06-22
 
 | Evidence | Command | Actual result | Status |
 |---|---|---|---|
 | Backend health | `Invoke-WebRequest http://127.0.0.1:8000/health` | `{"status":"ok","service":"vitakiosk-api","provider_mode":"mock"}` | Pass |
 | Backend tests | `.\.venv\Scripts\python.exe -m pytest backend\tests -q -W error` | 45 passed | Pass |
 | Controlled provider config | `.\.venv\Scripts\python.exe -m pytest backend\tests\test_provider_config.py -q` | 4 passed: provider selectors default to mock, credentials do not auto-enable live providers, invalid selectors fail closed | Pass |
-| Frontend tests | `npm.cmd run test:run --prefix frontend` | 8 files, 26 tests passed | Pass |
+| Frontend tests | `npm.cmd run test:run --prefix frontend` | 9 files, 36 tests passed | Pass |
+| Optional Three.js avatar renderer | `npm.cmd run test:run --prefix frontend -- src/components/AvatarAssistant.test.tsx src/components/avatar/AvatarRenderer.test.ts` | 2 files, 18 tests passed; Lottie default, Three.js renderer state accessibility, config selection, and reduced-motion fallback covered | Pass |
 | Shelf map component | `npm.cmd run test:run --prefix frontend -- src/components/ShelfMap.test.tsx` | 2 tests passed: route landmarks and unavailable-location non-invention | Pass |
-| Frontend build | `npm.cmd run build --prefix frontend` | TypeScript and Vite production build completed; 31.81kB CSS and 332.67kB JS before gzip | Pass |
+| Frontend build | `npm.cmd run build --prefix frontend` | TypeScript and Vite production build completed; default bundle 335.08kB JS before gzip, optional lazy ThreeAvatarRenderer chunk 861.65kB before gzip | Pass |
 | Dependency audit | `npm.cmd audit --prefix frontend --audit-level=moderate` | 0 vulnerabilities | Pass |
 | Repository contract | `node scripts/check-repository.mjs` | Required structure and secret placeholders verified | Pass |
 | Spec coverage | `node scripts/check-specs.mjs` | 13 feature specs passed coverage check | Pass |

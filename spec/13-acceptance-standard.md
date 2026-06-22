@@ -26,6 +26,8 @@ A feature is accepted only when:
 - Dark neon kiosk acceptance evidence includes a 1024 × 768 screenshot showing the full single-screen composition.
 - The screenshot must show `Tap to Speak` as the primary interaction, a futuristic avatar bay, a poster-style promotion, the map-style shelf route, Mock VitaFlow provenance, and pharmacist safety messaging.
 - A white/light SaaS dashboard treatment or a primary `Hold to Speak` label is not accepted.
+- Optional avatar renderer work must keep Lottie as the default, gate Three.js behind `AVATAR_RENDERER=threejs`, and prove all avatar states remain accessible.
+- Three.js avatar acceptance requires a lazy-loaded, lightweight abstract hologram with WebGL fallback and reduced-motion support; a heavy 3D character model is not accepted at this stage.
 
 ## Test evidence
 

@@ -39,6 +39,7 @@ Mock mode requires no key. Keep these secret fields empty for the demo:
 - `ELEVENLABS_VOICE_ID`
 - `OLLAMA_BASE_URL`
 - `VITAFLOW_API_BASE_URL`
+- `AVATAR_RENDERER` may be left empty for the default Lottie avatar; set `AVATAR_RENDERER=threejs` only for reviewed local Three.js avatar testing.
 
 `.env` is ignored. Never stage it.
 
@@ -106,7 +107,7 @@ Consumers depend on interfaces in `services/contracts.py` and `frontend/src/comp
 - OpenAI/Whisper STT and AI adapters.
 - ElevenLabs TTS adapter.
 - VitaFlow HTTP API connector.
-- Rive or Three.js avatar renderer.
+- Rive or Three.js avatar renderer. Lottie is the default; Three.js is optional through `AVATAR_RENDERER=threejs`.
 
 Provider selection must be explicit. Adding a credential alone must never activate a live call. Live adapters require new contract tests, red-flag tests, non-invention tests, network failure handling, and security review.
 

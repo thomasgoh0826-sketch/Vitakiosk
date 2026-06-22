@@ -33,6 +33,9 @@ function LottieAvatarRenderer({ state, audioActivity }: AvatarRendererProps) {
       className={`lottie-avatar avatar-render-${state}`}
       style={style}
       data-state={state}
+      data-avatar-renderer="lottie"
+      role="img"
+      aria-label="Lottie holographic AI avatar"
     >
       <div
         className="avatar-lottie-layer"

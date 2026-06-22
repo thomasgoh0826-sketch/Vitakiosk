@@ -1059,6 +1059,224 @@ button:focus-visible {
     0 0 36px rgba(155, 108, 255, 0.2);
 }
 
+.three-avatar {
+  --three-avatar-primary: var(--neon-cyan);
+  --three-avatar-secondary: var(--neon-purple);
+  --three-avatar-danger: var(--danger-red);
+  --three-avatar-activity: 0;
+  position: relative;
+  width: min(82%, 228px);
+  aspect-ratio: 1;
+  display: grid;
+  place-items: center;
+  overflow: visible;
+  border: 1px solid color-mix(in srgb, var(--three-avatar-primary), transparent 34%);
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 50% 44%, color-mix(in srgb, var(--three-avatar-primary), transparent 84%), transparent 22%),
+    radial-gradient(circle at 52% 54%, color-mix(in srgb, var(--three-avatar-secondary), transparent 84%), transparent 44%),
+    radial-gradient(circle, rgba(4, 10, 24, 0.88), rgba(2, 7, 18, 0.98) 74%);
+  box-shadow:
+    inset 0 0 46px color-mix(in srgb, var(--three-avatar-primary), transparent 88%),
+    0 0 32px color-mix(in srgb, var(--three-avatar-secondary), transparent 76%),
+    0 0 42px color-mix(in srgb, var(--three-avatar-primary), transparent 72%);
+  isolation: isolate;
+}
+
+.three-avatar::before,
+.three-avatar::after {
+  position: absolute;
+  inset: -8%;
+  border-radius: 50%;
+  content: "";
+  pointer-events: none;
+}
+
+.three-avatar::before {
+  border: 1px solid color-mix(in srgb, var(--three-avatar-primary), transparent 58%);
+  filter: blur(0.2px);
+  opacity: 0.8;
+}
+
+.three-avatar::after {
+  inset: 8%;
+  border: 1px dashed color-mix(in srgb, var(--three-avatar-secondary), transparent 42%);
+  animation: avatar-orbit 12s linear infinite reverse;
+  opacity: 0.62;
+}
+
+.three-avatar-canvas-shell {
+  position: absolute;
+  inset: 4%;
+  overflow: hidden;
+  border-radius: 50%;
+  background:
+    linear-gradient(transparent 49%, color-mix(in srgb, var(--three-avatar-primary), transparent 86%) 50%, transparent 51%),
+    linear-gradient(90deg, transparent 49%, color-mix(in srgb, var(--three-avatar-secondary), transparent 88%) 50%, transparent 51%);
+  background-size: 100% 18px, 18px 100%;
+  mask-image: radial-gradient(circle, black 48%, transparent 76%);
+}
+
+.three-avatar-canvas-shell canvas {
+  display: block;
+  width: 100% !important;
+  height: 100% !important;
+}
+
+.three-avatar-fallback {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+}
+
+.three-avatar-grid {
+  position: absolute;
+  inset: 5%;
+  border-radius: 50%;
+  background:
+    repeating-linear-gradient(
+      0deg,
+      color-mix(in srgb, var(--three-avatar-primary), transparent 91%) 0 1px,
+      transparent 1px 12px
+    ),
+    repeating-linear-gradient(
+      90deg,
+      color-mix(in srgb, var(--three-avatar-secondary), transparent 92%) 0 1px,
+      transparent 1px 12px
+    );
+  opacity: 0.48;
+}
+
+.three-avatar-ring {
+  position: absolute;
+  border-radius: 50%;
+}
+
+.three-avatar-ring-outer {
+  width: 86%;
+  aspect-ratio: 1;
+  border: 1px solid color-mix(in srgb, var(--three-avatar-primary), transparent 36%);
+  box-shadow: 0 0 24px color-mix(in srgb, var(--three-avatar-primary), transparent 72%);
+}
+
+.three-avatar-ring-middle {
+  width: 61%;
+  aspect-ratio: 1;
+  border: 1px dashed color-mix(in srgb, var(--three-avatar-secondary), transparent 30%);
+  animation: avatar-orbit 8s linear infinite;
+}
+
+.three-avatar-core {
+  width: 39%;
+  aspect-ratio: 1;
+  border: 1px solid color-mix(in srgb, var(--three-avatar-primary), transparent 14%);
+  border-radius: 38% 62% 46% 54%;
+  background:
+    linear-gradient(140deg, color-mix(in srgb, var(--three-avatar-primary), transparent 52%), transparent),
+    radial-gradient(circle, color-mix(in srgb, var(--three-avatar-secondary), transparent 52%), rgba(4, 10, 24, 0.66));
+  box-shadow:
+    inset 0 0 24px rgba(255, 255, 255, 0.08),
+    0 0 48px color-mix(in srgb, var(--three-avatar-primary), transparent 48%);
+  animation: three-avatar-breathe 3.8s ease-in-out infinite;
+  transform: scale(var(--three-avatar-core-scale, 1));
+}
+
+.three-avatar-scan {
+  position: absolute;
+  left: 16%;
+  width: 68%;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--three-avatar-primary), transparent);
+  box-shadow: 0 0 14px var(--three-avatar-primary);
+  animation: avatar-scan 2.8s ease-in-out infinite;
+}
+
+.three-avatar-safety-triangle {
+  position: absolute;
+  bottom: 22%;
+  width: 36px;
+  height: 31px;
+  opacity: 0;
+  background: color-mix(in srgb, var(--three-avatar-danger), transparent 22%);
+  clip-path: polygon(50% 0, 100% 100%, 0 100%);
+  filter: drop-shadow(0 0 12px var(--three-avatar-danger));
+}
+
+.three-avatar-wave {
+  position: absolute;
+  right: 13%;
+  bottom: 16%;
+  left: 13%;
+  display: flex;
+  align-items: end;
+  justify-content: center;
+  gap: 3px;
+}
+
+.three-avatar-wave span {
+  width: 2px;
+  height: var(--bar-height);
+  max-height: 46px;
+  border-radius: 999px;
+  background: linear-gradient(to top, var(--three-avatar-secondary), var(--three-avatar-primary));
+  box-shadow: 0 0 8px var(--three-avatar-primary);
+  animation: three-avatar-wave 1.15s ease-in-out infinite;
+  animation-delay: var(--bar-delay);
+  opacity: 0.42;
+}
+
+.three-avatar-state-chip {
+  position: absolute;
+  right: 8%;
+  bottom: 8%;
+  z-index: 5;
+  max-width: 72%;
+  padding: 4px 8px;
+  border: 1px solid color-mix(in srgb, var(--three-avatar-primary), transparent 52%);
+  border-radius: 999px;
+  color: color-mix(in srgb, var(--three-avatar-primary), white 24%);
+  background: rgba(2, 8, 22, 0.78);
+  box-shadow: 0 0 14px color-mix(in srgb, var(--three-avatar-primary), transparent 84%);
+  font-size: 0.44rem;
+  font-weight: 850;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.three-avatar-fallback-listening .three-avatar-ring-outer,
+.three-avatar-fallback-speaking .three-avatar-ring-outer {
+  animation: three-avatar-ring-pulse 1.6s ease-in-out infinite;
+}
+
+.three-avatar-fallback-thinking .three-avatar-ring-middle {
+  animation-duration: 2.1s;
+}
+
+.three-avatar-fallback-error .three-avatar-safety-triangle,
+.three-avatar-fallback-pharmacist_escalation .three-avatar-safety-triangle {
+  opacity: 0.58;
+}
+
+.three-avatar-loading {
+  min-height: min(82%, 228px);
+}
+
+@keyframes three-avatar-breathe {
+  0%, 100% { filter: brightness(0.92); }
+  50% { filter: brightness(1.28); }
+}
+
+@keyframes three-avatar-ring-pulse {
+  0%, 100% { transform: scale(0.96); opacity: 0.64; }
+  50% { transform: scale(1.06); opacity: 1; }
+}
+
+@keyframes three-avatar-wave {
+  0%, 100% { transform: scaleY(0.42); opacity: 0.38; }
+  50% { transform: scaleY(1); opacity: 0.88; }
+}
+
 .avatar-lottie-layer {
   position: absolute;
   inset: 8%;

@@ -1,11 +1,20 @@
+import { Suspense, lazy } from "react";
+
 import type { AvatarState } from "../types";
+import {
+  getConfiguredAvatarRenderer,
+  type AvatarRendererKind,
+} from "./avatar/AvatarRenderer";
 import LottieAvatarRenderer from "./avatar/LottieAvatarRenderer";
 
+
+const ThreeAvatarRenderer = lazy(() => import("./avatar/ThreeAvatarRenderer"));
 
 interface AvatarAssistantProps {
   state: AvatarState;
   audioActivity: number;
   connected: boolean;
+  renderer?: AvatarRendererKind;
 }
 
 const STATE_LABELS: Record<AvatarState, string> = {
@@ -17,8 +26,33 @@ const STATE_LABELS: Record<AvatarState, string> = {
   pharmacist_escalation: "Pharmacist requested",
 };
 
-function AvatarAssistant({ state, audioActivity, connected }: AvatarAssistantProps) {
+function AvatarAssistant({
+  state,
+  audioActivity,
+  connected,
+  renderer,
+}: AvatarAssistantProps) {
   const stateLabel = STATE_LABELS[state];
+  const rendererKind = renderer ?? getConfiguredAvatarRenderer();
+  const avatarRenderer =
+    rendererKind === "threejs" ? (
+      <Suspense
+        fallback={
+          <div
+            className={`three-avatar avatar-render-${state} three-avatar-loading`}
+            data-state={state}
+            data-avatar-renderer="threejs"
+            data-reduced-motion="pending"
+            role="img"
+            aria-label={`Three.js holographic AI avatar: ${stateLabel}`}
+          />
+        }
+      >
+        <ThreeAvatarRenderer state={state} audioActivity={audioActivity} />
+      </Suspense>
+    ) : (
+      <LottieAvatarRenderer state={state} audioActivity={audioActivity} />
+    );
 
   return (
     <section className={`assistant-stage assistant-${state}`} aria-label="AI assistant">
@@ -36,7 +70,7 @@ function AvatarAssistant({ state, audioActivity, connected }: AvatarAssistantPro
         <span className="avatar-bay-label avatar-bay-label-left" aria-hidden="true">
           SAFE AI
         </span>
-        <LottieAvatarRenderer state={state} audioActivity={audioActivity} />
+        {avatarRenderer}
         <span className="avatar-bay-label avatar-bay-label-right" aria-hidden="true">
           MOCK 01
         </span>

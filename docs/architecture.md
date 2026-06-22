@@ -10,8 +10,8 @@ VitaFlow ERP is the source of truth for product, stock, price, promotion, and sh
 
 ```text
 React kiosk
-  ├─ AvatarAssistant → LottieAvatarRenderer → AvatarRenderer contract
-  ├─ HoldToSpeakButton → MediaRecorder
+  ├─ AvatarAssistant → LottieAvatarRenderer default / lazy ThreeAvatarRenderer optional
+  ├─ TapToSpeakButton → MediaRecorder
   ├─ useKioskSocket → /ws/kiosk/{session_id}
   └─ useVoiceInteraction
        ├─ POST /api/voice/transcribe
@@ -29,8 +29,8 @@ FastAPI
 
 ## Safety-first voice flow
 
-1. Hold starts MediaRecorder and local `listening` state.
-2. Release uploads audio to mock STT and moves to `thinking`.
+1. Tap starts MediaRecorder and local `listening` state.
+2. Tap again or stop uploads audio to mock STT and moves to `thinking`.
 3. Safety guardrails run before product lookup or response construction.
 4. A red flag or diagnosis request creates an escalation and emits `pharmacist_escalation`.
 5. Safe requests are classified and resolved against the mock VitaFlow adapter.
@@ -61,7 +61,7 @@ The frontend ignores malformed or cross-session events. When WebSocket is unavai
 - `AIBrain`: text and branch to typed AI result.
 - `VitaFlowAdapter`: query and branch to authoritative product records.
 - `ProductVisionAdapter`: image bytes to product identifier or no match.
-- `AvatarRenderer`: avatar state and normalized audio activity to visual output.
+- `AvatarRenderer`: avatar state and normalized audio activity to visual output. Lottie remains the default renderer; `AVATAR_RENDERER=threejs` lazy-loads the optional lightweight Three.js hologram renderer.
 
 The shipped dependency graph instantiates mock adapters by default through `services.providers.create_provider_bundle`. Credentials are read only as configuration data; they do not select a provider. Future live adapters must be selected explicitly and must preserve all safety and source-of-truth tests.
 

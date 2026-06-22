@@ -1,5 +1,5 @@
 import { render, screen } from "@testing-library/react";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
 import AvatarAssistant from "./AvatarAssistant";
 import type { AvatarState } from "../types";
@@ -20,6 +20,50 @@ describe("AvatarAssistant", () => {
 
     expect(screen.getByRole("region", { name: /AI assistant/i })).toBeInTheDocument();
     expect(screen.getByText(label)).toBeInTheDocument();
+  });
+
+  it("uses the Lottie avatar renderer by default", () => {
+    render(<AvatarAssistant state="idle" audioActivity={0} connected />);
+
+    expect(screen.getByLabelText(/lottie holographic ai avatar/i)).toHaveAttribute(
+      "data-avatar-renderer",
+      "lottie",
+    );
+  });
+
+  it.each(states)("renders the optional Three.js renderer accessibly for %s", async (state, label) => {
+    render(
+      <AvatarAssistant
+        state={state}
+        audioActivity={state === "speaking" ? 0.72 : 0.2}
+        connected
+        renderer="threejs"
+      />,
+    );
+
+    expect(
+      await screen.findByLabelText(new RegExp(`three\\.js holographic ai avatar: ${label}`, "i")),
+    ).toHaveAttribute("data-avatar-renderer", "threejs");
+  });
+
+  it("keeps the Three.js renderer stable with reduced motion enabled", async () => {
+    vi.stubGlobal("matchMedia", (query: string) => ({
+      matches: query === "(prefers-reduced-motion: reduce)",
+      media: query,
+      onchange: null,
+      addEventListener: vi.fn(),
+      removeEventListener: vi.fn(),
+      addListener: vi.fn(),
+      removeListener: vi.fn(),
+      dispatchEvent: vi.fn(),
+    }));
+
+    render(<AvatarAssistant state="thinking" audioActivity={0.5} connected renderer="threejs" />);
+
+    expect(await screen.findByLabelText(/three\.js holographic ai avatar/i)).toHaveAttribute(
+      "data-reduced-motion",
+      "true",
+    );
   });
 
   it("announces pharmacist escalation as an alert", () => {
