@@ -499,9 +499,6 @@ function VrmAvatarRenderer({
           <StaticVrmFallback state={state} audioActivity={activity} />
         )}
       </div>
-      <span className="three-avatar-state-chip" aria-hidden="true">
-        {hasVrmModel ? `VRM ${visual.chip}` : "VRM fallback"}
-      </span>
     </div>
   );
 }

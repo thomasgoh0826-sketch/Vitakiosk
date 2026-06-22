@@ -7,14 +7,15 @@ Evidence date: 2026-06-22
 | Backend health | `Invoke-WebRequest http://127.0.0.1:8000/health` | `{"status":"ok","service":"vitakiosk-api","provider_mode":"mock"}` | Pass |
 | Backend tests | `.\.venv\Scripts\python.exe -m pytest backend\tests -q -W error` | 45 passed | Pass |
 | Controlled provider config | `.\.venv\Scripts\python.exe -m pytest backend\tests\test_provider_config.py -q` | 4 passed: provider selectors default to mock, credentials do not auto-enable live providers, invalid selectors fail closed | Pass |
-| Frontend tests | `npm.cmd run test:run --prefix frontend` | 14 files, 58 tests passed | Pass |
+| Frontend tests | `npm.cmd run test:run --prefix frontend` | 14 files, 59 tests passed | Pass |
 | Optional Three.js and VRM avatar renderers | `npm.cmd run test:run --prefix frontend -- src/components/avatar/AvatarRenderer.test.ts src/components/avatar/AvatarModel.test.ts src/components/AvatarAssistant.test.tsx src/components/avatar/VrmAvatarRenderer.test.tsx src/hooks/useAvatarIdleMotion.test.ts src/hooks/useAvatarLipSync.test.ts` | 6 files, 36 tests passed; Lottie default, Three.js renderer state accessibility, VRM renderer state accessibility, config selection, GLB/VRM model URL resolution, VRM-backed marker, fallback marker, expression mapping, reduced-motion idle stability, and amplitude-based mouth movement covered | Pass |
 | GLB humanoid avatar asset | Review `frontend/src/assets/avatar/vitakiosk-avatar.glb` and `docs/avatar-model.md` | Lightweight fictional GLB placeholder exists at the reviewed path; docs explain self-hosted model replacement, licensing, performance, no-runtime-service, and fallback constraints | Pass |
 | VRM self-hosted avatar asset | Review `frontend/src/assets/avatar/vita.vrm`, `docs/avatar-model.md`, and `spec/04-ai-avatar-spec.md` | User-provided local VRM demo model exists at the reviewed self-hosted path; renderer supports `VITE_AVATAR_RENDERER=vrm`, idle motion, blinking, expression mapping, amplitude lip sync, and safe fallback; model is about 15.37 MB and should be optimized before production use when practical | Pass |
 | VRM pose and bust portrait runtime QA | In-app Browser at 1024x768 with `VITE_AVATAR_RENDERER=vrm`; screenshot review `reports/evidence/vrm-avatar-bust-portrait-1024x768.png` | Runtime evidence shows self-hosted VRM model active in a vertical portrait stage, no circular hologram mask, face/head/shoulders/upper chest visible, no raised hands, and no improvised hand/lower-arm gesture override visible | Pass |
+| Responsive kiosk runtime QA | In-app Browser with `VITE_AVATAR_RENDERER=vrm` at 1024x768, 1280x720, 1366x768, 1440x900, 1920x1080, and 768x1024 | Required landscape viewports reported no horizontal overflow and no document scrolling; iPad portrait reported no horizontal overflow with vertical scrolling fallback; VRM portrait panel, Tap to Speak, poster, shelf map, ERP panel, and pharmacist safety panel remained visible/readable | Pass |
 | Three.js avatar runtime QA | `$env:VITE_AVATAR_RENDERER='threejs'; npm.cmd run dev --prefix frontend -- --host 127.0.0.1 --port 5174`; in-app Browser at 1024x768 | Runtime DOM reported `data-avatar-renderer="threejs"`, WebGL `available`, `canvasCount=1`, `lottieCount=0`, viewport/document 1024x768; screenshot saved to `reports/evidence/threejs-avatar-renderer-1024x768.png` | Pass |
 | Shelf map component | `npm.cmd run test:run --prefix frontend -- src/components/ShelfMap.test.tsx` | 2 tests passed: route landmarks and unavailable-location non-invention | Pass |
-| Frontend build | `npm.cmd run build --prefix frontend` | TypeScript and Vite production build completed; default bundle 335.82kB JS before gzip, optional lazy ThreeAvatarRenderer chunk 80.26kB, VrmAvatarRenderer chunk 193.78kB, AvatarModel chunk 861.88kB, and local VRM asset 15,369.46kB | Pass |
+| Frontend build | `npm.cmd run build --prefix frontend` | TypeScript and Vite production build completed; default bundle 335.82kB JS before gzip, optional lazy ThreeAvatarRenderer chunk 80.26kB, VrmAvatarRenderer chunk 193.66kB, AvatarModel chunk 861.88kB, CSS bundle 56.73kB, and local VRM asset 15,369.46kB | Pass |
 | Dependency audit | `npm.cmd audit --prefix frontend --audit-level=moderate` | 0 vulnerabilities | Pass |
 | Repository contract | `node scripts/check-repository.mjs` | Required structure and secret placeholders verified | Pass |
 | Spec coverage | `node scripts/check-specs.mjs` | 13 feature specs passed coverage check | Pass |
@@ -44,6 +45,7 @@ Automated evidence uses fictional mock data and no live provider credential.
 | Shelf navigation | Required as an indoor pharmacy map with current marker, target marker, route, aisle/shelf/level | Screenshot shows Entrance, Aisle 03, Shelf A-03, Level 02, cyan route, purple target | Matched |
 | ERP and safety | ERP must be small floating system panel; pharmacist panel must be safety/escalation oriented | Render shows Mock VitaFlow, SG-001, Mock mode, no customer data, and AI-not-pharmacist safety copy | Matched |
 | Data and safety copy | VitaFlow/mock data is source of truth; no diagnosis, no customer data, no invented stock/price/location | Render uses existing mock product, price, stock, shelf, branch, promotion, and safety messaging only | Matched |
+| Responsive scaling | Kiosk should adapt across iPad landscape, laptop, desktop, and narrow tablet without horizontal overflow | Browser measurements and screenshots cover 1024x768, 1280x720, 1366x768, 1440x900, 1920x1080, and 768x1024; landscape viewports fit without document scrolling, portrait stacks with vertical scroll only | Matched |
 | Voice permission | Browser microphone permission was not granted during QA | Error path and `Try Again` state verified; real listening path remains covered by code contract and automated MediaRecorder tests only | Intentional evidence limitation |
 
 Concept: `docs/superpowers/specs/2026-06-21-dark-neon-cinematic-kiosk-design.md` and the approved visual companion B direction.
@@ -55,5 +57,7 @@ Dark neon kiosk acceptance screenshot: [1024 × 768 Cinematic AI Bay](evidence/d
 Refined premium kiosk screenshot: [1024x768 dark neon visual polish](evidence/dark-neon-kiosk-refined-1024x768.png).
 
 VRM bust portrait screenshot: [1024x768 VRM assistant bust portrait](evidence/vrm-avatar-bust-portrait-1024x768.png).
+
+Responsive kiosk screenshots: [1024x768](evidence/responsive-kiosk-1024x768.png), [1366x768](evidence/responsive-kiosk-1366x768.png), [1920x1080](evidence/responsive-kiosk-1920x1080.png).
 
 The committed screenshots are limited to mock data and contain no real customer, sales, database, log, backup, token, password, or ERP release data.

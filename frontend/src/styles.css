@@ -2889,6 +2889,318 @@ body {
   color: #ecfbff;
 }
 
+/* Responsive kiosk composition: final override layer */
+
+.kiosk-shell {
+  --kiosk-pad-x: clamp(10px, 1.2dvw, 28px);
+  --kiosk-pad-y: clamp(8px, 1dvh, 18px);
+  --kiosk-gap: clamp(8px, 0.85dvw, 18px);
+  gap: clamp(6px, 0.85dvh, 12px);
+  padding:
+    max(var(--kiosk-pad-y), env(safe-area-inset-top))
+    max(var(--kiosk-pad-x), env(safe-area-inset-right))
+    max(calc(var(--kiosk-pad-y) * 0.8), env(safe-area-inset-bottom))
+    max(var(--kiosk-pad-x), env(safe-area-inset-left));
+  overflow-x: hidden;
+}
+
+.kiosk-header,
+.kiosk-footer {
+  min-width: 0;
+}
+
+.wordmark {
+  font-size: clamp(1rem, 1.35dvw, 1.55rem);
+}
+
+.connection-line {
+  max-width: min(52dvw, 420px);
+  font-size: clamp(0.55rem, 0.62dvw, 0.76rem);
+}
+
+.kiosk-layout {
+  gap: var(--kiosk-gap);
+  grid-template-columns:
+    minmax(260px, 0.95fr)
+    minmax(410px, 1.55fr)
+    minmax(230px, 0.82fr);
+}
+
+.assistant-column,
+.clinical-deck,
+.retail-safety-rail {
+  gap: var(--kiosk-gap);
+}
+
+.clinical-deck {
+  grid-template-rows:
+    minmax(86px, 0.42fr)
+    minmax(172px, 0.78fr)
+    minmax(188px, 1.04fr);
+}
+
+.retail-safety-rail {
+  grid-template-rows:
+    minmax(250px, 1.28fr)
+    minmax(112px, 0.46fr)
+    minmax(136px, 0.58fr);
+}
+
+.panel {
+  padding: clamp(10px, 0.86dvw, 17px);
+  border-radius: clamp(14px, 1.1dvw, 22px);
+}
+
+.assistant-stage {
+  grid-template-rows: auto minmax(clamp(300px, 42dvh, 620px), 1fr) auto auto auto;
+  grid-template-columns: minmax(0, 1fr);
+  align-items: stretch;
+  justify-items: stretch;
+  gap: clamp(4px, 0.7dvh, 10px);
+  padding: clamp(11px, 1.05dvw, 20px);
+  border-radius: clamp(16px, 1.25dvw, 24px);
+}
+
+.assistant-stage-header h1 {
+  font-size: clamp(0.92rem, 1.12dvw, 1.38rem);
+}
+
+.assistant-link-state {
+  font-size: clamp(0.46rem, 0.52dvw, 0.66rem);
+}
+
+.avatar-bay {
+  width: 100%;
+  min-width: 0;
+  min-height: clamp(300px, 42dvh, 620px);
+  align-self: stretch;
+  justify-self: stretch;
+}
+
+.avatar-bay-label {
+  font-size: clamp(0.4rem, 0.44dvw, 0.58rem);
+}
+
+.vrm-avatar-portrait {
+  width: min(96%, clamp(260px, 40dvh, 500px));
+  height: clamp(320px, 52dvh, 660px);
+  max-height: 100%;
+  border-radius: clamp(22px, 1.6dvw, 32px);
+}
+
+.vrm-avatar-portrait::before {
+  border-radius: clamp(26px, 1.8dvw, 36px);
+}
+
+.vrm-avatar-portrait-shell {
+  inset:
+    clamp(16px, 5%, 32px)
+    clamp(36px, 16%, 98px)
+    clamp(70px, 26%, 150px);
+  border-radius: clamp(16px, 1.25dvw, 24px);
+}
+
+.vrm-avatar-loading {
+  min-height: clamp(320px, 52dvh, 660px);
+}
+
+.lottie-avatar,
+.three-avatar {
+  width: min(88%, clamp(220px, 34dvh, 420px));
+}
+
+.assistant-waveform {
+  justify-self: center;
+  min-height: clamp(30px, 4.8dvh, 58px);
+}
+
+.assistant-waveform span {
+  width: clamp(2px, 0.24dvw, 4px);
+}
+
+.avatar-state-label {
+  justify-self: center;
+  font-size: clamp(0.72rem, 0.78dvw, 0.98rem) !important;
+}
+
+.assistant-safety-copy,
+.voice-feedback,
+.hold-fallback {
+  font-size: clamp(0.48rem, 0.52dvw, 0.68rem);
+}
+
+.tap-speak-button {
+  min-height: clamp(58px, 7.8dvh, 90px);
+  gap: clamp(9px, 0.9dvw, 16px);
+  padding: clamp(8px, 0.8dvw, 16px);
+}
+
+.tap-speak-orbit {
+  width: clamp(40px, 4.2dvw, 64px);
+}
+
+.tap-speak-button strong {
+  font-size: clamp(1rem, 1.25dvw, 1.45rem);
+}
+
+.tap-speak-button small {
+  font-size: clamp(0.48rem, 0.52dvw, 0.68rem);
+}
+
+.conversation-panel {
+  grid-template-columns: minmax(0, 0.82fr) minmax(0, 1.18fr);
+  gap: clamp(8px, 0.75dvw, 14px);
+  padding: clamp(10px, 0.9dvw, 18px);
+}
+
+.conversation-bubble {
+  padding: clamp(8px, 0.78dvw, 14px);
+  border-radius: clamp(12px, 1dvw, 18px);
+}
+
+.conversation-bubble span {
+  font-size: clamp(0.47rem, 0.48dvw, 0.64rem);
+}
+
+.conversation-bubble p {
+  font-size: clamp(0.66rem, 0.7dvw, 0.9rem);
+  -webkit-line-clamp: 3;
+}
+
+.product-hero {
+  grid-template-columns: minmax(84px, clamp(88px, 7.5dvw, 142px)) minmax(0, 1fr);
+  gap: clamp(10px, 1dvw, 20px);
+}
+
+.product-identity h3 {
+  font-size: clamp(1rem, 1.25dvw, 1.55rem);
+}
+
+.product-identity p,
+.product-identity small {
+  font-size: clamp(0.52rem, 0.62dvw, 0.78rem);
+}
+
+.product-identity strong {
+  font-size: clamp(1.45rem, 2.35dvw, 2.8rem);
+}
+
+.product-facts {
+  gap: clamp(6px, 0.65dvw, 12px);
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.product-facts div {
+  padding: clamp(6px, 0.62dvw, 11px);
+}
+
+.product-facts dt {
+  font-size: clamp(0.42rem, 0.44dvw, 0.58rem);
+}
+
+.product-facts dd {
+  font-size: clamp(0.62rem, 0.68dvw, 0.86rem);
+}
+
+.shelf-map-canvas {
+  height: clamp(132px, 20dvh, 240px);
+}
+
+.map-fixture {
+  font-size: clamp(0.55rem, 0.58dvw, 0.84rem);
+}
+
+.map-location-data {
+  gap: clamp(5px, 0.55dvw, 10px);
+}
+
+.map-location-data dt,
+.map-route-summary {
+  font-size: clamp(0.5rem, 0.52dvw, 0.68rem);
+}
+
+.map-location-data dd {
+  font-size: clamp(0.66rem, 0.72dvw, 0.95rem);
+}
+
+.promotion-panel {
+  padding: clamp(8px, 0.75dvw, 15px);
+}
+
+.poster-frame {
+  display: grid;
+  grid-template-rows: auto minmax(64px, 0.9fr) auto auto auto minmax(0, auto);
+  align-items: center;
+  gap: clamp(5px, 0.65dvh, 12px);
+  padding: clamp(10px, 0.92dvw, 20px);
+}
+
+.poster-product-orb {
+  width: min(48%, clamp(76px, 10dvh, 140px));
+}
+
+.poster-copy h2 {
+  font-size: clamp(1rem, 1.22dvw, 1.72rem);
+}
+
+.poster-copy p {
+  font-size: clamp(0.58rem, 0.62dvw, 0.8rem);
+}
+
+.poster-price-lockup strong {
+  font-size: clamp(1.05rem, 1.35dvw, 1.7rem);
+}
+
+.poster-meta {
+  gap: clamp(5px, 0.52dvw, 10px);
+}
+
+.erp-panel dl div,
+.pharmacist-copy p {
+  font-size: clamp(0.53rem, 0.56dvw, 0.72rem);
+}
+
+.pharmacist-copy h2 {
+  font-size: clamp(0.76rem, 0.82dvw, 1.05rem);
+}
+
+.pharmacist-panel button {
+  min-height: clamp(36px, 4.6dvh, 54px);
+  font-size: clamp(0.58rem, 0.62dvw, 0.82rem);
+}
+
+.kiosk-footer {
+  min-height: clamp(20px, 2.7dvh, 34px);
+  font-size: clamp(0.52rem, 0.55dvw, 0.72rem);
+}
+
+@media (min-width: 1500px) and (orientation: landscape) {
+  .kiosk-layout {
+    grid-template-columns:
+      minmax(360px, 0.98fr)
+      minmax(560px, 1.55fr)
+      minmax(330px, 0.82fr);
+  }
+
+  .clinical-deck {
+    grid-template-rows:
+      minmax(118px, 0.42fr)
+      minmax(230px, 0.78fr)
+      minmax(260px, 1.04fr);
+  }
+
+  .retail-safety-rail {
+    grid-template-rows:
+      minmax(360px, 1.28fr)
+      minmax(150px, 0.46fr)
+      minmax(175px, 0.58fr);
+  }
+
+  .shelf-map-canvas {
+    height: clamp(200px, 22dvh, 290px);
+  }
+}
+
 @media (min-width: 851px) and (orientation: landscape) {
   html,
   body,
@@ -2903,10 +3215,62 @@ body {
   }
 }
 
-@media (max-width: 930px) and (orientation: landscape) {
+@media (max-height: 760px) and (orientation: landscape) {
+  .kiosk-shell {
+    --kiosk-pad-y: 7px;
+    --kiosk-gap: clamp(7px, 0.68dvw, 12px);
+  }
+
+  .kiosk-header {
+    min-height: 30px;
+  }
+
+  .assistant-stage {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto minmax(270px, 1fr) auto auto auto;
+    padding: 10px;
+  }
+
+  .avatar-bay {
+    min-height: 270px;
+  }
+
+  .vrm-avatar-portrait {
+    width: min(96%, 292px);
+    height: min(100%, 332px);
+  }
+
+  .vrm-avatar-portrait-shell {
+    inset: 18px clamp(38px, 16%, 64px) 84px;
+  }
+
+  .assistant-waveform {
+    min-height: 30px;
+  }
+
+  .tap-speak-button {
+    min-height: 56px;
+  }
+
+  .clinical-deck {
+    grid-template-rows: minmax(78px, 0.38fr) minmax(160px, 0.74fr) minmax(170px, 1fr);
+  }
+
+  .retail-safety-rail {
+    grid-template-rows: minmax(235px, 1.18fr) minmax(104px, 0.44fr) minmax(124px, 0.55fr);
+  }
+
+  .shelf-map-canvas {
+    height: clamp(116px, 18dvh, 140px);
+  }
+}
+
+@media (max-width: 1100px) and (orientation: landscape) {
   .kiosk-layout {
-    grid-template-columns: minmax(225px, 28fr) minmax(350px, 47fr) minmax(205px, 25fr);
-    gap: 8px;
+    grid-template-columns:
+      minmax(250px, 0.88fr)
+      minmax(390px, 1.48fr)
+      minmax(218px, 0.78fr);
   }
 
   .assistant-column,
@@ -2918,14 +3282,29 @@ body {
   .product-hero {
     grid-template-columns: 88px minmax(0, 1fr);
   }
+
+  .product-facts {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
 }
 
 @media (max-width: 850px), (orientation: portrait) {
+  html,
+  body,
+  #root {
+    height: auto;
+    overflow-x: hidden;
+    overflow-y: auto;
+  }
+
   body {
     overflow-x: hidden;
   }
 
   .kiosk-shell {
+    --kiosk-pad-x: clamp(12px, 3.4dvw, 24px);
+    --kiosk-pad-y: clamp(10px, 2dvh, 20px);
+    --kiosk-gap: clamp(12px, 2dvw, 18px);
     min-height: 100dvh;
     height: auto;
     overflow: visible;
@@ -2943,6 +3322,7 @@ body {
 
   .kiosk-layout {
     grid-template-columns: 1fr;
+    gap: var(--kiosk-gap);
   }
 
   .assistant-column,
@@ -2952,11 +3332,30 @@ body {
   }
 
   .assistant-stage {
-    min-height: 470px;
+    min-height: min(76dvh, 640px);
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto minmax(clamp(320px, 52dvh, 520px), 1fr) auto auto auto;
   }
 
-  .lottie-avatar {
-    width: min(72%, 260px);
+  .avatar-bay {
+    min-height: clamp(320px, 52dvh, 520px);
+  }
+
+  .vrm-avatar-portrait {
+    width: min(78dvw, 420px);
+    height: clamp(340px, 58dvh, 560px);
+  }
+
+  .vrm-avatar-portrait-shell {
+    inset:
+      clamp(18px, 5%, 34px)
+      clamp(40px, 16%, 96px)
+      clamp(76px, 27%, 148px);
+  }
+
+  .lottie-avatar,
+  .three-avatar {
+    width: min(72dvw, 300px);
   }
 
   .conversation-panel {
@@ -2972,7 +3371,7 @@ body {
   }
 
   .shelf-map-canvas {
-    height: 230px;
+    height: clamp(220px, 34dvh, 310px);
   }
 }
 

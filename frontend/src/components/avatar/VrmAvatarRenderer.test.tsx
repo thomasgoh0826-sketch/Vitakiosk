@@ -34,4 +34,16 @@ describe("VrmAvatarRenderer", () => {
     expect(avatar.querySelector(".three-avatar-canvas-shell")).toBeNull();
     expect(avatar).toHaveAttribute("data-avatar-model-url", "/assets/avatar/vita.vrm");
   });
+
+  it("does not show technical VRM renderer labels to customers", () => {
+    render(
+      <VrmAvatarRenderer
+        state="idle"
+        audioActivity={0}
+        vrmModelUrl="/assets/avatar/vita.vrm"
+      />,
+    );
+
+    expect(screen.queryByText(/vrm relaxed/i)).not.toBeInTheDocument();
+  });
 });
