@@ -1,6 +1,6 @@
 # VitaKiosk AI Pharmacy Kiosk
 
-VitaKiosk is a mock-first, live-ready pharmacy kiosk demo for iPad landscape use. It combines a Lottie assistant, press-and-hold browser voice capture, a safety-first intent pipeline, fictional VitaFlow-shaped data, mock WAV speech, and session-scoped WebSocket updates.
+VitaKiosk is a mock-first, live-ready pharmacy kiosk demo for iPad landscape use. It combines a Lottie assistant, tap-to-speak browser voice capture with silence auto-stop, a safety-first intent pipeline, fictional VitaFlow-shaped data, mock WAV speech, and session-scoped WebSocket updates.
 
 The demo does not call OpenAI, ElevenLabs, Ollama, or VitaFlow ERP. It does not read customer or sales records.
 
@@ -39,6 +39,8 @@ Mock mode requires no key. Keep these secret fields empty for the demo:
 - `ELEVENLABS_VOICE_ID`
 - `OLLAMA_BASE_URL`
 - `VITAFLOW_API_BASE_URL`
+- `VITE_API_BASE_URL=http://127.0.0.1:8000`
+- `VITE_WS_BASE_URL=ws://127.0.0.1:8000`
 - `VITE_AVATAR_RENDERER` may be left empty for the default Lottie avatar; set `VITE_AVATAR_RENDERER=threejs` or `VITE_AVATAR_RENDERER=vrm` only for reviewed local 3D avatar testing.
 
 `.env` is ignored. Never stage it.
@@ -66,10 +68,12 @@ Open [http://127.0.0.1:8000/docs](http://127.0.0.1:8000/docs) for the local API 
 In a second terminal:
 
 ```powershell
-npm.cmd run dev --prefix frontend
+$env:VITE_API_BASE_URL="http://127.0.0.1:8000"
+$env:VITE_WS_BASE_URL="ws://127.0.0.1:8000"
+npm.cmd run dev --prefix frontend -- --host 127.0.0.1 --port 5175
 ```
 
-Open [http://127.0.0.1:5173](http://127.0.0.1:5173). Use an iPad landscape viewport such as 1024×768 for kiosk review. Browser microphone permission is required for Hold to Speak.
+Open [http://127.0.0.1:5175](http://127.0.0.1:5175). Use an iPad landscape viewport such as 1024×768 for kiosk review. Browser microphone permission is required for Tap to Speak. The main button starts recording; sustained silence stops recording automatically, and the smaller `Start` control resets the kiosk for a fresh customer session without refreshing.
 
 ## API surface
 

@@ -135,6 +135,20 @@ describe("integrated kiosk panels", () => {
     expect(hookMocks.escalate).toHaveBeenCalledTimes(1);
   });
 
+  it("uses the secondary Start action to reset the kiosk instead of showing Hold to Speak", () => {
+    render(<App />);
+    const firstSessionId = hookMocks.voice.mock.calls[0]?.[0]?.sessionId;
+
+    expect(screen.queryByText(/Hold to Speak/i)).not.toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: "Start" }));
+
+    expect(resetVoice).toHaveBeenCalledTimes(1);
+    expect(sendState).toHaveBeenCalledWith("idle");
+    expect(screen.getByRole("button", { name: "Tap to Speak" })).toBeEnabled();
+    expect(hookMocks.voice.mock.calls.at(-1)?.[0]?.sessionId).not.toBe(firstSessionId);
+  });
+
   it("auto-resets the kiosk after showing pharmacist escalation confirmation", async () => {
     vi.useFakeTimers();
     try {

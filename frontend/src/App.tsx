@@ -3,7 +3,6 @@ import { useCallback, useEffect, useState } from "react";
 import { api } from "./api/client";
 import AvatarAssistant from "./components/AvatarAssistant";
 import ErpDataPanel from "./components/ErpDataPanel";
-import HoldToSpeakButton from "./components/HoldToSpeakButton";
 import PharmacistEscalationPanel from "./components/PharmacistEscalationPanel";
 import ProductCard from "./components/ProductCard";
 import PromotionPoster from "./components/PromotionPoster";
@@ -65,7 +64,6 @@ function App() {
     ? "pharmacist_escalation"
     : voice.state;
   const escalationActive = avatarState === "pharmacist_escalation";
-  const holdDisabled = ["thinking", "speaking", "pharmacist_escalation"].includes(avatarState);
   const connectionCopy = socket.connected ? "Connected" : "Local state mode";
   const requestAssistance = useCallback(() => {
     void api
@@ -122,13 +120,16 @@ function App() {
             <small className="voice-feedback" aria-live="polite">
               {voice.error ?? voice.responseText ?? "Tap once to begin"}
             </small>
-            <section className="hold-fallback" aria-label="Hold to Speak fallback">
-              <span>Press-and-hold fallback</span>
-              <HoldToSpeakButton
-                onStart={() => void voice.startRecording()}
-                onStop={() => void voice.stopRecording()}
-                disabled={holdDisabled}
-              />
+            <section className="customer-reset" aria-label="New customer reset">
+              <span>Fresh session</span>
+              <button
+                className="customer-reset-button"
+                type="button"
+                onClick={startNewCustomer}
+              >
+                <span aria-hidden="true">↻</span>
+                Start
+              </button>
             </section>
           </section>
         </aside>

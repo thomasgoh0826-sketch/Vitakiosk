@@ -17,6 +17,7 @@ Keep secrets and real business data out of the repository and demo runtime.
 - Mock mode makes no provider or ERP network call.
 - Live providers are disabled unless explicitly selected in local `.env`; credentials alone never switch a provider out of mock mode.
 - Backend tests use mock providers only and must not call OpenAI, ElevenLabs, Ollama, VitaFlow ERP, OCR services, or customer/sales data sources.
+- Local development CORS is limited to explicit Vite origins on ports 5173 and 5175 for `localhost` and `127.0.0.1`; wildcard origins are not accepted.
 - GitHub content is limited to code, docs, fictional mock data, safe assets, tests, and evidence.
 
 ## Test evidence

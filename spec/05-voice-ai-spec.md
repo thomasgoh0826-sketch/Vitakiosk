@@ -2,27 +2,31 @@
 
 ## Purpose
 
-Connect press-and-hold browser audio to the safety-first mock response pipeline.
+Connect tap-to-speak browser audio to the safety-first mock response pipeline.
 
 ## Flow
 
-MediaRecorder → mock STT → safety guardrails → intent and mock VitaFlow lookup → mock TTS WAV → Web Audio playback.
+MediaRecorder plus browser-side silence detection -> mock STT -> safety guardrails -> intent and mock VitaFlow lookup -> mock TTS WAV -> Web Audio playback.
 
 ## Acceptance criteria
 
-- Pointer and keyboard hold gestures start once and release once.
+- `Tap to Speak` starts recording and `Tap to Stop` remains available as a manual fallback.
+- Browser-side voice activity detection uses a Web Audio analyser, ignores an initial startup period, and auto-stops after sustained low RMS silence.
+- Silence detection constants are explicitly named `MIN_RECORDING_MS`, `SILENCE_STOP_MS`, and `SILENCE_RMS_THRESHOLD`.
+- The listening flow progresses naturally through `idle -> listening -> thinking -> speaking -> idle` without showing an error for normal silence auto-stop.
+- The secondary `Start` / `Start New Customer` action resets microphone, audio, error, conversation, product-not-found, escalation, and local socket state without a browser refresh.
 - Empty audio is rejected with 422.
 - The demo completes listening, thinking, speaking, and idle states without a provider key.
 - `STT_PROVIDER` and `TTS_PROVIDER` default to `mock`.
 - OpenAI Whisper and ElevenLabs credentials do not activate live voice providers unless the matching provider selector is explicitly changed.
 - Tests must not call OpenAI Whisper, ElevenLabs, or any external speech provider.
 - Red-flag responses stop before TTS playback.
-- Microphone denial, unsupported recording, and playback failure enter `error` with actionable text.
-- Tracks, audio URLs, analyser nodes, and socket timers are cleaned up.
+- Microphone denial, unsupported recording, and playback failure enter `error` with actionable text, and `Start` can reset the kiosk afterward.
+- Tracks, audio URLs, analyser nodes, microphone silence timers, and socket timers are cleaned up.
 
 ## Test evidence
 
-- `frontend/src/components/HoldToSpeakButton.test.tsx`
+- `frontend/src/App.integration.test.tsx`
 - `frontend/src/hooks/useVoiceInteraction.test.ts`
 - `backend/tests/test_api.py`
 - `backend/tests/test_provider_config.py`

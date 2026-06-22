@@ -11,10 +11,17 @@ from backend.app.websocket_manager import AVATAR_STATES, manager
 settings = Settings.from_environment()
 settings.validate()
 
+LOCAL_DEV_CORS_ORIGINS = [
+    "http://localhost:5173",
+    "http://127.0.0.1:5173",
+    "http://localhost:5175",
+    "http://127.0.0.1:5175",
+]
+
 app = FastAPI(title="VitaKiosk API", version="0.1.0")
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173", "http://127.0.0.1:5173"],
+    allow_origins=LOCAL_DEV_CORS_ORIGINS,
     allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"],

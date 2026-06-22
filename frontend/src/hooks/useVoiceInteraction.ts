@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 
 import type { VitaKioskApiClient } from "../api/client";
 import type { AvatarState, Poster, Product, Promotion } from "../types";
-import { useAudioActivity } from "./useAudioActivity";
+import { calculateAudioActivity, useAudioActivity } from "./useAudioActivity";
 
 
 interface UseVoiceInteractionOptions {
@@ -14,6 +14,11 @@ interface UseVoiceInteractionOptions {
 }
 
 const MIME_TYPES = ["audio/webm;codecs=opus", "audio/webm"];
+export const MIN_RECORDING_MS = 700;
+export const SILENCE_STOP_MS = 1_800;
+export const SILENCE_RMS_THRESHOLD = 0.018;
+const SILENCE_SAMPLE_INTERVAL_MS = 100;
+type AudioContextConstructor = new () => AudioContext;
 
 function useVoiceInteraction({
   sessionId,
@@ -36,6 +41,12 @@ function useVoiceInteraction({
   const streamRef = useRef<MediaStream | null>(null);
   const chunksRef = useRef<Blob[]>([]);
   const audioUrlRef = useRef<string | null>(null);
+  const silenceTimerRef = useRef<number | null>(null);
+  const silenceStartedAtRef = useRef<number | null>(null);
+  const inputAudioContextRef = useRef<AudioContext | null>(null);
+  const inputAudioSourceRef = useRef<MediaStreamAudioSourceNode | null>(null);
+  const stopRecordingRef = useRef<(() => Promise<void>) | null>(null);
+  const autoStopInProgressRef = useRef(false);
   const audioActivity = useAudioActivity(audioElement);
 
   useEffect(() => {
@@ -44,6 +55,19 @@ function useVoiceInteraction({
     }
     setState(serverState);
   }, [serverState]);
+
+  const stopSilenceMonitor = useCallback(() => {
+    if (silenceTimerRef.current !== null) {
+      window.clearInterval(silenceTimerRef.current);
+      silenceTimerRef.current = null;
+    }
+    silenceStartedAtRef.current = null;
+    inputAudioSourceRef.current?.disconnect();
+    inputAudioSourceRef.current = null;
+    const inputContext = inputAudioContextRef.current;
+    inputAudioContextRef.current = null;
+    void inputContext?.close();
+  }, []);
 
   const releaseMedia = useCallback(() => {
     for (const track of streamRef.current?.getTracks() ?? []) {
@@ -55,16 +79,75 @@ function useVoiceInteraction({
 
   useEffect(
     () => () => {
+      stopSilenceMonitor();
       releaseMedia();
       audioElement?.pause?.();
       if (audioUrlRef.current) {
         URL.revokeObjectURL(audioUrlRef.current);
       }
     },
-    [audioElement, releaseMedia],
+    [audioElement, releaseMedia, stopSilenceMonitor],
   );
 
+  const startSilenceMonitor = useCallback((stream: MediaStream) => {
+    stopSilenceMonitor();
+    const browserWindow = window as typeof window & {
+      webkitAudioContext?: AudioContextConstructor;
+    };
+    const Context = window.AudioContext ?? browserWindow.webkitAudioContext;
+    if (!Context) {
+      return;
+    }
+
+    const context = new Context();
+    const source = context.createMediaStreamSource(stream);
+    const analyser = context.createAnalyser();
+    analyser.fftSize = 256;
+    source.connect(analyser);
+    inputAudioContextRef.current = context;
+    inputAudioSourceRef.current = source;
+    silenceStartedAtRef.current = null;
+    const samples = new Uint8Array(analyser.fftSize);
+    const startedAt = Date.now();
+
+    silenceTimerRef.current = window.setInterval(() => {
+      const recorder = mediaRecorderRef.current;
+      if (!recorder || recorder.state !== "recording") {
+        stopSilenceMonitor();
+        return;
+      }
+
+      const now = Date.now();
+      if (now - startedAt < MIN_RECORDING_MS) {
+        return;
+      }
+
+      analyser.getByteTimeDomainData(samples);
+      const inputRms = calculateAudioActivity(samples);
+      if (inputRms >= SILENCE_RMS_THRESHOLD) {
+        silenceStartedAtRef.current = null;
+        return;
+      }
+
+      silenceStartedAtRef.current ??= now;
+      if (
+        now - silenceStartedAtRef.current >= SILENCE_STOP_MS
+        && !autoStopInProgressRef.current
+      ) {
+        autoStopInProgressRef.current = true;
+        void stopRecordingRef.current?.();
+      }
+    }, SILENCE_SAMPLE_INTERVAL_MS);
+  }, [stopSilenceMonitor]);
+
   const reset = useCallback(() => {
+    stopSilenceMonitor();
+    const recorder = mediaRecorderRef.current;
+    if (recorder && recorder.state !== "inactive") {
+      recorder.ondataavailable = null;
+      recorder.onstop = null;
+      recorder.stop();
+    }
     releaseMedia();
     if (audioElement) {
       audioElement.onended = null;
@@ -87,11 +170,13 @@ function useVoiceInteraction({
     setHasResult(false);
     setError(null);
     setAudioElement(null);
+    autoStopInProgressRef.current = false;
     sendState("idle");
-  }, [audioElement, releaseMedia, sendState]);
+  }, [audioElement, releaseMedia, sendState, stopSilenceMonitor]);
 
   const startRecording = useCallback(async () => {
     setError(null);
+    autoStopInProgressRef.current = false;
     if (!navigator.mediaDevices?.getUserMedia || typeof MediaRecorder === "undefined") {
       setState("error");
       setError("Voice recording is not supported in this browser.");
@@ -111,14 +196,16 @@ function useVoiceInteraction({
       };
       recorder.start();
       mediaRecorderRef.current = recorder;
+      startSilenceMonitor(stream);
       setState("listening");
       sendState("listening");
     } catch {
+      stopSilenceMonitor();
       releaseMedia();
       setState("error");
       setError("Microphone permission is required to use voice assistance.");
     }
-  }, [releaseMedia, sendState]);
+  }, [releaseMedia, sendState, startSilenceMonitor, stopSilenceMonitor]);
 
   const stopRecording = useCallback(async () => {
     const recorder = mediaRecorderRef.current;
@@ -127,6 +214,7 @@ function useVoiceInteraction({
     }
 
     try {
+      stopSilenceMonitor();
       const recording = await new Promise<Blob>((resolve) => {
         recorder.onstop = () => {
           resolve(new Blob(chunksRef.current, { type: recorder.mimeType || "audio/webm" }));
@@ -177,7 +265,9 @@ function useVoiceInteraction({
       setState("error");
       setError(caught instanceof Error ? caught.message : "Voice request failed.");
     }
-  }, [api, branchId, releaseMedia, sendState, sessionId]);
+  }, [api, branchId, releaseMedia, sendState, sessionId, stopSilenceMonitor]);
+
+  stopRecordingRef.current = stopRecording;
 
   return {
     state,

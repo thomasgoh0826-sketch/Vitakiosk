@@ -5,9 +5,9 @@ Evidence date: 2026-06-23
 | Evidence | Command | Actual result | Status |
 |---|---|---|---|
 | Backend health | `Invoke-WebRequest http://127.0.0.1:8000/health` | `{"status":"ok","service":"vitakiosk-api","provider_mode":"mock"}` | Pass |
-| Backend tests | `.\.venv\Scripts\python.exe -m pytest backend\tests -q -W error` | 45 passed | Pass |
+| Backend tests | `python -m pytest backend/tests -v` | 49 passed | Pass |
 | Controlled provider config | `.\.venv\Scripts\python.exe -m pytest backend\tests\test_provider_config.py -q` | 4 passed: provider selectors default to mock, credentials do not auto-enable live providers, invalid selectors fail closed | Pass |
-| Frontend tests | `npm.cmd run test:run --prefix frontend` | 14 files, 68 tests passed | Pass |
+| Frontend tests | `npm.cmd run test:run --prefix frontend` | 14 files, 70 tests passed | Pass |
 | Optional Three.js and VRM avatar renderers | `npm.cmd run test:run --prefix frontend -- src/components/avatar/AvatarRenderer.test.ts src/components/avatar/AvatarModel.test.ts src/components/AvatarAssistant.test.tsx src/components/avatar/VrmAvatarRenderer.test.tsx src/hooks/useAvatarIdleMotion.test.ts src/hooks/useAvatarLipSync.test.ts` | Covered in full frontend suite; Lottie default, Three.js renderer state accessibility, VRM renderer state accessibility, Vite-exposed `VITE_VRM_MODEL` config selection, GLB/VRM model URL resolution, alternate `vita-new` model key, VRM-backed marker, fallback marker, expression mapping, reduced-motion idle stability, and amplitude-based mouth movement covered | Pass |
 | GLB humanoid avatar asset | Review `frontend/src/assets/avatar/vitakiosk-avatar.glb` and `docs/avatar-model.md` | Lightweight fictional GLB placeholder exists at the reviewed path; docs explain self-hosted model replacement, licensing, performance, no-runtime-service, and fallback constraints | Pass |
 | VRM self-hosted avatar asset | Review `frontend/src/assets/avatar/vita.vrm`, `docs/avatar-model.md`, and `spec/04-ai-avatar-spec.md` | User-provided local VRM demo model exists at the reviewed self-hosted path; renderer supports `VITE_AVATAR_RENDERER=vrm`, idle motion, blinking, expression mapping, amplitude lip sync, and safe fallback; model is about 15.37 MB and should be optimized before production use when practical | Pass |
@@ -19,7 +19,7 @@ Evidence date: 2026-06-23
 | Responsive kiosk runtime QA | In-app Browser with `VITE_AVATAR_RENDERER=vrm` at 1024x768, 1280x720, 1366x768, 1440x900, 1920x1080, and 768x1024 | Required landscape viewports reported no horizontal overflow and no document scrolling; iPad portrait reported no horizontal overflow with vertical scrolling fallback; VRM portrait panel, Tap to Speak, poster, shelf map, ERP panel, and pharmacist safety panel remained visible/readable | Pass |
 | Three.js avatar runtime QA | `$env:VITE_AVATAR_RENDERER='threejs'; npm.cmd run dev --prefix frontend -- --host 127.0.0.1 --port 5174`; in-app Browser at 1024x768 | Runtime DOM reported `data-avatar-renderer="threejs"`, WebGL `available`, `canvasCount=1`, `lottieCount=0`, viewport/document 1024x768; screenshot saved to `reports/evidence/threejs-avatar-renderer-1024x768.png` | Pass |
 | Shelf map component | `npm.cmd run test:run --prefix frontend -- src/components/ShelfMap.test.tsx` | 2 tests passed: route landmarks and unavailable-location non-invention | Pass |
-| Frontend build | `npm.cmd run build --prefix frontend` | TypeScript and Vite production build completed; default bundle 336.43kB JS before gzip, optional lazy ThreeAvatarRenderer chunk 80.26kB, VrmAvatarRenderer chunk 194.03kB, AvatarModel chunk 862.26kB, CSS bundle 56.83kB, local VRM asset 15,369.46kB, and alternate local VRM asset 16,532.72kB | Pass |
+| Frontend build | `npm.cmd run build --prefix frontend` | TypeScript and Vite production build completed; default bundle 336.83kB JS before gzip, optional lazy ThreeAvatarRenderer chunk 80.26kB, VrmAvatarRenderer chunk 194.03kB, AvatarModel chunk 862.26kB, CSS bundle 57.05kB, local VRM asset 15,369.46kB, and alternate local VRM asset 16,532.72kB | Pass |
 | Dependency audit | `npm.cmd audit --prefix frontend --audit-level=moderate` | 0 vulnerabilities | Pass |
 | Repository contract | `node scripts/check-repository.mjs` | Required structure and secret placeholders verified | Pass |
 | Spec coverage | `node scripts/check-specs.mjs` | 13 feature specs passed coverage check | Pass |
@@ -29,6 +29,8 @@ Evidence date: 2026-06-23
 | Dark neon iPad landscape QA | In-app Browser at 1024×768 | Viewport 1024×768; document 1024×768; dark gradient body background; 9 accessible regions; console errors/warnings: 0 | Pass |
 | Refined premium kiosk visual QA | In-app Browser at 1024x768 | Viewport 1024x768; document 1024x768; no light dashboard panels; holographic avatar, poster campaign display, stronger shelf route map, compact ERP panel, and safety control panel verified; console errors/warnings: 0 | Pass |
 | Tap voice control QA | Click primary `Tap to Speak` | Ready label present; click entered permission-error path because microphone permission was not granted; `Try Again` and accessible error feedback verified; real listening/Tap to Stop transition not manually verified | Permission boundary |
+| Silence auto-stop and Start reset | `npm.cmd run test:run --prefix frontend -- src/hooks/useVoiceInteraction.test.ts src/App.integration.test.tsx`; In-app Browser at `http://127.0.0.1:5175` 1024x768; screenshot `reports/evidence/voice-start-reset-5175-1024x768.png` | Tests prove `MIN_RECORDING_MS`, `SILENCE_STOP_MS`, and `SILENCE_RMS_THRESHOLD` drive Web Audio analyser auto-stop into the normal thinking/speaking/idle flow; browser QA showed `Tap to Speak`, `Start`, no `Hold to Speak`, and `Start` returned the kiosk to ready without refresh | Pass |
+| Local 5175 CORS | `python -m pytest backend/tests/test_health.py -v`; runtime `OPTIONS /health` with `Origin: http://127.0.0.1:5175` | Tests cover `localhost` and `127.0.0.1` on ports 5173 and 5175; refreshed local backend returned status 200 and `Access-Control-Allow-Origin: http://127.0.0.1:5175` | Pass |
 | Cinematic kiosk screenshot | In-app Browser `tab.screenshot({ fullPage: false })` | Dark AI bay, primary Tap to Speak, poster-style promotion, shelf map route, ERP provenance, and pharmacist safety panel visible | Pass |
 | Shelf map screenshot | In-app Browser `tab.screenshot({ fullPage: false })` | Cyan route, purple target marker, current-position marker, aisle blocks, and Aisle/Shelf/Level details are visible | Pass |
 | Narrow responsive QA | In-app Browser at 390×844 | 7 regions; document width 375px within viewport; no horizontal overflow; no console errors/warnings | Pass |
@@ -43,7 +45,7 @@ Automated evidence uses fictional mock data and no live provider credential.
 |---|---|---|---|
 | Layout | Approved B direction uses left AI bay, center conversation/product/map deck, and right retail/safety rail | Render fits 1024×768 exactly with no document scroll | Matched |
 | Palette | Approved direction requires dark navy/black, cyan route/glow, purple AI/promo accents, glass panels | Computed body background is dark gradient; screenshot has no white dashboard surface | Matched |
-| Voice control | Main interaction must be `Tap to Speak`, with hold-to-speak only as fallback | Primary button is `Tap to Speak`; Hold appears only inside secondary fallback | Matched |
+| Voice control | Main interaction must be `Tap to Speak`; secondary action must reset with `Start` / `Start New Customer` instead of a small Hold fallback | Primary button is `Tap to Speak`; `Start` is the secondary reset action; `Hold to Speak` is no longer shown in the kiosk UI | Matched |
 | Avatar | Current direction requires a futuristic AI assistant screen with a larger full-body/near-full-body VRM display chamber and background-only orbit halo | Render uses a self-hosted VRM avatar in a dark holographic chamber with head, arms, and lower body visible; orbit/halo is moved behind the character, with waveform and state label remaining foreground UI | Matched |
 | Promotion | Promotion must look like a poster and only show active branch-aware mock promotion data | Poster frame shows active SG-001 promotion, mock VitaFlow price lockup, validity, mock label, and no invented discount | Matched |
 | Shelf navigation | Required as an indoor pharmacy map with current marker, target marker, route, aisle/shelf/level | Screenshot shows Entrance, Aisle 03, Shelf A-03, Level 02, cyan route, purple target | Matched |
@@ -73,5 +75,7 @@ Restored original VRM avatar lighting screenshot: [1024x768](evidence/vrm-avatar
 Responsive kiosk screenshots: [1024x768](evidence/responsive-kiosk-1024x768.png), [1366x768](evidence/responsive-kiosk-1366x768.png), [1920x1080](evidence/responsive-kiosk-1920x1080.png).
 
 Pharmacist escalation reset screenshots: [confirmation](evidence/pharmacist-escalation-confirmation-1024x768.png), [ready after reset](evidence/pharmacist-escalation-reset-ready-1024x768.png).
+
+Voice Start reset screenshot: [5175 1024x768](evidence/voice-start-reset-5175-1024x768.png).
 
 The committed screenshots are limited to mock data and contain no real customer, sales, database, log, backup, token, password, or ERP release data.

@@ -10,7 +10,7 @@ describe("VitaKiosk shell", () => {
 
     for (const name of [
       /AI assistant/i,
-      /Hold to Speak/i,
+      /Voice assistant controls/i,
       /Product/i,
       /Promotion/i,
       /Shelf navigation map/i,
@@ -19,6 +19,9 @@ describe("VitaKiosk shell", () => {
     ]) {
       expect(screen.getByRole("region", { name })).toBeInTheDocument();
     }
+    expect(screen.getByRole("button", { name: "Tap to Speak" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Start" })).toBeInTheDocument();
+    expect(screen.queryByText(/Hold to Speak/i)).not.toBeInTheDocument();
   });
 
   it("labels all visible domain data as fictional mock data", () => {

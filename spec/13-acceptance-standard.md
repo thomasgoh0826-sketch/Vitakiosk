@@ -22,6 +22,14 @@ A feature is accepted only when:
 - Live-provider work must be one layer at a time, with tests proving mock-default behavior remains unchanged.
 - VitaFlow live integration must start as read-only only and must not use `C:\Users\Admin\Documents\Playground\release`.
 - Red-flag, unknown-product, and non-invention rules remain covered.
+- Voice-flow acceptance requires `Tap to Speak` as the main control, manual
+  `Tap to Stop` fallback, browser-side silence auto-stop, and a secondary
+  `Start` / `Start New Customer` reset action instead of a small `Hold to
+  Speak` fallback.
+- Local development CORS acceptance requires explicit support for
+  `http://127.0.0.1:5175`, `http://localhost:5175`,
+  `http://127.0.0.1:5173`, and `http://localhost:5173` without wildcard
+  origins.
 - Pharmacist escalation acceptance requires a visible confirmation with the
   escalation ID when available, a `Start New Customer` / reset action, no browser
   refresh requirement, an idle ready state after reset, and proof that the
@@ -29,7 +37,7 @@ A feature is accepted only when:
 - Shelf navigation acceptance evidence includes a screenshot of the map route panel at the target iPad landscape viewport; a plain progress stepper is not accepted.
 - Dark neon kiosk acceptance evidence includes a 1024x768 screenshot showing the full single-screen composition.
 - The screenshot must show `Tap to Speak` as the primary interaction, a futuristic avatar bay, a poster-style promotion, the map-style shelf route, Mock VitaFlow provenance, and pharmacist safety messaging.
-- A white/light SaaS dashboard treatment or a primary `Hold to Speak` label is not accepted.
+- A white/light SaaS dashboard treatment or a small secondary `Hold to Speak` fallback is not accepted.
 - Responsive kiosk acceptance evidence must include screenshot or browser-measured evidence for at least 1024x768, 1366x768, and 1920x1080.
 - The responsive layout is not accepted if any required landscape viewport has horizontal overflow, document scrolling in the normal kiosk path, overlapping product/promotion/shelf/ERP/safety panels, or a hidden/unusable primary `Tap to Speak` control.
 - Narrow tablet or portrait fallback may scroll vertically, but it must not create horizontal overflow and must keep the avatar, shelf map, promotion poster, ERP panel, and pharmacist safety panel readable.
