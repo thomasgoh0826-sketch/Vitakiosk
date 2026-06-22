@@ -23,6 +23,7 @@ AI assistant, primary voice control plus Hold to Speak fallback, Product, Promot
 - Portrait and narrow tablet viewports may scroll vertically, but product, shelf map, promotion poster, ERP data, pharmacist assistance, and the primary voice button must remain readable and non-overlapping.
 - The avatar bay, VRM/Three.js canvas, shelf map, poster, and product cards resize with their containers using fluid sizing, aspect-ratio, CSS Grid/Flexbox, and `clamp()`-style text scales.
 - VRM mode uses a larger full-body holographic assistant chamber without customer-facing technical renderer labels; Lottie remains the default renderer unless the runtime selects VRM or Three.js.
+- VRM orbit/halo decoration is a secondary background effect; it must frame the character without crossing the visible face, torso, arms, hands, or dress.
 - The promotion region is a poster composition rather than a small dashboard card.
 - The existing Hold to Speak control may remain only as a visually secondary fallback.
 - Shelf navigation is rendered as an indoor map with aisle and shelf blocks, not as a plain progress stepper.

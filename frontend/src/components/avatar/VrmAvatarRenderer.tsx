@@ -275,18 +275,26 @@ function VrmCharacterScene({
         <primitive object={vrm.scene} />
       </group>
 
-      <group ref={scanner}>
-        <mesh position={[0, 0.18, -0.16]} rotation={[Math.PI / 2, 0, 0]}>
-          <torusGeometry args={[0.98, 0.012, 12, 112]} />
+      <group ref={scanner} position={[0, -0.12, -1.52]} scale={[1.78, 2.18, 1]}>
+        <mesh rotation={[Math.PI / 2.08, 0, 0]}>
+          <torusGeometry args={[1.08, 0.008, 12, 144]} />
           <meshBasicMaterial
             color={visual.primary}
-            opacity={state === "listening" || state === "speaking" ? 0.78 : 0.38}
+            opacity={state === "listening" || state === "speaking" ? 0.24 : 0.14}
+            depthTest
+            depthWrite={false}
             transparent
           />
         </mesh>
-        <mesh position={[0, -0.18, -0.12]} rotation={[Math.PI / 2.45, Math.PI / 6, 0]}>
-          <torusGeometry args={[1.26, 0.01, 12, 112]} />
-          <meshBasicMaterial color={visual.secondary} opacity={0.34} transparent />
+        <mesh rotation={[Math.PI / 2.65, Math.PI / 9, 0]}>
+          <torusGeometry args={[1.32, 0.006, 12, 144]} />
+          <meshBasicMaterial
+            color={visual.secondary}
+            opacity={0.12}
+            depthTest
+            depthWrite={false}
+            transparent
+          />
         </mesh>
       </group>
 
@@ -454,6 +462,7 @@ function VrmAvatarRenderer({
       data-avatar-crop={usesPortraitStage ? "full-body" : "fallback"}
       data-avatar-stage={usesPortraitStage ? "full-body-chamber" : "abstract-fallback"}
       data-camera-target={usesPortraitStage ? "full-body" : "fallback"}
+      data-avatar-orbit-layer={usesPortraitStage ? "background" : "fallback"}
       data-avatar-model-url={resolvedVrmModelUrl ?? undefined}
       data-reduced-motion={String(reducedMotion)}
       data-webgl={webglAvailable ? "available" : "fallback"}

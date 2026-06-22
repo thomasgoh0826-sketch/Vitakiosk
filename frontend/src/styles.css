@@ -1201,13 +1201,14 @@ button:focus-visible {
     inset 0 0 30px rgba(70, 248, 255, 0.08),
     inset 0 -38px 44px rgba(2, 7, 18, 0.72);
   clip-path: none;
+  isolation: isolate;
   mask-image: none;
 }
 
 .vrm-avatar-portrait-shell::before,
 .vrm-avatar-portrait-shell::after {
   position: absolute;
-  z-index: 2;
+  z-index: 0;
   content: "";
   pointer-events: none;
 }
@@ -1222,19 +1223,23 @@ button:focus-visible {
 }
 
 .vrm-avatar-portrait-shell::after {
-  top: -18%;
+  top: -16%;
+  right: -38%;
   bottom: -18%;
-  left: 48%;
-  width: 28%;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
-  filter: blur(1px);
-  opacity: 0.42;
-  transform: rotate(9deg);
+  left: -38%;
+  border: 1px solid rgba(70, 248, 255, 0.18);
+  border-radius: 50%;
+  background:
+    radial-gradient(ellipse at 50% 50%, transparent 42%, rgba(70, 248, 255, 0.12) 43% 44%, transparent 45%),
+    radial-gradient(ellipse at 48% 52%, transparent 54%, rgba(168, 117, 255, 0.12) 55% 56%, transparent 57%);
+  filter: blur(0.4px);
+  opacity: 0.45;
+  transform: rotate(-11deg);
 }
 
 .vrm-avatar-portrait-shell canvas {
   position: relative;
-  z-index: 1;
+  z-index: 2;
   display: block;
   width: 100% !important;
   height: 100% !important;
