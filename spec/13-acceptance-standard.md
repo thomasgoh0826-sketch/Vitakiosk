@@ -132,6 +132,14 @@ A feature is accepted only when:
 - The compact typed rail is not accepted if its two-row state floats over the
   branch-aware/system display, Shelf Navigation, product, promotion, ERP, or any
   other kiosk panel.
+- UI badge/icon polish is not accepted if dev/runtime provider diagnostics use
+  fixed floating placement over customer-facing panels, overlap AI subtitle text,
+  or cover product, promotion, ERP, or status content.
+- Product, promotion, leaflet, and safety icons are not accepted if inner
+  artwork, logos, glyphs, or leaflet images are clipped; image artwork must use
+  safe padding and `object-fit: contain`.
+- Leaflet modal acceptance requires the close button to occupy reserved layout
+  space and not overlap the leaflet artwork or description.
 - Narrow tablet or portrait fallback may scroll vertically, but it must not create horizontal overflow and must keep the avatar, shelf map, promotion poster, ERP panel, and pharmacist safety panel readable.
 - VRM/Three.js avatar canvases must resize with their assistant stage; VRM mode must not expose customer-facing technical renderer labels.
 - Optional avatar renderer work must keep Lottie as the default, gate Three.js behind `VITE_AVATAR_RENDERER=threejs`, and prove all avatar states remain accessible.

@@ -71,4 +71,27 @@ describe("typed input layout CSS contract", () => {
     expect(normalizedVirtualKeyboardSource).not.toContain("Chinese pinyin virtual keyboard");
     expect(normalizedVirtualKeyboardSource).not.toContain("Use device Chinese keyboard");
   });
+
+  it("keeps dev diagnostics in reserved header flow instead of floating over subtitles", () => {
+    expect(normalizedStyles).toMatch(/\.runtime-diagnostics\s*\{[\s\S]*position: relative;/);
+    expect(normalizedStyles).not.toContain(".runtime-diagnostics {\n  position: fixed;");
+    expect(normalizedStyles).toContain("grid-area: diagnostics;");
+    expect(normalizedStyles).toMatch(/\.kiosk-header\s*\{[\s\S]*display: grid;/);
+    expect(normalizedStyles).toContain("grid-template-areas: \"brand connection diagnostics\"");
+  });
+
+  it("prevents product, poster, and leaflet artwork from clipping inner icons", () => {
+    expect(normalizedStyles).toContain(".product-art {\n  position: relative;");
+    expect(normalizedStyles).toContain("padding: 10px;");
+    expect(normalizedStyles).toContain("overflow: visible;");
+    expect(normalizedStyles).toContain("max-width: 70%;");
+    expect(normalizedStyles).toContain("max-height: 70%;");
+    expect(normalizedStyles).toContain("flex-shrink: 0;");
+    expect(normalizedStyles).toContain(".poster-product-orb {\n  align-self: center;");
+    expect(normalizedStyles).toContain(".leaflet-image-stage img,\n.leaflet-card img,\n.leaflet-modal-art img {\n  max-width: 100%;");
+    expect(normalizedStyles).toContain("object-fit: contain;");
+    expect(normalizedStyles).toContain(".leaflet-modal {\n  position: relative;");
+    expect(normalizedStyles).toContain("padding: clamp(22px, 2.2dvw, 34px);");
+    expect(normalizedStyles).toMatch(/\.leaflet-modal-close\s*\{[\s\S]*position: static;/);
+  });
 });

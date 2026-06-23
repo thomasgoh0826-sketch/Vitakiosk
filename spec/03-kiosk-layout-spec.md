@@ -51,6 +51,9 @@ AI assistant, primary Tap to Speak voice control plus Start/New Customer reset, 
 - Bahasa Melayu text is typed in EN mode because it uses the Latin keyboard.
 - The kiosk must not provide a language toggle, Chinese virtual keyboard mode, fake Chinese phrase buttons, BM toggle, or pinyin candidate keyboard. Chinese text entry relies on the device native Chinese IME / pinyin keyboard or an external keyboard through the normal text field.
 - The typed input rail and popup keyboard remain touch-friendly and must not create horizontal overflow or awkward document scrolling in the normal 1024x768 landscape kiosk view.
+- Dev-only provider/runtime diagnostics must be placed in reserved header space or hidden; they must never use floating positioning that covers AI subtitles, promotion content, product cards, or customer-facing status labels.
+- Product, poster, pharmacist, and leaflet icon/artwork containers must use stable square/icon-safe sizing with centered content, safe padding, non-shrinking containers, and `object-fit: contain` for image assets so logos and leaflet artwork are not clipped.
+- Leaflet preview modals must reserve space for the close button and carousel controls; the close button must not overlap the leaflet image or leaflet text.
 
 ## Test evidence
 

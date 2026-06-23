@@ -169,6 +169,7 @@ describe("integrated kiosk panels", () => {
     expect(diagnostics).toHaveTextContent("STT: faster_whisper");
     expect(diagnostics).toHaveTextContent("Avatar: vrm");
     expect(diagnostics).toHaveTextContent("VRM: vita-new");
+    expect(diagnostics.closest(".kiosk-header")).not.toBeNull();
     expect(
       await screen.findByLabelText(/vrm (character|fallback) ai avatar: ready/i),
     ).toHaveAttribute("data-avatar-model-key", "vita-new");

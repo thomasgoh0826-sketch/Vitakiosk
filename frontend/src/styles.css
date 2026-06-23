@@ -801,10 +801,16 @@ button:focus-visible {
   position: relative;
   z-index: 3;
   min-height: 34px;
+  display: grid;
+  grid-template-columns: auto minmax(180px, 1fr) minmax(0, auto);
+  grid-template-areas: "brand connection diagnostics";
+  align-items: center;
+  gap: clamp(8px, 1dvw, 16px);
   padding: 0 3px;
 }
 
 .wordmark {
+  grid-area: brand;
   display: flex;
   align-items: center;
   gap: 9px;
@@ -842,6 +848,8 @@ button:focus-visible {
 }
 
 .connection-line {
+  grid-area: connection;
+  justify-self: center;
   gap: 7px;
   padding: 6px 10px;
   border: 1px solid rgba(84, 227, 142, 0.25);
@@ -1075,14 +1083,15 @@ button:focus-visible {
 }
 
 .runtime-diagnostics {
-  position: fixed;
-  z-index: 30;
-  right: clamp(10px, 1.2dvw, 18px);
-  top: clamp(52px, 6.5dvh, 74px);
+  grid-area: diagnostics;
+  position: relative;
+  z-index: 1;
+  justify-self: end;
   display: inline-flex;
   flex-wrap: wrap;
   gap: 6px;
-  max-width: min(58dvw, 520px);
+  min-width: 0;
+  max-width: min(34dvw, 360px);
   padding: 6px 8px;
   border: 1px solid rgba(66, 245, 255, 0.24);
   border-radius: 999px;
@@ -1992,7 +2001,9 @@ button:focus-visible {
   aspect-ratio: 1;
   display: grid;
   place-items: center;
-  overflow: hidden;
+  overflow: visible;
+  flex-shrink: 0;
+  padding: 10px;
   border: 1px solid rgba(66, 245, 255, 0.58);
   border-radius: 15px;
   color: #eaffff;
@@ -2024,10 +2035,23 @@ button:focus-visible {
 .product-art span {
   position: relative;
   z-index: 2;
+  max-width: 70%;
+  max-height: 70%;
+  display: grid;
+  place-items: center;
   font-size: 1.22rem;
   font-weight: 900;
   letter-spacing: -0.08em;
+  line-height: 1;
   text-shadow: 0 0 12px rgba(255, 255, 255, 0.5);
+}
+
+.product-art img,
+.poster-product-orb img {
+  max-width: 70%;
+  max-height: 70%;
+  display: block;
+  object-fit: contain;
 }
 
 .product-identity {
@@ -2177,6 +2201,9 @@ button:focus-visible {
   aspect-ratio: 1;
   display: grid;
   place-items: center;
+  flex-shrink: 0;
+  padding: 10px;
+  overflow: visible;
   border: 1px solid rgba(66, 245, 255, 0.7);
   border-radius: 50%;
   color: #efffff;
@@ -2188,9 +2215,12 @@ button:focus-visible {
 }
 
 .poster-product-orb span {
+  max-width: 70%;
+  max-height: 70%;
   font-size: 1rem;
   font-weight: 900;
   letter-spacing: -0.08em;
+  line-height: 1;
 }
 
 .poster-copy {
@@ -3574,13 +3604,14 @@ body {
 .leaflet-modal-art,
 .leaflet-card {
   position: relative;
-  overflow: hidden;
+  overflow: visible;
 }
 
 .leaflet-image-stage {
   min-height: clamp(78px, 12dvh, 150px);
   display: grid;
   place-items: center;
+  padding: 10px;
   border: 1px solid rgba(66, 245, 255, 0.28);
   border-radius: 12px;
   background:
@@ -3592,10 +3623,12 @@ body {
 .leaflet-image-stage img,
 .leaflet-card img,
 .leaflet-modal-art img {
-  width: 100%;
-  height: 100%;
+  max-width: 100%;
+  max-height: 100%;
+  width: auto;
+  height: auto;
   display: block;
-  object-fit: cover;
+  object-fit: contain;
 }
 
 .leaflet-image-stage img {
@@ -3707,6 +3740,7 @@ body {
 .leaflet-card img {
   border-radius: 8px;
   background: rgba(66, 245, 255, 0.08);
+  padding: 8px;
 }
 
 .leaflet-card span {
@@ -3765,8 +3799,13 @@ body {
   max-height: min(680px, 86dvh);
   display: grid;
   grid-template-columns: minmax(0, 1.05fr) minmax(260px, 0.75fr);
+  grid-template-areas:
+    "art close"
+    "art copy"
+    "controls controls";
+  grid-template-rows: auto minmax(0, 1fr) auto;
   gap: clamp(12px, 1.5dvw, 22px);
-  padding: clamp(14px, 1.6dvw, 24px);
+  padding: clamp(22px, 2.2dvw, 34px);
   border: 1px solid rgba(66, 245, 255, 0.42);
   border-radius: 22px;
   color: var(--text-primary);
@@ -3780,13 +3819,25 @@ body {
 }
 
 .leaflet-modal-art {
+  grid-area: art;
   min-height: 420px;
+  display: grid;
+  place-items: center;
+  padding: clamp(10px, 1.2dvw, 18px);
   border: 1px solid rgba(155, 108, 255, 0.36);
   border-radius: 16px;
   background: rgba(5, 12, 28, 0.72);
 }
 
+.leaflet-modal-art img {
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  object-fit: contain;
+}
+
 .leaflet-modal-copy {
+  grid-area: copy;
   align-self: center;
   min-width: 0;
 }
@@ -3837,10 +3888,11 @@ body {
 }
 
 .leaflet-modal-close {
-  position: absolute;
-  top: 12px;
-  right: 12px;
+  grid-area: close;
+  position: static;
   z-index: 2;
+  justify-self: end;
+  align-self: start;
   width: 42px;
   min-height: 42px;
   border-radius: 50%;
@@ -3849,7 +3901,7 @@ body {
 }
 
 .leaflet-modal-controls {
-  grid-column: 1 / -1;
+  grid-area: controls;
   display: flex;
   justify-content: center;
   gap: 12px;
@@ -3863,8 +3915,27 @@ body {
 }
 
 @media (max-width: 850px), (orientation: portrait) {
+  .kiosk-header {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas:
+      "brand"
+      "connection"
+      "diagnostics";
+  }
+
+  .connection-line,
+  .runtime-diagnostics {
+    justify-self: start;
+    max-width: 100%;
+  }
+
   .leaflet-modal {
     grid-template-columns: 1fr;
+    grid-template-areas:
+      "close"
+      "art"
+      "copy"
+      "controls";
     overflow-y: auto;
   }
 

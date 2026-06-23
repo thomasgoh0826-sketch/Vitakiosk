@@ -312,6 +312,10 @@ function App() {
           <span className="status-dot" aria-hidden="true" />
           {connectionCopy} · Mock mode · No customer data
         </div>
+        <RuntimeDiagnostics
+          runtimeStatus={runtimeStatus}
+          providerStatusUnavailable={providerStatusUnavailable}
+        />
       </header>
 
       <main className="kiosk-layout">
@@ -399,11 +403,6 @@ function App() {
         activeLeafletId={escalationActive ? null : modalLeafletId}
         onClose={() => setModalLeafletId(null)}
         onSelect={setModalLeafletId}
-      />
-
-      <RuntimeDiagnostics
-        runtimeStatus={runtimeStatus}
-        providerStatusUnavailable={providerStatusUnavailable}
       />
 
       <footer className="kiosk-footer">
