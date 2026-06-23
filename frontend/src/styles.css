@@ -4051,11 +4051,13 @@ body {
 }
 
 .virtual-keyboard {
-  position: fixed;
-  inset: clamp(12px, 2dvw, 30px);
-  z-index: 80;
+  position: relative;
+  z-index: 1;
+  width: min(1120px, calc(100dvw - clamp(24px, 4dvw, 60px)));
+  height: min(680px, calc(100dvh - clamp(24px, 4dvw, 60px)));
+  max-height: calc(100dvh - clamp(24px, 4dvw, 60px));
   display: grid;
-  grid-template-rows: auto minmax(0, 1fr) auto auto auto;
+  grid-template-rows: auto minmax(240px, 1fr) auto auto auto;
   gap: clamp(10px, 1.2dvw, 18px);
   padding: clamp(16px, 2dvw, 30px);
   border: 1px solid rgba(66, 245, 255, 0.45);
@@ -4069,12 +4071,16 @@ body {
     0 0 42px rgba(66, 245, 255, 0.18),
     0 22px 60px rgba(0, 0, 0, 0.48);
   backdrop-filter: blur(20px);
+  overflow: hidden;
 }
 
 .typing-modal-backdrop {
   position: fixed;
   inset: 0;
-  z-index: 79;
+  z-index: 260;
+  display: grid;
+  place-items: center;
+  padding: clamp(12px, 2dvw, 30px);
   background:
     linear-gradient(rgba(2, 8, 18, 0.72), rgba(2, 8, 18, 0.84)),
     radial-gradient(circle at 50% 10%, rgba(66, 245, 255, 0.12), transparent 34%);
@@ -4083,7 +4089,7 @@ body {
 
 .typing-modal {
   max-width: 1120px;
-  margin: auto;
+  margin: 0;
 }
 
 .virtual-keyboard-header {
@@ -4267,8 +4273,14 @@ body {
     min-width: 0;
   }
 
+  .typing-modal-backdrop {
+    padding: 14px;
+  }
+
   .virtual-keyboard {
-    inset: 14px;
+    width: 100%;
+    height: min(660px, calc(100dvh - 28px));
+    max-height: calc(100dvh - 28px);
   }
 }
 
@@ -4297,8 +4309,14 @@ body {
     flex: 1 1 0;
   }
 
+  .typing-modal-backdrop {
+    padding: 10px;
+  }
+
   .virtual-keyboard {
-    inset: 10px;
+    width: 100%;
+    height: auto;
+    min-height: min(560px, calc(100dvh - 20px));
     max-height: calc(100dvh - 20px);
     overflow-y: auto;
   }

@@ -1,4 +1,4 @@
-import { act, fireEvent, render, screen, within } from "@testing-library/react";
+import { act, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import App from "./App";
@@ -376,6 +376,30 @@ describe("integrated kiosk panels", () => {
 
     fireEvent.click(screen.getByRole("button", { name: "Open typing screen" }));
     expect(screen.getByRole("dialog", { name: /VitaKiosk typing screen/i })).toBeInTheDocument();
+  });
+
+  it("opens the typing screen as a top-level overlay outside the shelf map and compact input rail", async () => {
+    render(<App />);
+
+    const shelfMap = screen.getByRole("region", { name: /shelf navigation map/i });
+    const typedPanel = screen.getByRole("region", { name: /typed question input/i });
+    const compactInput = screen.getByLabelText("Type your question");
+
+    fireEvent.change(compactInput, { target: { value: "Panadol ada stock?" } });
+    fireEvent.click(screen.getByRole("button", { name: "Open typing screen" }));
+
+    const dialog = screen.getByRole("dialog", { name: /VitaKiosk typing screen/i });
+    const overlayRoot = dialog.closest("[data-overlay-root='typing-screen']");
+    expect(dialog).toHaveAttribute("data-overlay", "typing-screen");
+    expect(overlayRoot).toBeTruthy();
+    expect(typedPanel.contains(overlayRoot)).toBe(false);
+    expect(shelfMap.contains(overlayRoot)).toBe(false);
+    expect(overlayRoot?.parentElement).toBe(document.body);
+    expect(screen.getByLabelText("Typing screen draft")).toHaveValue("Panadol ada stock?");
+
+    await waitFor(() => {
+      expect(screen.getByLabelText("Typing screen draft")).toHaveFocus();
+    });
   });
 
   it("accepts external keyboard text including Chinese and Malay in native mode", () => {

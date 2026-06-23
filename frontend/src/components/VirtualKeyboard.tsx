@@ -1,3 +1,5 @@
+import { useEffect, useRef } from "react";
+
 import type { KeyboardLanguage } from "../inputConfig";
 import LanguageSwitcher from "./LanguageSwitcher";
 
@@ -22,13 +24,20 @@ function VirtualKeyboard({
   onSubmit,
   onClose,
 }: VirtualKeyboardProps) {
+  const textareaRef = useRef<HTMLTextAreaElement | null>(null);
+
+  useEffect(() => {
+    textareaRef.current?.focus();
+  }, []);
+
   return (
-    <div className="typing-modal-backdrop">
+    <div className="typing-modal-backdrop" data-overlay-root="typing-screen">
       <div
         className="virtual-keyboard typing-modal"
         role="dialog"
         aria-modal="true"
         aria-label="VitaKiosk typing screen"
+        data-overlay="typing-screen"
       >
         <div className="virtual-keyboard-header">
           <div>
@@ -47,6 +56,7 @@ function VirtualKeyboard({
         </div>
 
         <textarea
+          ref={textareaRef}
           className="typing-modal-textarea"
           aria-label="Typing screen draft"
           value={value}

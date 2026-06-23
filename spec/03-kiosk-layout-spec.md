@@ -41,6 +41,8 @@ AI assistant, primary Tap to Speak voice control plus Start/New Customer reset, 
 - The normal typed input rail is slim, single-line, and does not show a large `Accessible input` title block, large `Native keyboard mode` badge, or large `Type / Keyboard` button.
 - The default typed input mode is native device keyboard mode; focusing the compact text field must not force a custom popup.
 - The small keyboard icon opens an intentional full-screen or near full-screen typing surface when a larger typing area is needed; it preserves the current draft when closed, can send from the popup, and may cover the screen intentionally.
+- The full typing surface is a viewport-level overlay rendered outside the compact input rail and Shelf Navigation map, so the normal shelf map row cannot clip, compress, or contain the popup.
+- Opening the typing surface focuses the large textarea for native keyboard/IME entry; Close/Done preserves the draft, Clear clears both compact and popup drafts, and Send uses the same safe typed workflow as the compact rail.
 - Input language preferences are EN and 中文 only. Bahasa Melayu text is typed in EN mode, and Chinese relies on the device/native IME where possible rather than fake Chinese quick buttons.
 - The typed input rail and popup keyboard remain touch-friendly and must not create horizontal overflow or awkward document scrolling in the normal 1024x768 landscape kiosk view.
 

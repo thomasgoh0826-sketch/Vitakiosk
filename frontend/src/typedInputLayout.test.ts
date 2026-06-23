@@ -9,4 +9,13 @@ describe("typed input layout CSS contract", () => {
     expect(styles).toContain("var(--typed-input-rail-height)");
     expect(styles).toContain("grid-template-columns: minmax(0, 1fr) auto");
   });
+
+  it("keeps the focused typing screen as a viewport-level overlay", () => {
+    expect(styles).toContain(".typing-modal-backdrop {\n  position: fixed;");
+    expect(styles).toContain("z-index: 260");
+    expect(styles).toContain("place-items: center");
+    expect(styles).toContain(".virtual-keyboard {\n  position: relative;");
+    expect(styles).toContain("width: min(1120px, calc(100dvw - clamp(24px, 4dvw, 60px)))");
+    expect(styles).toContain("height: min(680px, calc(100dvh - clamp(24px, 4dvw, 60px)))");
+  });
 });

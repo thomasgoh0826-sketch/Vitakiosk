@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 
 import type { KeyboardLanguage, TypedInputConfig } from "../inputConfig";
 import VirtualKeyboard from "./VirtualKeyboard";
@@ -62,6 +63,19 @@ function TypedInputPanel({
     }
     setTypingScreenOpen(true);
   };
+
+  const typingScreen = typingScreenOpen ? (
+    <VirtualKeyboard
+      value={value}
+      language={keyboardLanguage}
+      disabled={disabled}
+      onChange={onChange}
+      onLanguageChange={setKeyboardLanguage}
+      onClear={onClear}
+      onSubmit={submitQuestion}
+      onClose={() => setTypingScreenOpen(false)}
+    />
+  ) : null;
 
   return (
     <section
@@ -127,18 +141,9 @@ function TypedInputPanel({
         </div>
       </form>
 
-      {typingScreenOpen ? (
-        <VirtualKeyboard
-          value={value}
-          language={keyboardLanguage}
-          disabled={disabled}
-          onChange={onChange}
-          onLanguageChange={setKeyboardLanguage}
-          onClear={onClear}
-          onSubmit={submitQuestion}
-          onClose={() => setTypingScreenOpen(false)}
-        />
-      ) : null}
+      {typingScreen && typeof document !== "undefined"
+        ? createPortal(typingScreen, document.body)
+        : typingScreen}
     </section>
   );
 }

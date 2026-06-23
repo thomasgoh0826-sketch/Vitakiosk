@@ -54,6 +54,10 @@ A feature is accepted only when:
   a large textarea with the current draft, offer EN and
   中文 only, preserve the draft when closed, send from the popup, and clear/close
   on reset.
+- Popup typed input must render as a viewport-level overlay outside the compact
+  input rail and Shelf Navigation map, with the textarea focused on open; it is
+  not accepted as a small nested popup clipped or contained by the normal kiosk
+  grid row.
 - Typed submissions must reuse the same AI/business/safety workflow as voice
   instead of a separate product logic path.
 - Typed-input screenshot evidence must include the compact typed panel, native
