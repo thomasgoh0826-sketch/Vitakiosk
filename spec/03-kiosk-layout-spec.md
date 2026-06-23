@@ -37,10 +37,12 @@ AI assistant, primary Tap to Speak voice control plus Start/New Customer reset, 
 - The map shows a labelled current position, target shelf marker, route line, Aisle, Shelf, Level, and a readable route summary.
 - The route uses only VitaFlow-provided shelf location data; unavailable locations are never inferred.
 - A compact typed accessibility input rail appears below Shelf navigation for customers who cannot or prefer not to speak.
-- Shelf navigation has layout priority: the typed input rail must not push, overlap, or make the map incomplete at 1024x768 landscape.
+- Shelf navigation has layout priority: the typed input rail must stay in normal document flow below the map and must not overlap, intersect, cover, or make the map incomplete at 1024x768 landscape.
 - The typed input rail has a clear accessible `Type your question` label, visible placeholder, small keyboard icon action, conditional clear action, send action, and no raw debug/customer data.
 - The compact typed input rail constrains only its own children: the text field flexes and ellipsizes, while the keyboard icon and Send button keep fixed touch-safe minimum widths.
-- The normal typed input rail is slim, single-line, and does not show a large `Accessible input` title block, large `Native keyboard mode` badge, or large `Type / Keyboard` button.
+- The normal typed input rail is slim and uses one row on wide containers. When width is constrained, it may wrap into two rows with the input on the first row and keyboard/Clear/Send actions on the second row.
+- If the compact rail wraps, its container height must expand naturally and push following content down; it must not use absolute/fixed positioning, negative margins, fixed max-height clipping, or overflow rules that hide controls.
+- The normal typed input rail does not show a large `Accessible input` title block, large `Native keyboard mode` badge, or large `Type / Keyboard` button.
 - The default typed input mode is native device keyboard mode; focusing the compact text field must not force a custom popup.
 - The small keyboard icon opens an intentional full-screen or near full-screen typing surface when a larger typing area is needed; it preserves the current draft when closed, can send from the popup, and may cover the screen intentionally.
 - The full typing surface is a viewport-level overlay rendered outside the compact input rail and Shelf Navigation map, so the normal shelf map row cannot clip, compress, or contain the popup.

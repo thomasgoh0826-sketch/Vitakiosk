@@ -41,11 +41,16 @@ A feature is accepted only when:
   `Tap to Stop` fallback, browser-side silence auto-stop, and a secondary
   `Start` / `Start New Customer` reset action instead of a small `Hold to
   Speak` fallback.
-- Typed-input acceptance requires a compact single-line accessibility input rail
+- Typed-input acceptance requires a compact accessibility input rail
   below Shelf navigation, a clearly labelled text field, visible current draft,
   small keyboard icon, conditional Clear, and Send actions, native
   device-keyboard behavior by default, and no large normal-layout title block,
   `Native keyboard mode` badge, or `Type / Keyboard` card button.
+- The compact typed rail may wrap into two rows when width is constrained:
+  row 1 is the full-width input field, and row 2 contains keyboard, Clear when
+  visible, and Send. The rail must expand its own height in normal layout flow
+  and must not be positioned as an absolute/fixed overlay, pulled with negative
+  margins, clipped by a fixed max height, or hidden behind another panel.
 - Native typed input must not force a custom popup on focus, must not use
   `readonly`, and must support normal browser/device input, copy-paste,
   backspace, external keyboards, iPad keyboard, Windows touch keyboard, Chinese
@@ -70,8 +75,9 @@ A feature is accepted only when:
 - Typed-input screenshot evidence must include the compact typed panel, native
   keyboard mode, and popup typing screen at the target iPad landscape viewport.
 - Shelf-map priority acceptance requires the compact typed input rail to stay
-  within a small fixed row and not make Shelf Navigation incomplete at 1024x768,
-  1366x768, or 1920x1080.
+  below Shelf Navigation in normal flow, expand naturally when it wraps, and not
+  overlap, intersect, cover, clip, or make Shelf Navigation incomplete at
+  1024x768, 1366x768, or 1920x1080.
 - STT provider acceptance requires mock STT by default, explicit
   `STT_PROVIDER=openai_whisper` or `STT_PROVIDER=faster_whisper` selection for
   non-mock STT, credentials/model settings read from local environment only, no
@@ -122,6 +128,9 @@ A feature is accepted only when:
 - The responsive layout is not accepted if any required landscape viewport has horizontal overflow, document scrolling in the normal kiosk path, overlapping product/promotion/shelf/ERP/safety panels, or a hidden/unusable primary `Tap to Speak` control.
 - Typed-input responsiveness work is not accepted if it globally scales, fixed-canvas shrinks, or transform-scales the whole kiosk UI instead of constraining the typed rail internally.
 - The compact typed rail is not accepted if its keyboard icon or Send button collapses, disappears, or lets input text push controls out of view.
+- The compact typed rail is not accepted if its two-row state floats over the
+  branch-aware/system display, Shelf Navigation, product, promotion, ERP, or any
+  other kiosk panel.
 - Narrow tablet or portrait fallback may scroll vertically, but it must not create horizontal overflow and must keep the avatar, shelf map, promotion poster, ERP panel, and pharmacist safety panel readable.
 - VRM/Three.js avatar canvases must resize with their assistant stage; VRM mode must not expose customer-facing technical renderer labels.
 - Optional avatar renderer work must keep Lottie as the default, gate Three.js behind `VITE_AVATAR_RENDERER=threejs`, and prove all avatar states remain accessible.

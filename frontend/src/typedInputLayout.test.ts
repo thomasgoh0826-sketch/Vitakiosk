@@ -15,10 +15,23 @@ describe("typed input layout CSS contract", () => {
   });
 
   it("keeps the normal typed input as a compact rail and protects shelf map height", () => {
-    expect(normalizedStyles).toContain("--typed-input-rail-height: clamp(48px, 6dvh, 64px)");
+    expect(normalizedStyles).toContain("--typed-input-rail-min-height: clamp(48px, 6dvh, 64px)");
     expect(normalizedStyles).toContain("minmax(160px, 0.88fr)");
-    expect(normalizedStyles).toContain("var(--typed-input-rail-height)");
-    expect(normalizedStyles).toContain(".typed-input-form {\n  display: flex;");
+    expect(normalizedStyles).toContain("minmax(var(--typed-input-rail-min-height), auto)");
+    expect(normalizedStyles).toContain(".typed-input-panel {\n  position: relative;");
+    expect(normalizedStyles).toContain("height: auto;");
+    expect(normalizedStyles).toContain("overflow: visible;");
+    expect(normalizedStyles).not.toContain("height: var(--typed-input-rail-height)");
+    expect(normalizedStyles).not.toContain("max-height: var(--typed-input-rail-height)");
+    expect(normalizedStyles).not.toContain("max-height: 64px");
+    expect(normalizedStyles).toContain(".typed-input-form {\n  width: 100%;\n  display: grid;");
+    expect(normalizedStyles).toContain("grid-template-areas: \"input keyboard clear send\"");
+    expect(normalizedStyles).toContain("grid-area: input;");
+    expect(normalizedStyles).toContain("grid-area: keyboard;");
+    expect(normalizedStyles).toContain("grid-area: clear;");
+    expect(normalizedStyles).toContain("grid-area: send;");
+    expect(normalizedStyles).toContain("\"input input input\"");
+    expect(normalizedStyles).toContain("\"keyboard clear send\"");
     expect(normalizedStyles).toContain("text-overflow: ellipsis");
     expect(normalizedStyles).toContain("flex: 0 0 52px");
     expect(normalizedStyles).toContain("min-width: 52px");

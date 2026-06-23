@@ -715,7 +715,7 @@ button:focus-visible {
   --success-green: #54e38e;
   --panel-line: rgba(96, 225, 255, 0.24);
   --deep-panel: rgba(5, 11, 24, 0.94);
-  --typed-input-rail-height: clamp(52px, 7dvh, 72px);
+  --typed-input-rail-min-height: clamp(48px, 6dvh, 64px);
 }
 
 html,
@@ -754,7 +754,8 @@ button:focus-visible {
     max(12px, env(safe-area-inset-right))
     max(8px, env(safe-area-inset-bottom))
     max(12px, env(safe-area-inset-left));
-  overflow: hidden;
+  overflow-x: hidden;
+  overflow-y: auto;
 }
 
 .kiosk-shell::before,
@@ -3877,18 +3878,17 @@ body {
     minmax(78px, 0.34fr)
     minmax(146px, 0.62fr)
     minmax(160px, 0.88fr)
-    var(--typed-input-rail-height);
+    minmax(var(--typed-input-rail-min-height), auto);
 }
 
 .typed-input-panel {
   position: relative;
   z-index: 12;
-  height: var(--typed-input-rail-height);
-  min-height: var(--typed-input-rail-height);
-  max-height: var(--typed-input-rail-height);
-  display: flex;
-  align-items: center;
-  overflow: hidden;
+  container-type: inline-size;
+  height: auto;
+  min-height: var(--typed-input-rail-min-height);
+  display: block;
+  overflow: visible;
   padding: clamp(6px, 0.7dvh, 9px) clamp(8px, 0.9dvw, 12px);
   border-color: rgba(66, 245, 255, 0.34);
   border-radius: 14px;
@@ -3950,12 +3950,14 @@ body {
 .typed-input-form {
   width: 100%;
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-columns: minmax(0, 1fr) auto auto auto;
+  grid-template-areas: "input keyboard clear send";
   align-items: center;
   gap: clamp(6px, 0.7dvw, 10px);
 }
 
 .typed-question-input {
+  grid-area: input;
   min-width: 0;
   width: 100%;
   height: clamp(38px, 5.2dvh, 48px);
@@ -3987,10 +3989,7 @@ body {
 }
 
 .typed-input-actions {
-  flex-wrap: nowrap;
-  justify-content: flex-end;
-  gap: clamp(5px, 0.55dvw, 8px);
-  min-width: 0;
+  display: contents;
 }
 
 .typed-input-actions button,
@@ -4014,13 +4013,26 @@ body {
 }
 
 .typed-keyboard-button {
+  grid-area: keyboard;
+  justify-self: end;
+  flex: 0 0 52px;
   width: clamp(38px, 4.2dvh, 46px);
+  min-width: 52px;
   padding: 0 !important;
   font-size: clamp(1rem, 1.1dvw, 1.22rem) !important;
   box-shadow: 0 0 16px rgba(66, 245, 255, 0.08);
 }
 
+.typed-clear-button {
+  grid-area: clear;
+  justify-self: end;
+}
+
 .typed-send-button {
+  grid-area: send;
+  justify-self: end;
+  flex: 0 0 72px;
+  min-width: 72px;
   border-color: rgba(66, 245, 255, 0.58) !important;
   color: #001015 !important;
   background:
@@ -4273,7 +4285,7 @@ body {
       minmax(110px, 0.38fr)
       minmax(210px, 0.7fr)
       minmax(220px, 0.9fr)
-      var(--typed-input-rail-height);
+      minmax(var(--typed-input-rail-min-height), auto);
   }
 }
 
@@ -4283,7 +4295,7 @@ body {
       minmax(74px, 0.32fr)
       minmax(138px, 0.58fr)
       minmax(160px, 0.88fr)
-      var(--typed-input-rail-height);
+      minmax(var(--typed-input-rail-min-height), auto);
   }
 
   .typed-input-panel {
@@ -4306,7 +4318,7 @@ body {
   }
 
   .typed-input-actions {
-    min-width: 0;
+    display: contents;
   }
 
   .typing-modal-backdrop {
@@ -4381,26 +4393,28 @@ body {
 /* Typed input rail responsiveness: constrain the rail only, never the whole kiosk. */
 
 .kiosk-shell {
-  --typed-input-rail-height: clamp(48px, 6dvh, 64px);
+  --typed-input-rail-min-height: clamp(48px, 6dvh, 64px);
 }
 
 .typed-input-panel {
-  height: var(--typed-input-rail-height);
-  min-height: 48px;
-  max-height: 64px;
+  height: auto;
+  min-height: var(--typed-input-rail-min-height);
   overflow: visible;
   padding: clamp(4px, 0.55dvh, 7px) clamp(8px, 0.8dvw, 10px);
 }
 
 .typed-input-form {
-  display: flex;
+  display: grid;
   align-items: center;
   width: 100%;
   min-width: 0;
+  grid-template-columns: minmax(0, 1fr) auto auto auto;
+  grid-template-areas: "input keyboard clear send";
   gap: 10px;
 }
 
 .typed-question-input {
+  grid-area: input;
   flex: 1 1 auto;
   min-width: 0;
   height: clamp(40px, 5.4dvh, 52px);
@@ -4410,13 +4424,7 @@ body {
 }
 
 .typed-input-actions {
-  flex: 0 0 auto;
-  min-width: max-content;
-  display: flex;
-  align-items: center;
-  flex-wrap: nowrap;
-  gap: clamp(6px, 0.62dvw, 10px);
-  overflow: visible;
+  display: contents;
 }
 
 .typed-input-actions button {
@@ -4426,6 +4434,7 @@ body {
 }
 
 .typed-keyboard-button {
+  grid-area: keyboard;
   flex: 0 0 52px;
   width: 52px;
   min-width: 52px;
@@ -4435,14 +4444,42 @@ body {
 }
 
 .typed-send-button {
+  grid-area: send;
   flex: 0 0 72px;
   width: 72px;
   min-width: 72px;
 }
 
 .typed-clear-button {
+  grid-area: clear;
   flex: 0 0 auto;
   max-width: 76px;
+}
+
+@container (max-width: 520px) {
+  .typed-input-form {
+    grid-template-columns: auto auto minmax(72px, 1fr);
+    grid-template-areas:
+      "input input input"
+      "keyboard clear send";
+    align-items: center;
+  }
+
+  .typed-question-input {
+    width: 100%;
+  }
+
+  .typed-keyboard-button {
+    justify-self: start;
+  }
+
+  .typed-clear-button {
+    justify-self: center;
+  }
+
+  .typed-send-button {
+    justify-self: end;
+  }
 }
 
 @media (max-height: 780px) and (orientation: landscape) {
