@@ -1,7 +1,7 @@
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 
-import VrmAvatarRenderer from "./VrmAvatarRenderer";
+import VrmAvatarRenderer, { getVrmAvatarBehavior } from "./VrmAvatarRenderer";
 
 
 describe("VrmAvatarRenderer", () => {
@@ -65,5 +65,49 @@ describe("VrmAvatarRenderer", () => {
     );
 
     expect(screen.queryByText(/vrm relaxed/i)).not.toBeInTheDocument();
+  });
+
+  it.each([
+    ["idle", "Ready", "relaxed", "closed", "calm", "off"],
+    ["listening", "Listening", "attentive", "closed", "listening", "off"],
+    ["thinking", "Thinking", "focused", "closed", "scanning", "active"],
+    ["speaking", "Speaking", "friendly", "audio-reactive", "speaking", "off"],
+    ["error", "Try Again", "concerned", "closed", "warning", "off"],
+    [
+      "pharmacist_escalation",
+      "Pharmacist Requested",
+      "serious",
+      "closed",
+      "safety",
+      "off",
+    ],
+  ] as const)(
+    "exposes the approved VRM behavior contract for %s",
+    (state, label, expression, mouth, glow, scan) => {
+      const behavior = getVrmAvatarBehavior(state, state === "speaking" ? 0.72 : 0.42);
+
+      expect(behavior.customerLabel).toBe(label);
+      expect(behavior.expression).toBe(expression);
+      expect(behavior.mouth).toBe(mouth);
+      expect(behavior.glow).toBe(glow);
+      expect(behavior.scan).toBe(scan);
+    },
+  );
+
+  it("uses approved customer-facing labels and behavior attributes instead of technical labels", () => {
+    render(
+      <VrmAvatarRenderer
+        state="pharmacist_escalation"
+        audioActivity={0.8}
+        vrmModelUrl="/assets/avatar/vita.vrm"
+      />,
+    );
+
+    const avatar = screen.getByLabelText(/vrm character ai avatar: pharmacist requested/i);
+    expect(avatar).toHaveAttribute("data-vrm-expression", "serious");
+    expect(avatar).toHaveAttribute("data-vrm-mouth", "closed");
+    expect(avatar).toHaveAttribute("data-vrm-glow", "safety");
+    expect(avatar).toHaveAttribute("data-vrm-scan", "off");
+    expect(avatar).not.toHaveTextContent(/relaxed|focused|safety handoff/i);
   });
 });

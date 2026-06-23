@@ -23,7 +23,7 @@ const CONTROLLED_FACE_EXPRESSIONS = [
   "surprised",
   "neutral",
   "blink",
-];
+] as const;
 
 const EXPRESSION_BY_STATE: Record<AvatarState, AvatarExpression> = {
   idle: "relaxed",
@@ -55,6 +55,49 @@ export interface RelaxedAvatarPose {
 
 export function getAvatarExpressionForState(state: AvatarState): AvatarExpression {
   return EXPRESSION_BY_STATE[state];
+}
+
+export type AvatarExpressionWeights = Record<(typeof CONTROLLED_FACE_EXPRESSIONS)[number], number>;
+
+export function getAvatarExpressionWeights(
+  state: AvatarState,
+  blink: number,
+): AvatarExpressionWeights {
+  const weights: AvatarExpressionWeights = {
+    relaxed: 0,
+    happy: 0,
+    sad: 0,
+    angry: 0,
+    surprised: 0,
+    neutral: 0,
+    blink,
+  };
+
+  switch (getAvatarExpressionForState(state)) {
+    case "relaxed":
+      weights.relaxed = 0.38;
+      break;
+    case "attentive":
+      weights.surprised = 0.14;
+      weights.neutral = 0.16;
+      break;
+    case "focused":
+      weights.neutral = 0.32;
+      break;
+    case "friendly":
+      weights.happy = 0.3;
+      weights.relaxed = 0.12;
+      break;
+    case "concerned":
+      weights.sad = 0.42;
+      break;
+    case "serious":
+      weights.neutral = 0.4;
+      weights.angry = 0.12;
+      break;
+  }
+
+  return weights;
 }
 
 function rotation(x = 0, y = 0, z = 0): BoneRotation {
@@ -115,32 +158,10 @@ function applyExpressionWeights(vrm: VRM, state: AvatarState, blink: number) {
     return;
   }
 
-  CONTROLLED_FACE_EXPRESSIONS.forEach((expression) => expressionManager.setValue(expression, 0));
-  expressionManager.setValue("blink", blink);
-
-  switch (getAvatarExpressionForState(state)) {
-    case "relaxed":
-      expressionManager.setValue("relaxed", 0.38);
-      break;
-    case "attentive":
-      expressionManager.setValue("surprised", 0.14);
-      expressionManager.setValue("neutral", 0.16);
-      break;
-    case "focused":
-      expressionManager.setValue("neutral", 0.32);
-      break;
-    case "friendly":
-      expressionManager.setValue("happy", 0.3);
-      expressionManager.setValue("relaxed", 0.12);
-      break;
-    case "concerned":
-      expressionManager.setValue("sad", 0.42);
-      break;
-    case "serious":
-      expressionManager.setValue("neutral", 0.4);
-      expressionManager.setValue("angry", 0.12);
-      break;
-  }
+  const weights = getAvatarExpressionWeights(state, blink);
+  CONTROLLED_FACE_EXPRESSIONS.forEach((expression) => {
+    expressionManager.setValue(expression, weights[expression]);
+  });
 }
 
 function toQuaternionTuple(pose: BoneRotation): [number, number, number, number] {

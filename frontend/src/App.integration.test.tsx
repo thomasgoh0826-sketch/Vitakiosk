@@ -231,7 +231,7 @@ describe("integrated kiosk panels", () => {
 
     fireEvent.click(screen.getByRole("button", { name: "Request assistance" }));
 
-    expect(await screen.findByText("Pharmacist requested")).toBeInTheDocument();
+    expect((await screen.findAllByText("Pharmacist Requested")).length).toBeGreaterThan(0);
     expect(
       screen.getAllByRole("alert").some((alert) =>
         alert.textContent?.includes("ESC-0099"),
@@ -245,7 +245,7 @@ describe("integrated kiosk panels", () => {
 
     fireEvent.click(screen.getByRole("button", { name: "Request assistance" }));
 
-    expect(await screen.findByText("Pharmacist requested")).toBeInTheDocument();
+    expect((await screen.findAllByText("Pharmacist Requested")).length).toBeGreaterThan(0);
     expect(screen.getByText(/ESC-0099/)).toBeInTheDocument();
 
     fireEvent.click(screen.getByRole("button", { name: "Start New Customer" }));
@@ -254,7 +254,7 @@ describe("integrated kiosk panels", () => {
     expect(sendState).toHaveBeenCalledWith("idle");
     expect(screen.getByRole("button", { name: "Tap to Speak" })).toBeEnabled();
     expect(screen.getByText("Pharmacist assistance")).toBeInTheDocument();
-    expect(screen.queryByText("Pharmacist requested")).not.toBeInTheDocument();
+    expect(screen.queryAllByText("Pharmacist Requested")).toHaveLength(0);
     expect(hookMocks.voice.mock.calls.at(-1)?.[0]?.sessionId).not.toBe(firstSessionId);
 
     fireEvent.click(screen.getByRole("button", { name: "Tap to Speak" }));
@@ -285,7 +285,7 @@ describe("integrated kiosk panels", () => {
         fireEvent.click(screen.getByRole("button", { name: "Request assistance" }));
       });
 
-      expect(screen.getByText("Pharmacist requested")).toBeInTheDocument();
+      expect(screen.getAllByText("Pharmacist Requested").length).toBeGreaterThan(0);
 
       act(() => {
         vi.advanceTimersByTime(15_000);

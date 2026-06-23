@@ -19,8 +19,12 @@ import {
 } from "three";
 import { GLTFLoader, type GLTF } from "three/examples/jsm/loaders/GLTFLoader.js";
 
-import { useAvatarIdleMotion } from "../../hooks/useAvatarIdleMotion";
-import { useAvatarLipSync } from "../../hooks/useAvatarLipSync";
+import {
+  getAvatarExpressionForState,
+  useAvatarIdleMotion,
+  type AvatarExpression,
+} from "../../hooks/useAvatarIdleMotion";
+import { getMouthOpenAmount, useAvatarLipSync } from "../../hooks/useAvatarLipSync";
 import type { AvatarState } from "../../types";
 import type { AvatarRendererProps } from "./AvatarRenderer";
 import { getDefaultVrmAvatarModelKey, getDefaultVrmAvatarModelUrl, type VrmAvatarModelKey } from "./AvatarModel";
@@ -31,9 +35,43 @@ const STATE_LABELS: Record<AvatarState, string> = {
   listening: "Listening",
   thinking: "Thinking",
   speaking: "Speaking",
-  error: "Something went wrong",
-  pharmacist_escalation: "Pharmacist requested",
+  error: "Try Again",
+  pharmacist_escalation: "Pharmacist Requested",
 };
+
+type VrmMouthBehavior = "closed" | "audio-reactive";
+type VrmGlowBehavior = "calm" | "listening" | "scanning" | "speaking" | "warning" | "safety";
+type VrmScanBehavior = "off" | "active";
+
+export interface VrmAvatarBehavior {
+  customerLabel: string;
+  expression: AvatarExpression;
+  mouth: VrmMouthBehavior;
+  glow: VrmGlowBehavior;
+  scan: VrmScanBehavior;
+}
+
+const GLOW_BY_STATE: Record<AvatarState, VrmGlowBehavior> = {
+  idle: "calm",
+  listening: "listening",
+  thinking: "scanning",
+  speaking: "speaking",
+  error: "warning",
+  pharmacist_escalation: "safety",
+};
+
+export function getVrmAvatarBehavior(
+  state: AvatarState,
+  audioActivity: number,
+): VrmAvatarBehavior {
+  return {
+    customerLabel: STATE_LABELS[state],
+    expression: getAvatarExpressionForState(state),
+    mouth: getMouthOpenAmount({ audioActivity, state }) > 0 ? "audio-reactive" : "closed",
+    glow: GLOW_BY_STATE[state],
+    scan: state === "thinking" ? "active" : "off",
+  };
+}
 
 const STATE_VISUALS: Record<
   AvatarState,
@@ -149,7 +187,12 @@ function usePrefersReducedMotion(): boolean {
 function setVrmMaterialGlow(root: Object3D, state: AvatarState, audioActivity: number) {
   const visual = STATE_VISUALS[state];
   const activity = clamp01(audioActivity);
+  const speakingMouth = getMouthOpenAmount({ audioActivity: activity, state });
   const emissiveColor = new Color(visual.primary);
+  const targetEmissiveIntensity =
+    state === "error" || state === "pharmacist_escalation"
+      ? 0.16
+      : 0.1 + speakingMouth * 0.18;
 
   root.traverse((child) => {
     const mesh = child as Mesh;
@@ -163,10 +206,7 @@ function setVrmMaterialGlow(root: Object3D, state: AvatarState, audioActivity: n
         material.emissive.lerp(emissiveColor, 0.28);
       }
       if ("emissiveIntensity" in material) {
-        material.emissiveIntensity = Math.max(
-          Number(material.emissiveIntensity ?? 0),
-          0.14 + activity * 0.24,
-        );
+        material.emissiveIntensity = targetEmissiveIntensity;
       }
       if ("opacity" in material && typeof material.opacity === "number") {
         material.opacity = Math.max(material.opacity, 0.96);
@@ -225,6 +265,7 @@ function VrmCharacterScene({
   const vrm = useVrmModel(modelUrl);
   const visual = STATE_VISUALS[state];
   const activity = clamp01(audioActivity);
+  const behavior = getVrmAvatarBehavior(state, activity);
 
   useEffect(() => {
     VRMUtils.rotateVRM0(vrm);
@@ -280,7 +321,7 @@ function VrmCharacterScene({
           <torusGeometry args={[1.08, 0.008, 12, 144]} />
           <meshBasicMaterial
             color={visual.primary}
-            opacity={state === "listening" || state === "speaking" ? 0.24 : 0.14}
+            opacity={behavior.scan === "active" ? 0.26 : state === "listening" || state === "speaking" ? 0.2 : 0.1}
             depthTest
             depthWrite={false}
             transparent
@@ -438,6 +479,7 @@ function VrmAvatarRenderer({
   const webglAvailable = useMemo(canUseWebGL, []);
   const visual = STATE_VISUALS[state];
   const activity = clamp01(audioActivity);
+  const behavior = getVrmAvatarBehavior(state, activity);
   const stateLabel = STATE_LABELS[state];
   const resolvedVrmModelUrl = vrmModelUrl ?? null;
   const hasVrmModel = resolvedVrmModelUrl !== null;
@@ -466,6 +508,10 @@ function VrmAvatarRenderer({
       data-avatar-stage={usesPortraitStage ? "full-body-chamber" : "abstract-fallback"}
       data-camera-target={usesPortraitStage ? "full-body" : "fallback"}
       data-avatar-orbit-layer={usesPortraitStage ? "background" : "fallback"}
+      data-vrm-expression={behavior.expression}
+      data-vrm-mouth={behavior.mouth}
+      data-vrm-glow={behavior.glow}
+      data-vrm-scan={behavior.scan}
       data-avatar-model-url={resolvedVrmModelUrl ?? undefined}
       data-reduced-motion={String(reducedMotion)}
       data-webgl={webglAvailable ? "available" : "fallback"}

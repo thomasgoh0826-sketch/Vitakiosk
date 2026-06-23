@@ -23,8 +23,8 @@ const STATE_LABELS: Record<AvatarState, string> = {
   listening: "Listening",
   thinking: "Thinking",
   speaking: "Speaking",
-  error: "Something went wrong",
-  pharmacist_escalation: "Pharmacist requested",
+  error: "Try Again",
+  pharmacist_escalation: "Pharmacist Requested",
 };
 
 function AvatarAssistant({

@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  getAvatarExpressionWeights,
   getAvatarExpressionForState,
   getIdleMotionFrame,
   getRelaxedAvatarPose,
@@ -51,5 +52,17 @@ describe("avatar idle motion helpers", () => {
     expect(listening.chest.x).toBeLessThan(idle.chest.x);
     expect(Math.abs(listening.head.x)).toBeLessThan(0.12);
     expect(Math.abs(listening.head.y)).toBeLessThan(0.12);
+  });
+
+  it("keeps pharmacist escalation serious instead of friendly or smiling", () => {
+    const speaking = getAvatarExpressionWeights("speaking", 0);
+    const escalation = getAvatarExpressionWeights("pharmacist_escalation", 0);
+
+    expect(speaking.happy).toBeGreaterThan(0);
+    expect(escalation.happy).toBe(0);
+    expect(escalation.relaxed).toBe(0);
+    expect(escalation.neutral).toBeGreaterThan(0);
+    expect(escalation.angry).toBeGreaterThan(0);
+    expect(escalation.blink).toBe(0);
   });
 });

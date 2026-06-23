@@ -5,6 +5,7 @@ import type { AvatarState } from "../types";
 
 
 const MOUTH_EXPRESSIONS = ["aa", "ee", "ih", "oh", "ou"];
+const MOUTH_OPEN_AUDIO_THRESHOLD = 0.06;
 
 function clamp01(value: number): number {
   return Math.min(1, Math.max(0, Number.isFinite(value) ? value : 0));
@@ -17,7 +18,8 @@ export function getMouthOpenAmount({
   audioActivity: number;
   state: AvatarState;
 }): number {
-  return state === "speaking" ? clamp01(audioActivity) : 0;
+  const activity = clamp01(audioActivity);
+  return state === "speaking" && activity >= MOUTH_OPEN_AUDIO_THRESHOLD ? activity : 0;
 }
 
 export function useAvatarLipSync({
