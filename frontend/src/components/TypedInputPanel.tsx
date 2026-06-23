@@ -1,8 +1,7 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import type { KeyboardLanguage, TypedInputConfig } from "../inputConfig";
 import VirtualKeyboard from "./VirtualKeyboard";
-
 
 interface TypedInputPanelProps {
   value: string;
@@ -17,16 +16,6 @@ interface TypedInputPanelProps {
 const INPUT_LABEL = "Type your question";
 const INPUT_PLACEHOLDER = "Ask about a product, stock, promotion, or shelf location";
 
-function appendWithSpacing(current: string, next: string) {
-  if (!current || current.endsWith(" ") || next === " ") {
-    return `${current}${next}`;
-  }
-  if (/^[?,.!。！？,，吗]$/u.test(next)) {
-    return `${current}${next}`;
-  }
-  return `${current} ${next}`;
-}
-
 function TypedInputPanel({
   value,
   config,
@@ -36,19 +25,20 @@ function TypedInputPanel({
   onClear,
   onSubmit,
 }: TypedInputPanelProps) {
-  const [keyboardOpen, setKeyboardOpen] = useState(false);
+  const [typingScreenOpen, setTypingScreenOpen] = useState(false);
   const [keyboardLanguage, setKeyboardLanguage] =
     useState<KeyboardLanguage>(config.defaultLanguage);
+  const inputRef = useRef<HTMLTextAreaElement | null>(null);
   const usesPopupKeyboard = config.mode === "popup";
 
   useEffect(() => {
-    setKeyboardOpen(false);
+    setTypingScreenOpen(false);
     setKeyboardLanguage(config.defaultLanguage);
   }, [config.defaultLanguage, resetToken]);
 
   useEffect(() => {
     if (!usesPopupKeyboard) {
-      setKeyboardOpen(false);
+      setTypingScreenOpen(false);
     }
   }, [usesPopupKeyboard]);
 
@@ -63,11 +53,18 @@ function TypedInputPanel({
     }
     onSubmit(question);
     onClear();
-    setKeyboardOpen(false);
+    setTypingScreenOpen(false);
   };
 
-  const handleInput = (text: string) => {
-    onChange(appendWithSpacing(value, text));
+  const openTypingScreenOrFocus = () => {
+    if (disabled) {
+      return;
+    }
+    if (usesPopupKeyboard) {
+      setTypingScreenOpen(true);
+      return;
+    }
+    inputRef.current?.focus();
   };
 
   return (
@@ -80,7 +77,7 @@ function TypedInputPanel({
           </label>
         </div>
         <span className="typed-input-mode">
-          {usesPopupKeyboard ? "Popup keyboard mode" : "Device keyboard mode"}
+          {usesPopupKeyboard ? "Popup typing mode" : "Native keyboard mode"}
         </span>
       </div>
 
@@ -92,6 +89,7 @@ function TypedInputPanel({
         }}
       >
         <textarea
+          ref={inputRef}
           id="typed-question"
           className="typed-question-input"
           value={value}
@@ -99,26 +97,26 @@ function TypedInputPanel({
           disabled={disabled}
           placeholder={INPUT_PLACEHOLDER}
           onChange={(event) => onChange(event.target.value)}
-          onFocus={() => {
-            if (usesPopupKeyboard) {
-              setKeyboardOpen(true);
+          onClick={() => {
+            if (usesPopupKeyboard && !disabled) {
+              setTypingScreenOpen(true);
             }
           }}
         />
         <div className="typed-input-actions">
-          {usesPopupKeyboard ? (
-            <button
-              type="button"
-              className="typed-keyboard-button"
-              aria-label="Open kiosk keyboard"
-              onClick={() => setKeyboardOpen(true)}
-            >
-              Keyboard
-            </button>
-          ) : null}
+          <button
+            type="button"
+            className="typed-keyboard-button"
+            aria-label="Type / Keyboard"
+            onClick={openTypingScreenOrFocus}
+            disabled={disabled}
+          >
+            Type / Keyboard
+          </button>
           <button
             type="button"
             className="typed-clear-button"
+            aria-label="Clear typed question"
             onClick={onClear}
             disabled={!value || disabled}
           >
@@ -136,19 +134,20 @@ function TypedInputPanel({
       </form>
 
       <p className="typed-input-helper">
-        You can type instead of speaking. Large touch keyboard available for
-        accessibility.
+        Native keyboard is recommended for iPad, Windows touch, external keyboards,
+        copy-paste, pinyin IME, and Bahasa Melayu text.
       </p>
 
-      {usesPopupKeyboard && keyboardOpen ? (
+      {usesPopupKeyboard && typingScreenOpen ? (
         <VirtualKeyboard
+          value={value}
           language={keyboardLanguage}
+          disabled={disabled}
+          onChange={onChange}
           onLanguageChange={setKeyboardLanguage}
-          onInput={handleInput}
-          onBackspace={() => onChange(value.slice(0, -1))}
           onClear={onClear}
           onSubmit={submitQuestion}
-          onClose={() => setKeyboardOpen(false)}
+          onClose={() => setTypingScreenOpen(false)}
         />
       ) : null}
     </section>

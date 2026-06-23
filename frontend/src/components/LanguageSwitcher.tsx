@@ -1,6 +1,5 @@
 import type { KeyboardLanguage } from "../inputConfig";
 
-
 interface LanguageOption {
   value: KeyboardLanguage;
   label: string;
@@ -10,7 +9,6 @@ interface LanguageOption {
 const LANGUAGE_OPTIONS: LanguageOption[] = [
   { value: "en", label: "EN", ariaLabel: "English keyboard" },
   { value: "zh", label: "中文", ariaLabel: "Chinese keyboard" },
-  { value: "bm", label: "BM", ariaLabel: "Bahasa Melayu keyboard" },
 ];
 
 interface LanguageSwitcherProps {
@@ -20,7 +18,7 @@ interface LanguageSwitcherProps {
 
 function LanguageSwitcher({ value, onChange }: LanguageSwitcherProps) {
   return (
-    <div className="language-switcher" role="group" aria-label="Keyboard language">
+    <div className="language-switcher" role="group" aria-label="Input language preference">
       {LANGUAGE_OPTIONS.map((option) => (
         <button
           key={option.value}

@@ -367,6 +367,82 @@ describe("useVoiceInteraction", () => {
     expect(sendState).toHaveBeenCalledWith("idle");
   });
 
+  it("keeps typed pregnancy questions in pharmacist escalation without TTS playback", async () => {
+    const api = buildApi();
+    api.respond.mockResolvedValueOnce({
+      intent: "red_flag",
+      message:
+        "For your safety, please speak with our pharmacist before taking supplements during pregnancy.",
+      requires_pharmacist: true,
+      product: null,
+      promotions: [],
+      leaflets: [],
+      ui_actions: [{ type: "REQUEST_PHARMACIST_ASSISTANCE" }],
+      purchasing_query_id: null,
+      escalation_id: "ESC-PREGNANCY",
+      safety_reason: "pregnancy",
+      source: "mock_ai",
+    });
+    const { result } = renderHook(() =>
+      useVoiceInteraction({
+        sessionId: "session-typed-pregnancy",
+        branchId: "SG-001",
+        api,
+        serverState: "idle" as AvatarState,
+        sendState: vi.fn(),
+      }),
+    );
+
+    await act(async () =>
+      result.current.submitText("I am pregnant, can I take this supplement?"),
+    );
+
+    expect(api.transcribe).not.toHaveBeenCalled();
+    expect(api.respond).toHaveBeenCalledWith(
+      "session-typed-pregnancy",
+      "I am pregnant, can I take this supplement?",
+      "SG-001",
+    );
+    expect(result.current.state).toBe("pharmacist_escalation");
+    expect(result.current.escalationId).toBe("ESC-PREGNANCY");
+    expect(result.current.purchasingQueryId).toBeNull();
+    expect(api.synthesize).not.toHaveBeenCalled();
+  });
+
+  it("keeps unknown typed products in purchasing query flow without guessing a product", async () => {
+    const api = buildApi();
+    api.respond.mockResolvedValueOnce({
+      intent: "unknown_product",
+      message:
+        "I could not find that product in VitaFlow. I have created a purchasing query for the team.",
+      requires_pharmacist: false,
+      product: null,
+      promotions: [],
+      leaflets: [],
+      ui_actions: [],
+      purchasing_query_id: "PQ-TYPED-0001",
+      escalation_id: null,
+      safety_reason: null,
+      source: "mock_ai",
+    });
+    const { result } = renderHook(() =>
+      useVoiceInteraction({
+        sessionId: "session-typed-unknown",
+        branchId: "SG-001",
+        api,
+        serverState: "idle" as AvatarState,
+        sendState: vi.fn(),
+      }),
+    );
+
+    await act(async () => result.current.submitText("Do you have dragon miracle capsule?"));
+    await waitFor(() => expect(result.current.state).toBe("idle"));
+
+    expect(result.current.product).toBeNull();
+    expect(result.current.purchasingQueryId).toBe("PQ-TYPED-0001");
+    expect(api.synthesize).toHaveBeenCalledTimes(1);
+  });
+
   it("resets pharmacist escalation state for a new customer without deleting the ticket", async () => {
     const api = buildApi(true);
     const sendState = vi.fn();

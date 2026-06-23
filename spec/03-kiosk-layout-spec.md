@@ -37,7 +37,9 @@ AI assistant, primary Tap to Speak voice control plus Start/New Customer reset, 
 - The route uses only VitaFlow-provided shelf location data; unavailable locations are never inferred.
 - A typed accessibility input panel appears below Shelf navigation for customers who cannot or prefer not to speak.
 - The typed input panel has a clear `Type your question` label, visible placeholder, send action, clear action, and no raw debug/customer data.
-- In popup keyboard mode, the typed input can open a dark neon touch keyboard with English, Chinese, and Bahasa Melayu modes; in native mode, the custom keyboard is not forced.
+- The default typed input mode is native device keyboard mode; focusing the compact text field must not force a custom popup.
+- Popup typing mode is an explicit opt-in full-screen or near full-screen typing surface; it preserves the current draft when closed, can send from the popup, and must not overlap the shelf map accidentally.
+- Input language preferences are EN and 中文 only. Bahasa Melayu text is typed in EN mode, and Chinese relies on the device/native IME where possible rather than fake Chinese quick buttons.
 - The typed input and popup keyboard remain touch-friendly and must not create horizontal overflow or awkward document scrolling in the normal 1024x768 landscape kiosk view.
 
 ## Test evidence

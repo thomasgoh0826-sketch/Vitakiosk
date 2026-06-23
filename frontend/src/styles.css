@@ -3997,15 +3997,14 @@ body {
 
 .virtual-keyboard {
   position: fixed;
-  left: max(12px, calc(50dvw - 430px));
-  right: max(12px, calc(50dvw - 430px));
-  bottom: max(12px, var(--kiosk-pad-y, 12px));
+  inset: clamp(12px, 2dvw, 30px);
   z-index: 80;
   display: grid;
-  gap: 10px;
-  padding: clamp(12px, 1.2dvw, 18px);
+  grid-template-rows: auto minmax(0, 1fr) auto auto auto;
+  gap: clamp(10px, 1.2dvw, 18px);
+  padding: clamp(16px, 2dvw, 30px);
   border: 1px solid rgba(66, 245, 255, 0.45);
-  border-radius: 22px;
+  border-radius: clamp(20px, 2dvw, 34px);
   background:
     radial-gradient(circle at 20% 10%, rgba(66, 245, 255, 0.14), transparent 34%),
     radial-gradient(circle at 82% 28%, rgba(155, 108, 255, 0.16), transparent 32%),
@@ -4015,6 +4014,21 @@ body {
     0 0 42px rgba(66, 245, 255, 0.18),
     0 22px 60px rgba(0, 0, 0, 0.48);
   backdrop-filter: blur(20px);
+}
+
+.typing-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 79;
+  background:
+    linear-gradient(rgba(2, 8, 18, 0.72), rgba(2, 8, 18, 0.84)),
+    radial-gradient(circle at 50% 10%, rgba(66, 245, 255, 0.12), transparent 34%);
+  backdrop-filter: blur(12px);
+}
+
+.typing-modal {
+  max-width: 1120px;
+  margin: auto;
 }
 
 .virtual-keyboard-header {
@@ -4054,6 +4068,46 @@ body {
   border-radius: 999px;
   padding: 0 14px;
   font-weight: 850;
+}
+
+.typing-modal-textarea {
+  width: 100%;
+  min-height: min(42dvh, 390px);
+  resize: none;
+  border: 1px solid rgba(66, 245, 255, 0.36);
+  border-radius: clamp(18px, 1.6dvw, 28px);
+  padding: clamp(16px, 2dvw, 28px);
+  color: var(--text-primary);
+  background:
+    linear-gradient(180deg, rgba(3, 12, 28, 0.92), rgba(8, 16, 38, 0.78));
+  box-shadow:
+    inset 0 0 26px rgba(66, 245, 255, 0.07),
+    0 0 28px rgba(155, 108, 255, 0.08);
+  font: inherit;
+  font-size: clamp(1.12rem, 2.5dvw, 2.4rem);
+  line-height: 1.35;
+  outline: none;
+}
+
+.typing-modal-textarea:focus-visible {
+  border-color: rgba(66, 245, 255, 0.78);
+  box-shadow:
+    0 0 0 4px rgba(66, 245, 255, 0.15),
+    inset 0 0 30px rgba(66, 245, 255, 0.08);
+}
+
+.typing-modal-guidance {
+  padding: 10px 14px;
+  border: 1px solid rgba(143, 165, 189, 0.16);
+  border-radius: 16px;
+  color: var(--text-muted);
+  background: rgba(3, 10, 24, 0.48);
+  font-size: clamp(0.72rem, 0.92dvw, 1rem);
+  line-height: 1.45;
+}
+
+.typing-modal-guidance p {
+  margin: 0;
 }
 
 .keyboard-latin-layout,
@@ -4165,8 +4219,7 @@ body {
   }
 
   .virtual-keyboard {
-    left: 14px;
-    right: 14px;
+    inset: 14px;
   }
 }
 
@@ -4193,10 +4246,8 @@ body {
   }
 
   .virtual-keyboard {
-    left: 10px;
-    right: 10px;
-    bottom: 10px;
-    max-height: 78dvh;
+    inset: 10px;
+    max-height: calc(100dvh - 20px);
     overflow-y: auto;
   }
 }

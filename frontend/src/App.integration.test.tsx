@@ -1,8 +1,7 @@
-import { act, fireEvent, render, screen } from "@testing-library/react";
+import { act, fireEvent, render, screen, within } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import App from "./App";
-
 
 const hookMocks = vi.hoisted(() => ({
   socket: vi.fn(),
@@ -15,7 +14,6 @@ vi.mock("./api/client", () => ({
 }));
 vi.mock("./hooks/useKioskSocket", () => ({ default: hookMocks.socket }));
 vi.mock("./hooks/useVoiceInteraction", () => ({ default: hookMocks.voice }));
-
 
 describe("integrated kiosk panels", () => {
   const startRecording = vi.fn();
@@ -280,7 +278,7 @@ describe("integrated kiosk panels", () => {
     expect(hookMocks.voice.mock.calls.at(-1)?.[0]?.sessionId).not.toBe(firstSessionId);
   });
 
-  it("renders a typed accessibility input below the shelf map and submits through the existing AI flow", () => {
+  it("renders a compact native typed input below the shelf map and submits through the existing AI flow", () => {
     render(<App />);
 
     const shelfMap = screen.getByRole("region", { name: /shelf navigation map/i });
@@ -290,6 +288,9 @@ describe("integrated kiosk panels", () => {
     ).toBeTruthy();
 
     const input = screen.getByLabelText("Type your question");
+    expect(input).not.toHaveAttribute("readonly");
+    expect(screen.getByText(/Native keyboard mode/i)).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Type / Keyboard" })).toBeInTheDocument();
     fireEvent.change(input, { target: { value: "Where is Panadol?" } });
     fireEvent.click(screen.getByRole("button", { name: "Send typed question" }));
 
@@ -297,65 +298,99 @@ describe("integrated kiosk panels", () => {
     expect(startRecording).not.toHaveBeenCalled();
   });
 
-  it("opens and closes the touch popup keyboard in popup mode", () => {
+  it("keeps native mode as the default and never opens the popup from focus or the keyboard button", () => {
+    render(<App />);
+
+    const input = screen.getByLabelText("Type your question");
+    fireEvent.focus(input);
+    expect(screen.queryByRole("dialog", { name: /VitaKiosk typing screen/i })).not.toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: "Type / Keyboard" }));
+    expect(screen.queryByRole("dialog", { name: /VitaKiosk typing screen/i })).not.toBeInTheDocument();
+    expect(document.activeElement).toBe(input);
+  });
+
+  it("accepts external keyboard text including Chinese and Malay in native mode", () => {
+    render(<App />);
+
+    const input = screen.getByLabelText("Type your question");
+    fireEvent.change(input, { target: { value: "这个 probiotic 有 promotion 吗?" } });
+    expect(input).toHaveValue("这个 probiotic 有 promotion 吗?");
+
+    fireEvent.change(input, { target: { value: "Ada ubat batuk?" } });
+    expect(input).toHaveValue("Ada ubat batuk?");
+  });
+
+  it("opens an intentional full-screen typing modal in popup mode and preserves the draft on close", () => {
     vi.stubEnv("VITE_TEXT_INPUT_MODE", "popup");
     render(<App />);
 
-    fireEvent.click(screen.getByRole("button", { name: "Open kiosk keyboard" }));
+    const compactInput = screen.getByLabelText("Type your question");
+    fireEvent.change(compactInput, { target: { value: "Panadol ada stock 吗?" } });
+    fireEvent.click(screen.getByRole("button", { name: "Type / Keyboard" }));
 
-    expect(screen.getByRole("dialog", { name: /VitaKiosk touch keyboard/i })).toBeInTheDocument();
+    const dialog = screen.getByRole("dialog", { name: /VitaKiosk typing screen/i });
+    expect(dialog).toBeInTheDocument();
+    expect(screen.getByLabelText("Typing screen draft")).toHaveValue("Panadol ada stock 吗?");
     expect(screen.getByRole("button", { name: "English keyboard" })).toHaveAttribute(
       "aria-pressed",
       "true",
     );
-    fireEvent.click(screen.getByRole("button", { name: "Close touch keyboard" }));
-    expect(screen.queryByRole("dialog", { name: /VitaKiosk touch keyboard/i })).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Chinese keyboard" })).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /Bahasa Melayu keyboard/i })).not.toBeInTheDocument();
+    expect(within(dialog).queryByRole("button", { name: /^Type [A-Z]$/i })).not.toBeInTheDocument();
+    expect(within(dialog).queryByRole("button", { name: /Type 这个/i })).not.toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: "Close typing screen" }));
+    expect(screen.queryByRole("dialog", { name: /VitaKiosk typing screen/i })).not.toBeInTheDocument();
+    expect(compactInput).toHaveValue("Panadol ada stock 吗?");
   });
 
-  it("does not force the custom keyboard in native mode", () => {
-    vi.stubEnv("VITE_TEXT_INPUT_MODE", "native");
-    render(<App />);
-
-    expect(screen.queryByRole("button", { name: "Open kiosk keyboard" })).not.toBeInTheDocument();
-    fireEvent.focus(screen.getByLabelText("Type your question"));
-    expect(screen.queryByRole("dialog", { name: /VitaKiosk touch keyboard/i })).not.toBeInTheDocument();
-    expect(screen.getByText(/Device keyboard mode/i)).toBeInTheDocument();
-  });
-
-  it("switches popup keyboard language modes and supports simplified Chinese quick input", () => {
+  it("sends and clears text from the popup typing screen", () => {
     vi.stubEnv("VITE_TEXT_INPUT_MODE", "popup");
-    vi.stubEnv("VITE_KEYBOARD_DEFAULT_LANGUAGE", "bm");
     render(<App />);
 
-    fireEvent.click(screen.getByRole("button", { name: "Open kiosk keyboard" }));
-    expect(screen.getByRole("button", { name: "Bahasa Melayu keyboard" })).toHaveAttribute(
-      "aria-pressed",
-      "true",
-    );
+    const compactInput = screen.getByLabelText("Type your question");
+    fireEvent.click(screen.getByRole("button", { name: "Type / Keyboard" }));
+    fireEvent.change(screen.getByLabelText("Typing screen draft"), {
+      target: { value: "Panadol ada stock 吗?" },
+    });
+    const dialog = screen.getByRole("dialog", { name: /VitaKiosk typing screen/i });
+    fireEvent.click(within(dialog).getByRole("button", { name: "Send typed question" }));
 
-    fireEvent.click(screen.getByRole("button", { name: "Chinese keyboard" }));
-    expect(screen.getByRole("button", { name: "Chinese keyboard" })).toHaveAttribute(
-      "aria-pressed",
-      "true",
-    );
-    fireEvent.click(screen.getByRole("button", { name: "Type 这个" }));
-
-    expect(screen.getByLabelText("Type your question")).toHaveValue("这个");
+    expect(submitText).toHaveBeenCalledWith("Panadol ada stock 吗?");
+    expect(compactInput).toHaveValue("");
+    expect(screen.queryByRole("dialog", { name: /VitaKiosk typing screen/i })).not.toBeInTheDocument();
   });
 
-  it("clears typed input and closes the keyboard when starting a new customer", () => {
+  it("clear button empties compact and popup drafts without submitting", () => {
+    vi.stubEnv("VITE_TEXT_INPUT_MODE", "popup");
+    render(<App />);
+
+    const compactInput = screen.getByLabelText("Type your question");
+    fireEvent.change(compactInput, { target: { value: "这个 probiotic 有 promotion 吗?" } });
+    fireEvent.click(screen.getByRole("button", { name: "Type / Keyboard" }));
+    const dialog = screen.getByRole("dialog", { name: /VitaKiosk typing screen/i });
+    fireEvent.click(within(dialog).getByRole("button", { name: "Clear typed question" }));
+
+    expect(compactInput).toHaveValue("");
+    expect(screen.getByLabelText("Typing screen draft")).toHaveValue("");
+    expect(submitText).not.toHaveBeenCalled();
+  });
+
+  it("clears typed input and closes the typing modal when starting a new customer", () => {
     vi.stubEnv("VITE_TEXT_INPUT_MODE", "popup");
     render(<App />);
 
     const input = screen.getByLabelText("Type your question");
     fireEvent.change(input, { target: { value: "Panadol ada stock 吗?" } });
-    fireEvent.click(screen.getByRole("button", { name: "Open kiosk keyboard" }));
-    expect(screen.getByRole("dialog", { name: /VitaKiosk touch keyboard/i })).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Type / Keyboard" }));
+    expect(screen.getByRole("dialog", { name: /VitaKiosk typing screen/i })).toBeInTheDocument();
 
     fireEvent.click(screen.getByRole("button", { name: "Start" }));
 
     expect(input).toHaveValue("");
-    expect(screen.queryByRole("dialog", { name: /VitaKiosk touch keyboard/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole("dialog", { name: /VitaKiosk typing screen/i })).not.toBeInTheDocument();
     expect(resetVoice).toHaveBeenCalledTimes(1);
   });
 

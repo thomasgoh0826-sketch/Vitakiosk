@@ -1,5 +1,5 @@
 export type TextInputMode = "popup" | "native";
-export type KeyboardLanguage = "en" | "zh" | "bm";
+export type KeyboardLanguage = "en" | "zh";
 
 export interface TypedInputConfig {
   enabled: boolean;
@@ -8,12 +8,12 @@ export interface TypedInputConfig {
 }
 
 const TEXT_INPUT_MODES = new Set<TextInputMode>(["popup", "native"]);
-const KEYBOARD_LANGUAGES = new Set<KeyboardLanguage>(["en", "zh", "bm"]);
+const KEYBOARD_LANGUAGES = new Set<KeyboardLanguage>(["en", "zh"]);
 
 function normalizeTextInputMode(value?: string): TextInputMode {
   return TEXT_INPUT_MODES.has(value as TextInputMode)
     ? (value as TextInputMode)
-    : "popup";
+    : "native";
 }
 
 function normalizeKeyboardLanguage(value?: string): KeyboardLanguage {
@@ -22,7 +22,12 @@ function normalizeKeyboardLanguage(value?: string): KeyboardLanguage {
     : "en";
 }
 
-export function getTypedInputConfig(env = import.meta.env): TypedInputConfig {
+type TypedInputEnv = Pick<
+  Partial<ImportMetaEnv>,
+  "VITE_ENABLE_TYPED_INPUT" | "VITE_TEXT_INPUT_MODE" | "VITE_KEYBOARD_DEFAULT_LANGUAGE"
+>;
+
+export function getTypedInputConfig(env: TypedInputEnv = import.meta.env): TypedInputConfig {
   return {
     enabled: env.VITE_ENABLE_TYPED_INPUT !== "false",
     mode: normalizeTextInputMode(env.VITE_TEXT_INPUT_MODE),
