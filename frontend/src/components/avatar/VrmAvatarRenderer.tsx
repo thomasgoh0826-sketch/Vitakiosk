@@ -155,6 +155,27 @@ function canUseWebGL(): boolean {
   }
 }
 
+type VrmFallbackReason =
+  | "missing-vrm-model-url"
+  | "vrm-scene-error";
+
+function warnVrmFallback(
+  reason: VrmFallbackReason,
+  detail: Record<string, unknown> = {},
+) {
+  if (typeof console === "undefined" || typeof console.warn !== "function") {
+    return;
+  }
+
+  console.warn(
+    "VitaKiosk VRM fallback: the VRM avatar could not be shown, so the local holographic fallback is being used.",
+    {
+      reason,
+      ...detail,
+    },
+  );
+}
+
 function usePrefersReducedMotion(): boolean {
   const [reducedMotion, setReducedMotion] = useState(() => {
     if (typeof window === "undefined" || typeof window.matchMedia !== "function") {
@@ -411,6 +432,8 @@ function VrmFallbackScene({ state, audioActivity, reducedMotion }: VrmFallbackSc
 interface AvatarSceneBoundaryProps {
   children: ReactNode;
   fallback: ReactNode;
+  modelKey: VrmAvatarModelKey;
+  modelUrl: string;
 }
 
 interface AvatarSceneBoundaryState {
@@ -422,6 +445,14 @@ class AvatarSceneBoundary extends Component<AvatarSceneBoundaryProps, AvatarScen
 
   static getDerivedStateFromError(): AvatarSceneBoundaryState {
     return { hasError: true };
+  }
+
+  componentDidCatch(error: unknown) {
+    warnVrmFallback("vrm-scene-error", {
+      modelKey: this.props.modelKey,
+      modelUrl: this.props.modelUrl,
+      error: error instanceof Error ? error.message : String(error),
+    });
   }
 
   render() {
@@ -492,6 +523,16 @@ function VrmAvatarRenderer({
     "--three-avatar-core-scale": 1 + activity * 0.18,
   } as CSSProperties;
 
+  useEffect(() => {
+    if (!hasVrmModel) {
+      warnVrmFallback("missing-vrm-model-url", {
+        modelKey: vrmModelKey,
+        configuredModel: import.meta.env.VITE_VRM_MODEL || "vita",
+        expectedConfig: "VITE_AVATAR_RENDERER=vrm with VITE_VRM_MODEL=vita or vita-new",
+      });
+    }
+  }, [hasVrmModel, vrmModelKey]);
+
   return (
     <div
       className={
@@ -533,6 +574,8 @@ function VrmAvatarRenderer({
             {hasVrmModel ? <VrmFullBodyCamera /> : null}
             {hasVrmModel ? (
               <AvatarSceneBoundary
+                modelKey={vrmModelKey}
+                modelUrl={resolvedVrmModelUrl}
                 fallback={
                   <VrmFallbackScene
                     state={state}

@@ -35,6 +35,7 @@ function AvatarAssistant({
 }: AvatarAssistantProps) {
   const stateLabel = STATE_LABELS[state];
   const rendererKind = renderer ?? getConfiguredAvatarRenderer();
+  const showRendererDebug = import.meta.env.DEV;
   const avatarRenderer = (() => {
     if (rendererKind === "vrm") {
       return (
@@ -101,6 +102,11 @@ function AvatarAssistant({
         <span className="avatar-bay-label avatar-bay-label-right" aria-hidden="true">
           MOCK 01
         </span>
+        {showRendererDebug ? (
+          <span className="avatar-renderer-debug" aria-label={`Current avatar renderer ${rendererKind}`}>
+            Renderer: {rendererKind}
+          </span>
+        ) : null}
       </div>
 
       <div className="assistant-waveform" aria-hidden="true">

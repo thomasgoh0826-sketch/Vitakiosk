@@ -153,6 +153,25 @@ Open [http://127.0.0.1:5175](http://127.0.0.1:5175). Use an iPad landscape viewp
 
 The typed input panel below Shelf navigation is available by default for customers who cannot or prefer not to speak. In popup mode it opens a touch-friendly keyboard with English, simplified Chinese quick phrases, and Bahasa Melayu modes. The Chinese mode is a kiosk demo quick-input layer, not a full OS-level IME; deployments needing full pinyin/handwriting IME can use `VITE_TEXT_INPUT_MODE=native` so the device keyboard handles it.
 
+### Local VRM avatar demo
+
+For local VRM testing, copy `frontend/.env.local.example` to `frontend/.env.local` and keep it untracked:
+
+```powershell
+Copy-Item frontend\.env.local.example frontend\.env.local
+```
+
+The local example uses Vite-exposed frontend variables:
+
+```env
+VITE_AVATAR_RENDERER=vrm
+VITE_VRM_MODEL=vita-new
+VITE_API_BASE_URL=http://127.0.0.1:8001
+VITE_WS_BASE_URL=ws://127.0.0.1:8001
+```
+
+Use `VITE_AVATAR_RENDERER=vrm`; plain `AVATAR_RENDERER` is not read by the browser runtime. If the VRM renderer cannot use the selected local model, the kiosk keeps the holographic fallback and writes a developer console warning with the fallback reason.
+
 ## API surface
 
 | Method | Path | Mock behavior |

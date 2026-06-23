@@ -1,5 +1,5 @@
 import { render, screen } from "@testing-library/react";
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 import AvatarAssistant from "./AvatarAssistant";
 import type { AvatarState } from "../types";
@@ -15,6 +15,10 @@ const states: Array<[AvatarState, string]> = [
 ];
 
 describe("AvatarAssistant", () => {
+  afterEach(() => {
+    vi.unstubAllEnvs();
+  });
+
   it.each(states)("renders %s state accessibly", (state, label) => {
     render(<AvatarAssistant state={state} audioActivity={0.4} connected />);
 
@@ -90,6 +94,32 @@ describe("AvatarAssistant", () => {
         { timeout: 3000 },
       ),
     ).toHaveAttribute("data-avatar-renderer", "vrm");
+  });
+
+  it("selects VRM from VITE_AVATAR_RENDERER and the vita-new model from VITE_VRM_MODEL", async () => {
+    vi.stubEnv("VITE_AVATAR_RENDERER", "vrm");
+    vi.stubEnv("VITE_VRM_MODEL", "vita-new");
+
+    render(<AvatarAssistant state="idle" audioActivity={0} connected />);
+
+    const avatar = await screen.findByLabelText(
+      /vrm (character|fallback) ai avatar: ready/i,
+      {},
+      { timeout: 3000 },
+    );
+    expect(avatar).toHaveAttribute("data-avatar-renderer", "vrm");
+    expect(avatar).toHaveAttribute("data-avatar-model-key", "vita-new");
+    expect(screen.getByText("Renderer: vrm")).toBeInTheDocument();
+  });
+
+  it("shows the default holographic renderer when VITE_AVATAR_RENDERER is missing", () => {
+    render(<AvatarAssistant state="idle" audioActivity={0} connected />);
+
+    expect(screen.getByLabelText(/lottie holographic ai avatar/i)).toHaveAttribute(
+      "data-avatar-renderer",
+      "lottie",
+    );
+    expect(screen.getByText("Renderer: lottie")).toBeInTheDocument();
   });
 
   it("announces pharmacist escalation as an alert", () => {

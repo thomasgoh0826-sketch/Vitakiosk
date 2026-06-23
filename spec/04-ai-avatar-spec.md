@@ -6,7 +6,7 @@ Make system state visible without implying clinical authority.
 
 ## Renderer contract
 
-`AvatarRenderer` receives an `AvatarState` and normalized `audioActivity`. Lottie light player remains the default implementation. Three.js GLB and Three.js VRM are optional renderers selected by `VITE_AVATAR_RENDERER=threejs`, `VITE_AVATAR_RENDERER=vrm`, or an explicit frontend renderer prop; unknown values fall back to Lottie.
+`AvatarRenderer` receives an `AvatarState` and normalized `audioActivity`. Lottie light player remains the default implementation. Three.js GLB and Three.js VRM are optional renderers selected by the Vite-exposed browser runtime variable `VITE_AVATAR_RENDERER=threejs`, `VITE_AVATAR_RENDERER=vrm`, or an explicit frontend renderer prop; unknown or missing values fall back to Lottie. Plain `AVATAR_RENDERER` is not read by the browser runtime.
 
 The Three.js renderer supports a lightweight GLB humanoid avatar at `frontend/src/assets/avatar/vitakiosk-avatar.glb`. It remains lazy-loaded so the default Lottie kiosk bundle stays lean. If the GLB file is absent, WebGL is unavailable, or model loading fails, the renderer must fall back to the existing abstract hologram without crashing.
 
@@ -28,7 +28,10 @@ Three.js/VRM controls body motion, face expressions, blinking, head movement, id
 - Lottie remains the default avatar renderer when no renderer config is set.
 - `VITE_AVATAR_RENDERER=threejs` enables the optional Three.js renderer without changing backend, WebSocket, mock data, provider, or safety behavior.
 - `VITE_AVATAR_RENDERER=vrm` enables the optional VRM renderer without changing backend, WebSocket, mock data, provider, or safety behavior.
+- Plain `AVATAR_RENDERER` must not select the browser renderer; local frontend runtime configuration must use `VITE_AVATAR_RENDERER`.
 - `VITE_VRM_MODEL=vita` selects `frontend/src/assets/avatar/vita.vrm`; `VITE_VRM_MODEL=vita-new` selects `frontend/src/assets/avatar/vita-new.vrm` for controlled visual replacement testing.
+- In development mode, the assistant may show a small non-customer renderer debug badge with the current renderer name.
+- If the VRM renderer uses a fallback because the configured model is missing or model rendering fails, the developer console must include a warning with a clear fallback reason.
 - The Three.js renderer has accessible labels for every avatar state and supports idle, listening, thinking, speaking, error, and pharmacist escalation.
 - The VRM renderer has accessible labels for every avatar state and supports idle, listening, thinking, speaking, error, and pharmacist escalation.
 - When a GLB model is bundled at `frontend/src/assets/avatar/vitakiosk-avatar.glb`, the Three.js renderer loads it as a humanoid AI pharmacist avatar.

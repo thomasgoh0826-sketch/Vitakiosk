@@ -21,7 +21,12 @@ const forbiddenNames = /(?:^|\/)(?:credentials|secrets)\.json$/i;
 function isSensitive(path) {
   const normalized = path.replaceAll("\\", "/");
   const lower = normalized.toLowerCase();
-  if (lower === ".env.example" || lower.endsWith("/.env.example")) {
+  if (
+    lower === ".env.example" ||
+    lower.endsWith("/.env.example") ||
+    lower === ".env.local.example" ||
+    lower.endsWith("/.env.local.example")
+  ) {
     return false;
   }
   return (

@@ -1043,6 +1043,24 @@ button:focus-visible {
   right: 1%;
 }
 
+.avatar-renderer-debug {
+  position: absolute;
+  z-index: 7;
+  right: clamp(8px, 1dvw, 14px);
+  bottom: clamp(6px, 0.8dvw, 12px);
+  padding: 4px 7px;
+  border: 1px solid rgba(66, 245, 255, 0.28);
+  border-radius: 999px;
+  color: rgba(190, 240, 255, 0.82);
+  background: rgba(4, 12, 28, 0.68);
+  box-shadow: 0 0 12px rgba(66, 245, 255, 0.1);
+  font-size: clamp(0.44rem, 0.48dvw, 0.62rem);
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  pointer-events: none;
+}
+
 .lottie-avatar {
   position: relative;
   width: min(82%, 228px);

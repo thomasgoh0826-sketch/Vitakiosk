@@ -1,16 +1,28 @@
 import { render, screen } from "@testing-library/react";
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 import VrmAvatarRenderer, { getVrmAvatarBehavior } from "./VrmAvatarRenderer";
 
 
 describe("VrmAvatarRenderer", () => {
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
   it("marks the renderer as fallback when no VRM model URL is available", () => {
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => undefined);
+
     render(<VrmAvatarRenderer state="idle" audioActivity={0} vrmModelUrl={null} />);
 
     expect(screen.getByLabelText(/vrm fallback ai avatar/i)).toHaveAttribute(
       "data-avatar-model",
       "fallback",
+    );
+    expect(warn).toHaveBeenCalledWith(
+      expect.stringContaining("VitaKiosk VRM fallback"),
+      expect.objectContaining({
+        reason: "missing-vrm-model-url",
+      }),
     );
   });
 

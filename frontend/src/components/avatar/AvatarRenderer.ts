@@ -12,7 +12,9 @@ export interface AvatarRendererProps {
 
 export type AvatarRendererComponent = ComponentType<AvatarRendererProps>;
 
-type AvatarRendererEnv = Partial<Record<"AVATAR_RENDERER" | "VITE_AVATAR_RENDERER", string>>;
+type AvatarRendererEnv = Partial<Record<string, string | undefined>> & {
+  VITE_AVATAR_RENDERER?: string;
+};
 
 export function normalizeAvatarRenderer(value: string | undefined | null): AvatarRendererKind {
   const normalized = value?.trim().toLowerCase();
@@ -22,9 +24,5 @@ export function normalizeAvatarRenderer(value: string | undefined | null): Avata
 export function getConfiguredAvatarRenderer(
   env: AvatarRendererEnv = import.meta.env as AvatarRendererEnv,
 ): AvatarRendererKind {
-  const viteRenderer = normalizeAvatarRenderer(env.VITE_AVATAR_RENDERER);
-  if (viteRenderer !== "lottie") {
-    return viteRenderer;
-  }
-  return normalizeAvatarRenderer(env.AVATAR_RENDERER);
+  return normalizeAvatarRenderer(env.VITE_AVATAR_RENDERER);
 }
