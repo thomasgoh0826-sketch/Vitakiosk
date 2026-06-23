@@ -430,12 +430,56 @@ describe("integrated kiosk panels", () => {
     );
     expect(screen.getByRole("button", { name: "Chinese keyboard" })).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: /Bahasa Melayu keyboard/i })).not.toBeInTheDocument();
-    expect(within(dialog).queryByRole("button", { name: /^Type [A-Z]$/i })).not.toBeInTheDocument();
+    expect(within(dialog).getByRole("group", { name: "English virtual keyboard" })).toBeInTheDocument();
     expect(within(dialog).queryByRole("button", { name: /Type 这个/i })).not.toBeInTheDocument();
 
     fireEvent.click(screen.getByRole("button", { name: "Close typing screen" }));
     expect(screen.queryByRole("dialog", { name: /VitaKiosk typing screen/i })).not.toBeInTheDocument();
     expect(compactInput).toHaveValue("Panadol ada stock 吗?");
+  });
+
+  it("shows an EN QWERTY virtual keyboard that types, spaces, and backspaces the draft", () => {
+    render(<App />);
+
+    fireEvent.click(screen.getByRole("button", { name: "Open typing screen" }));
+    const dialog = screen.getByRole("dialog", { name: /VitaKiosk typing screen/i });
+    const draft = screen.getByLabelText("Typing screen draft");
+
+    fireEvent.click(within(dialog).getByRole("button", { name: "Type Q" }));
+    fireEvent.click(within(dialog).getByRole("button", { name: "Type W" }));
+    expect(draft).toHaveValue("qw");
+
+    fireEvent.click(within(dialog).getByRole("button", { name: "Space" }));
+    expect(draft).toHaveValue("qw ");
+
+    fireEvent.click(within(dialog).getByRole("button", { name: "Backspace" }));
+    expect(draft).toHaveValue("qw");
+  });
+
+  it("shows a Chinese pinyin virtual keyboard with candidate insertion and device keyboard fallback", () => {
+    render(<App />);
+
+    fireEvent.click(screen.getByRole("button", { name: "Open typing screen" }));
+    const dialog = screen.getByRole("dialog", { name: /VitaKiosk typing screen/i });
+    fireEvent.click(screen.getByRole("button", { name: "Chinese keyboard" }));
+
+    expect(within(dialog).getByRole("group", { name: "Chinese pinyin virtual keyboard" })).toBeInTheDocument();
+    expect(within(dialog).getByRole("status", { name: "Pinyin composition" })).toHaveTextContent(
+      "Tap pinyin keys",
+    );
+    expect(within(dialog).getByRole("region", { name: "Chinese candidates" })).toBeInTheDocument();
+    expect(within(dialog).getByRole("button", { name: "Use device keyboard" })).toBeInTheDocument();
+
+    fireEvent.click(within(dialog).getByRole("button", { name: "Type Z" }));
+    fireEvent.click(within(dialog).getByRole("button", { name: "Type H" }));
+    fireEvent.click(within(dialog).getByRole("button", { name: "Type E" }));
+
+    expect(within(dialog).getByRole("status", { name: "Pinyin composition" })).toHaveTextContent("zhe");
+    fireEvent.click(within(dialog).getByRole("button", { name: "Insert candidate 这个" }));
+    expect(screen.getByLabelText("Typing screen draft")).toHaveValue("这个");
+    expect(within(dialog).getByRole("status", { name: "Pinyin composition" })).toHaveTextContent(
+      "Tap pinyin keys",
+    );
   });
 
   it("sends and clears text from the popup typing screen", () => {

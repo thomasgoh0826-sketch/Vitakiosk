@@ -58,6 +58,11 @@ A feature is accepted only when:
   input rail and Shelf Navigation map, with the textarea focused on open; it is
   not accepted as a small nested popup clipped or contained by the normal kiosk
   grid row.
+- Popup typed input must include a visible, touch-friendly on-screen keyboard.
+  EN mode must show QWERTY keys with Space and Backspace. 中文 mode must show
+  QWERTY pinyin keys, a pinyin composition buffer, a Chinese candidate row, and
+  a `Use device keyboard` option for full native IME input. A modal that shows
+  only a large textarea is not accepted.
 - Typed submissions must reuse the same AI/business/safety workflow as voice
   instead of a separate product logic path.
 - Typed-input screenshot evidence must include the compact typed panel, native
