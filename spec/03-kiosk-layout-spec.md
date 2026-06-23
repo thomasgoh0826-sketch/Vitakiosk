@@ -35,17 +35,20 @@ AI assistant, primary Tap to Speak voice control plus Start/New Customer reset, 
 - Shelf navigation is rendered as an indoor map with aisle and shelf blocks, not as a plain progress stepper.
 - The map shows a labelled current position, target shelf marker, route line, Aisle, Shelf, Level, and a readable route summary.
 - The route uses only VitaFlow-provided shelf location data; unavailable locations are never inferred.
-- A typed accessibility input panel appears below Shelf navigation for customers who cannot or prefer not to speak.
-- The typed input panel has a clear `Type your question` label, visible placeholder, send action, clear action, and no raw debug/customer data.
+- A compact typed accessibility input rail appears below Shelf navigation for customers who cannot or prefer not to speak.
+- Shelf navigation has layout priority: the typed input rail must not push, overlap, or make the map incomplete at 1024x768 landscape.
+- The typed input rail has a clear accessible `Type your question` label, visible placeholder, small keyboard icon action, conditional clear action, send action, and no raw debug/customer data.
+- The normal typed input rail is slim, single-line, and does not show a large `Accessible input` title block, large `Native keyboard mode` badge, or large `Type / Keyboard` button.
 - The default typed input mode is native device keyboard mode; focusing the compact text field must not force a custom popup.
-- Popup typing mode is an explicit opt-in full-screen or near full-screen typing surface; it preserves the current draft when closed, can send from the popup, and must not overlap the shelf map accidentally.
+- The small keyboard icon opens an intentional full-screen or near full-screen typing surface when a larger typing area is needed; it preserves the current draft when closed, can send from the popup, and may cover the screen intentionally.
 - Input language preferences are EN and 中文 only. Bahasa Melayu text is typed in EN mode, and Chinese relies on the device/native IME where possible rather than fake Chinese quick buttons.
-- The typed input and popup keyboard remain touch-friendly and must not create horizontal overflow or awkward document scrolling in the normal 1024x768 landscape kiosk view.
+- The typed input rail and popup keyboard remain touch-friendly and must not create horizontal overflow or awkward document scrolling in the normal 1024x768 landscape kiosk view.
 
 ## Test evidence
 
 - `frontend/src/App.test.tsx`
 - `frontend/src/App.integration.test.tsx`
+- `frontend/src/typedInputLayout.test.ts`
 - `frontend/src/components/TypedInputPanel.tsx`
 - `frontend/src/components/VirtualKeyboard.tsx`
 - `frontend/src/components/AiSubtitle.test.tsx`

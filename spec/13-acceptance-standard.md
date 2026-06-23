@@ -41,22 +41,26 @@ A feature is accepted only when:
   `Tap to Stop` fallback, browser-side silence auto-stop, and a secondary
   `Start` / `Start New Customer` reset action instead of a small `Hold to
   Speak` fallback.
-- Typed-input acceptance requires an accessibility input panel below Shelf
-  navigation, a clearly labelled text field, visible current draft, Type /
-  Keyboard, Clear, and Send actions, native device-keyboard behavior by default,
-  and an explicit popup typing screen only when configured.
+- Typed-input acceptance requires a compact single-line accessibility input rail
+  below Shelf navigation, a clearly labelled text field, visible current draft,
+  small keyboard icon, conditional Clear, and Send actions, native
+  device-keyboard behavior by default, and no large normal-layout title block,
+  `Native keyboard mode` badge, or `Type / Keyboard` card button.
 - Native typed input must not force a custom popup on focus, must not use
   `readonly`, and must support normal browser/device input, copy-paste,
   backspace, external keyboards, iPad keyboard, Windows touch keyboard, Chinese
   IME, and Bahasa Melayu text typed in EN mode.
-- Popup typed input must open intentionally from the typing column or Type /
-  Keyboard button, show a large textarea with the current draft, offer EN and
+- Popup typed input must open intentionally from the compact keyboard icon, show
+  a large textarea with the current draft, offer EN and
   中文 only, preserve the draft when closed, send from the popup, and clear/close
   on reset.
 - Typed submissions must reuse the same AI/business/safety workflow as voice
   instead of a separate product logic path.
 - Typed-input screenshot evidence must include the compact typed panel, native
   keyboard mode, and popup typing screen at the target iPad landscape viewport.
+- Shelf-map priority acceptance requires the compact typed input rail to stay
+  within a small fixed row and not make Shelf Navigation incomplete at 1024x768,
+  1366x768, or 1920x1080.
 - STT provider acceptance requires mock STT by default, explicit
   `STT_PROVIDER=openai_whisper` or `STT_PROVIDER=faster_whisper` selection for
   non-mock STT, credentials/model settings read from local environment only, no

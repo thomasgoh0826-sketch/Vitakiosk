@@ -328,14 +328,18 @@ describe("integrated kiosk panels", () => {
 
     const shelfMap = screen.getByRole("region", { name: /shelf navigation map/i });
     const typedPanel = screen.getByRole("region", { name: /typed question input/i });
+    expect(typedPanel).toHaveAttribute("data-layout", "compact-rail");
     expect(
       shelfMap.compareDocumentPosition(typedPanel) & Node.DOCUMENT_POSITION_FOLLOWING,
     ).toBeTruthy();
+    expect(screen.queryByText(/Accessible input/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/Native keyboard mode/i)).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Type / Keyboard" })).not.toBeInTheDocument();
 
     const input = screen.getByLabelText("Type your question");
+    expect(input.tagName).toBe("INPUT");
     expect(input).not.toHaveAttribute("readonly");
-    expect(screen.getByText(/Native keyboard mode/i)).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Type / Keyboard" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Open typing screen" })).toBeInTheDocument();
     fireEvent.change(input, { target: { value: "Where is Panadol?" } });
     fireEvent.click(screen.getByRole("button", { name: "Send typed question" }));
 
@@ -343,16 +347,15 @@ describe("integrated kiosk panels", () => {
     expect(startRecording).not.toHaveBeenCalled();
   });
 
-  it("keeps native mode as the default and never opens the popup from focus or the keyboard button", () => {
+  it("keeps native mode as the default and opens the popup only from the compact keyboard icon", () => {
     render(<App />);
 
     const input = screen.getByLabelText("Type your question");
     fireEvent.focus(input);
     expect(screen.queryByRole("dialog", { name: /VitaKiosk typing screen/i })).not.toBeInTheDocument();
 
-    fireEvent.click(screen.getByRole("button", { name: "Type / Keyboard" }));
-    expect(screen.queryByRole("dialog", { name: /VitaKiosk typing screen/i })).not.toBeInTheDocument();
-    expect(document.activeElement).toBe(input);
+    fireEvent.click(screen.getByRole("button", { name: "Open typing screen" }));
+    expect(screen.getByRole("dialog", { name: /VitaKiosk typing screen/i })).toBeInTheDocument();
   });
 
   it("accepts external keyboard text including Chinese and Malay in native mode", () => {
@@ -372,7 +375,7 @@ describe("integrated kiosk panels", () => {
 
     const compactInput = screen.getByLabelText("Type your question");
     fireEvent.change(compactInput, { target: { value: "Panadol ada stock 吗?" } });
-    fireEvent.click(screen.getByRole("button", { name: "Type / Keyboard" }));
+    fireEvent.click(screen.getByRole("button", { name: "Open typing screen" }));
 
     const dialog = screen.getByRole("dialog", { name: /VitaKiosk typing screen/i });
     expect(dialog).toBeInTheDocument();
@@ -396,7 +399,7 @@ describe("integrated kiosk panels", () => {
     render(<App />);
 
     const compactInput = screen.getByLabelText("Type your question");
-    fireEvent.click(screen.getByRole("button", { name: "Type / Keyboard" }));
+    fireEvent.click(screen.getByRole("button", { name: "Open typing screen" }));
     fireEvent.change(screen.getByLabelText("Typing screen draft"), {
       target: { value: "Panadol ada stock 吗?" },
     });
@@ -414,7 +417,7 @@ describe("integrated kiosk panels", () => {
 
     const compactInput = screen.getByLabelText("Type your question");
     fireEvent.change(compactInput, { target: { value: "这个 probiotic 有 promotion 吗?" } });
-    fireEvent.click(screen.getByRole("button", { name: "Type / Keyboard" }));
+    fireEvent.click(screen.getByRole("button", { name: "Open typing screen" }));
     const dialog = screen.getByRole("dialog", { name: /VitaKiosk typing screen/i });
     fireEvent.click(within(dialog).getByRole("button", { name: "Clear typed question" }));
 
@@ -429,7 +432,7 @@ describe("integrated kiosk panels", () => {
 
     const input = screen.getByLabelText("Type your question");
     fireEvent.change(input, { target: { value: "Panadol ada stock 吗?" } });
-    fireEvent.click(screen.getByRole("button", { name: "Type / Keyboard" }));
+    fireEvent.click(screen.getByRole("button", { name: "Open typing screen" }));
     expect(screen.getByRole("dialog", { name: /VitaKiosk typing screen/i })).toBeInTheDocument();
 
     fireEvent.click(screen.getByRole("button", { name: "Start" }));

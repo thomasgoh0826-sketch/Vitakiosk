@@ -28,7 +28,7 @@ function TypedInputPanel({
   const [typingScreenOpen, setTypingScreenOpen] = useState(false);
   const [keyboardLanguage, setKeyboardLanguage] =
     useState<KeyboardLanguage>(config.defaultLanguage);
-  const inputRef = useRef<HTMLTextAreaElement | null>(null);
+  const inputRef = useRef<HTMLInputElement | null>(null);
   const usesPopupKeyboard = config.mode === "popup";
 
   useEffect(() => {
@@ -60,27 +60,15 @@ function TypedInputPanel({
     if (disabled) {
       return;
     }
-    if (usesPopupKeyboard) {
-      setTypingScreenOpen(true);
-      return;
-    }
-    inputRef.current?.focus();
+    setTypingScreenOpen(true);
   };
 
   return (
-    <section className="panel typed-input-panel" aria-label="Typed question input">
-      <div className="typed-input-header">
-        <div>
-          <span className="typed-input-kicker">Accessible input</span>
-          <label className="typed-input-label" htmlFor="typed-question">
-            {INPUT_LABEL}
-          </label>
-        </div>
-        <span className="typed-input-mode">
-          {usesPopupKeyboard ? "Popup typing mode" : "Native keyboard mode"}
-        </span>
-      </div>
-
+    <section
+      className="panel typed-input-panel"
+      aria-label="Typed question input"
+      data-layout="compact-rail"
+    >
       <form
         className="typed-input-form"
         onSubmit={(event) => {
@@ -88,12 +76,15 @@ function TypedInputPanel({
           submitQuestion();
         }}
       >
-        <textarea
+        <label className="typed-input-label" htmlFor="typed-question">
+          {INPUT_LABEL}
+        </label>
+        <input
           ref={inputRef}
           id="typed-question"
           className="typed-question-input"
+          type="text"
           value={value}
-          rows={2}
           disabled={disabled}
           placeholder={INPUT_PLACEHOLDER}
           onChange={(event) => onChange(event.target.value)}
@@ -107,21 +98,24 @@ function TypedInputPanel({
           <button
             type="button"
             className="typed-keyboard-button"
-            aria-label="Type / Keyboard"
+            aria-label="Open typing screen"
+            title="Open typing screen"
             onClick={openTypingScreenOrFocus}
             disabled={disabled}
           >
-            Type / Keyboard
+            <span aria-hidden="true">⌨</span>
           </button>
-          <button
-            type="button"
-            className="typed-clear-button"
-            aria-label="Clear typed question"
-            onClick={onClear}
-            disabled={!value || disabled}
-          >
-            Clear
-          </button>
+          {value ? (
+            <button
+              type="button"
+              className="typed-clear-button"
+              aria-label="Clear typed question"
+              onClick={onClear}
+              disabled={disabled}
+            >
+              Clear
+            </button>
+          ) : null}
           <button
             type="submit"
             className="typed-send-button"
@@ -133,12 +127,7 @@ function TypedInputPanel({
         </div>
       </form>
 
-      <p className="typed-input-helper">
-        Native keyboard is recommended for iPad, Windows touch, external keyboards,
-        copy-paste, pinyin IME, and Bahasa Melayu text.
-      </p>
-
-      {usesPopupKeyboard && typingScreenOpen ? (
+      {typingScreenOpen ? (
         <VirtualKeyboard
           value={value}
           language={keyboardLanguage}
