@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import httpx
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -39,6 +40,32 @@ def health() -> dict[str, object]:
         "service": "vitakiosk-api",
         "provider_mode": settings.provider_mode,
         "provider_summary": settings.provider_summary,
+    }
+
+
+def check_ollama_reachable(active_settings: Settings) -> bool:
+    if active_settings.ai_provider != "ollama":
+        return False
+
+    base_url = active_settings.ollama_base_url.rstrip("/")
+    timeout_seconds = min(max(active_settings.ollama_timeout_seconds, 1), 3)
+    try:
+        response = httpx.get(f"{base_url}/api/tags", timeout=timeout_seconds)
+        return response.status_code < 500
+    except httpx.HTTPError:
+        return False
+
+
+@app.get("/api/runtime/status")
+def runtime_status() -> dict[str, object]:
+    return {
+        "stt_provider": settings.stt_provider,
+        "ai_provider": settings.ai_provider,
+        "tts_provider": settings.tts_provider,
+        "vitaflow_provider": settings.vitaflow_provider,
+        "vision_provider": settings.vision_provider,
+        "ollama_reachable": check_ollama_reachable(settings),
+        "model": settings.ollama_model,
     }
 
 

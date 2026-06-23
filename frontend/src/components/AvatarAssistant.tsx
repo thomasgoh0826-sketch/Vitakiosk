@@ -1,4 +1,4 @@
-import { Suspense, lazy } from "react";
+import { Suspense, lazy, useEffect } from "react";
 
 import type { AvatarState } from "../types";
 import {
@@ -38,6 +38,25 @@ function AvatarAssistant({
   const rendererKind = renderer ?? getConfiguredAvatarRenderer();
   const vrmModelKey = getDefaultVrmAvatarModelKey();
   const showRendererDebug = import.meta.env.DEV;
+
+  useEffect(() => {
+    if (
+      import.meta.env.DEV
+      && !renderer
+      && rendererKind === "lottie"
+      && !import.meta.env.VITE_AVATAR_RENDERER
+    ) {
+      console.warn(
+        "VITE_AVATAR_RENDERER is not set to vrm; using fallback renderer",
+        {
+          configuredRenderer: "missing",
+          fallbackRenderer: "lottie",
+          expectedLocalDemoValue: "VITE_AVATAR_RENDERER=vrm",
+        },
+      );
+    }
+  }, [renderer, rendererKind]);
+
   const avatarRenderer = (() => {
     if (rendererKind === "vrm") {
       return (

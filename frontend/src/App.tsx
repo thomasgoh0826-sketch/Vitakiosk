@@ -16,7 +16,7 @@ import useKioskSocket from "./hooks/useKioskSocket";
 import useVoiceInteraction from "./hooks/useVoiceInteraction";
 import { getTypedInputConfig } from "./inputConfig";
 import { MOCK_LEAFLETS } from "./mockLeaflets";
-import type { AvatarState, HealthResponse, Leaflet, Product, UiAction } from "./types";
+import type { AvatarState, Leaflet, Product, RuntimeStatusResponse, UiAction } from "./types";
 import { isApprovedUiAction } from "./uiActions";
 
 
@@ -90,7 +90,8 @@ function App() {
   const [modalLeafletId, setModalLeafletId] = useState<string | null>(null);
   const [typedQuestion, setTypedQuestion] = useState("");
   const [typedInputResetToken, setTypedInputResetToken] = useState(0);
-  const [runtimeHealth, setRuntimeHealth] = useState<HealthResponse | null>(null);
+  const [runtimeStatus, setRuntimeStatus] = useState<RuntimeStatusResponse | null>(null);
+  const [providerStatusUnavailable, setProviderStatusUnavailable] = useState(false);
   const [pharmacistConfirmationRequested, setPharmacistConfirmationRequested] =
     useState(false);
   const typedInputConfig = getTypedInputConfig();
@@ -125,18 +126,29 @@ function App() {
 
     let active = true;
 
+    if (!api.runtimeStatus) {
+      setRuntimeStatus(null);
+      setProviderStatusUnavailable(true);
+      console.warn("VitaKiosk provider status unavailable", {
+        reason: "runtime-status-client-missing",
+      });
+      return undefined;
+    }
+
     void api
-      .health()
-      .then((health) => {
+      .runtimeStatus()
+      .then((status) => {
         if (active) {
-          setRuntimeHealth(health);
+          setRuntimeStatus(status);
+          setProviderStatusUnavailable(false);
         }
       })
       .catch((error: unknown) => {
         if (active) {
-          setRuntimeHealth(null);
+          setRuntimeStatus(null);
+          setProviderStatusUnavailable(true);
         }
-        console.warn("VitaKiosk runtime diagnostics unavailable", { error });
+        console.warn("VitaKiosk provider status unavailable", { error });
       });
 
     return () => {
@@ -389,7 +401,10 @@ function App() {
         onSelect={setModalLeafletId}
       />
 
-      <RuntimeDiagnostics health={runtimeHealth} />
+      <RuntimeDiagnostics
+        runtimeStatus={runtimeStatus}
+        providerStatusUnavailable={providerStatusUnavailable}
+      />
 
       <footer className="kiosk-footer">
         <span><i className="status-dot" aria-hidden="true" /> {connectionCopy}</span>

@@ -8,12 +8,14 @@ const hookMocks = vi.hoisted(() => ({
   voice: vi.fn(),
   escalate: vi.fn(),
   health: vi.fn(),
+  runtimeStatus: vi.fn(),
 }));
 
 vi.mock("./api/client", () => ({
   api: {
     escalatePharmacist: hookMocks.escalate,
     health: hookMocks.health,
+    runtimeStatus: hookMocks.runtimeStatus,
   },
 }));
 vi.mock("./hooks/useKioskSocket", () => ({ default: hookMocks.socket }));
@@ -33,6 +35,7 @@ describe("integrated kiosk panels", () => {
     resetVoice.mockReset();
     sendState.mockReset();
     hookMocks.health.mockReset();
+    hookMocks.runtimeStatus.mockReset();
     vi.unstubAllEnvs();
     hookMocks.health.mockResolvedValue({
       status: "ok",
@@ -45,6 +48,15 @@ describe("integrated kiosk panels", () => {
         vitaflow: "mock",
         vision: "mock",
       },
+    });
+    hookMocks.runtimeStatus.mockResolvedValue({
+      stt_provider: "mock",
+      ai_provider: "mock",
+      tts_provider: "mock",
+      vitaflow_provider: "mock",
+      vision_provider: "mock",
+      ollama_reachable: false,
+      model: "qwen2.5:7b",
     });
     hookMocks.escalate.mockReset();
     hookMocks.escalate.mockResolvedValue({
@@ -140,17 +152,14 @@ describe("integrated kiosk panels", () => {
   it("shows local demo provider and avatar diagnostics in dev mode without coupling backend and frontend config", async () => {
     vi.stubEnv("VITE_AVATAR_RENDERER", "vrm");
     vi.stubEnv("VITE_VRM_MODEL", "vita-new");
-    hookMocks.health.mockResolvedValueOnce({
-      status: "ok",
-      service: "vitakiosk-api",
-      provider_mode: "mock",
-      provider_summary: {
-        stt: "faster_whisper",
-        tts: "mock",
-        ai: "ollama",
-        vitaflow: "mock",
-        vision: "mock",
-      },
+    hookMocks.runtimeStatus.mockResolvedValueOnce({
+      stt_provider: "faster_whisper",
+      tts_provider: "mock",
+      ai_provider: "ollama",
+      vitaflow_provider: "mock",
+      vision_provider: "mock",
+      ollama_reachable: true,
+      model: "qwen2.5:7b",
     });
 
     render(<App />);
@@ -163,6 +172,17 @@ describe("integrated kiosk panels", () => {
     expect(
       await screen.findByLabelText(/vrm (character|fallback) ai avatar: ready/i),
     ).toHaveAttribute("data-avatar-model-key", "vita-new");
+  });
+
+  it("shows controlled provider status unavailable copy instead of UNKNOWN when runtime status cannot be fetched", async () => {
+    hookMocks.runtimeStatus.mockRejectedValueOnce(new Error("offline"));
+
+    render(<App />);
+
+    const diagnostics = await screen.findByLabelText("Local demo runtime diagnostics");
+    expect(diagnostics).toHaveTextContent("Provider status unavailable");
+    expect(diagnostics).toHaveTextContent("Avatar: lottie");
+    expect(diagnostics).not.toHaveTextContent(/unknown/i);
   });
 
   it("shows cinematic AI subtitle while hiding the customer transcript from the main UI", () => {

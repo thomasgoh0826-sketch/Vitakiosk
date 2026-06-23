@@ -40,6 +40,21 @@ describe("frontend dev server config", () => {
     expect(helperSource).toContain("Get-NetTCPConnection -LocalPort 5175 -State Listen");
   });
 
+  it("documents a non-mutating Windows local AI demo startup helper", () => {
+    const helperSource = readFileSync(
+      resolve(frontendRoot, "..", "scripts", "start-local-ai-demo.ps1"),
+      "utf8",
+    );
+
+    expect(helperSource).toContain("backend.app.main:app");
+    expect(helperSource).toContain("--port 8001");
+    expect(helperSource).toContain("npm.cmd run dev:vrm --prefix frontend");
+    expect(helperSource).toContain("root .env");
+    expect(helperSource).toContain("frontend/.env.local");
+    expect(helperSource).not.toContain("Set-Content");
+    expect(helperSource).not.toContain("Add-Content");
+  });
+
   it("documents the same VRM local demo values in the frontend env example", () => {
     const envExample = readFileSync(resolve(frontendRoot, ".env.local.example"), "utf8");
 

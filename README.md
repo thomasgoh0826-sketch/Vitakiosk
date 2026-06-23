@@ -143,6 +143,14 @@ Frontend URL: [http://127.0.0.1:5175](http://127.0.0.1:5175).
 
 The dev-only runtime badge should show `AI: ollama`, `STT: faster_whisper`, `Avatar: vrm`, and `VRM: vita-new`. Ollama and VRM are independent configs: if Ollama is offline, the backend must fall back safely without hiding the VRM avatar; if VRM fails, the frontend falls back to the holographic assistant and logs the reason without changing backend provider mode.
 
+You can also start both local demo processes from one PowerShell prompt:
+
+```powershell
+.\scripts\start-local-ai-demo.ps1
+```
+
+The helper checks fixed ports 8001 and 5175, reminds you to create root `.env` and `frontend/.env.local`, starts the backend and frontend in separate terminals, and does not modify or print secrets.
+
 ## Install
 
 Run all commands from the repository root.
@@ -211,11 +219,20 @@ npm.cmd run dev:vrm --prefix frontend
 
 This helper sets `VITE_AVATAR_RENDERER=vrm`, `VITE_VRM_MODEL=vita-new`, `VITE_API_BASE_URL=http://127.0.0.1:8001`, and `VITE_WS_BASE_URL=ws://127.0.0.1:8001` before Vite starts.
 
+The backend also exposes safe runtime diagnostics for the local demo:
+
+```powershell
+Invoke-RestMethod http://127.0.0.1:8001/api/runtime/status
+```
+
+This endpoint returns provider names, Ollama reachability, and the selected Ollama model only. It must not expose API keys, `.env` values, model cache paths, database URLs, customer data, logs, or private VitaFlow URLs.
+
 ## API surface
 
 | Method | Path | Mock behavior |
 |---|---|---|
 | GET | `/health` | Reports service, provider mode, and provider summary for dev diagnostics |
+| GET | `/api/runtime/status` | Reports safe local provider diagnostics without secrets or business data |
 | POST | `/api/voice/transcribe` | Returns deterministic mock transcript plus provider/language/confidence/correction/clarification metadata; optional OpenAI Whisper or local faster-whisper STT only when explicitly enabled locally |
 | POST | `/api/ai/respond` | Runs safety and mock intent workflow; optional local Ollama wording only when `AI_PROVIDER=ollama` is explicitly selected |
 | POST | `/api/voice/tts` | Returns a generated WAV tone |

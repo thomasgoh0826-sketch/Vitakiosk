@@ -113,6 +113,16 @@ export interface HealthResponse {
   provider_summary: ProviderSummary;
 }
 
+export interface RuntimeStatusResponse {
+  stt_provider: string;
+  ai_provider: string;
+  tts_provider: string;
+  vitaflow_provider: string;
+  vision_provider: string;
+  ollama_reachable: boolean;
+  model: string;
+}
+
 export type TranscriptionLanguage =
   | "english"
   | "chinese"

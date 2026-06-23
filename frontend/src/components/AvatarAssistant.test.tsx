@@ -114,6 +114,8 @@ describe("AvatarAssistant", () => {
   });
 
   it("shows the default holographic renderer when VITE_AVATAR_RENDERER is missing", () => {
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => undefined);
+
     render(<AvatarAssistant state="idle" audioActivity={0} connected />);
 
     expect(screen.getByLabelText(/lottie holographic ai avatar/i)).toHaveAttribute(
@@ -121,6 +123,13 @@ describe("AvatarAssistant", () => {
       "lottie",
     );
     expect(screen.getByText("Renderer: lottie")).toBeInTheDocument();
+    expect(warn).toHaveBeenCalledWith(
+      "VITE_AVATAR_RENDERER is not set to vrm; using fallback renderer",
+      expect.objectContaining({
+        configuredRenderer: "missing",
+        fallbackRenderer: "lottie",
+      }),
+    );
   });
 
   it("announces pharmacist escalation as an alert", () => {

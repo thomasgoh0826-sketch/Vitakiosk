@@ -54,6 +54,12 @@ Check provider diagnostics:
 Invoke-RestMethod http://127.0.0.1:8001/health
 ```
 
+Check the safe local runtime status endpoint:
+
+```powershell
+Invoke-RestMethod http://127.0.0.1:8001/api/runtime/status
+```
+
 Expected local demo provider summary:
 
 ```json
@@ -67,6 +73,22 @@ Expected local demo provider summary:
   }
 }
 ```
+
+Expected local runtime status includes only safe provider fields:
+
+```json
+{
+  "stt_provider": "faster_whisper",
+  "ai_provider": "ollama",
+  "tts_provider": "mock",
+  "vitaflow_provider": "mock",
+  "vision_provider": "mock",
+  "ollama_reachable": true,
+  "model": "qwen2.5:7b"
+}
+```
+
+The runtime status endpoint must not expose API keys, `.env` values, model cache paths, database URLs, customer data, logs, or private VitaFlow URLs.
 
 If Ollama is offline, the backend must fail safely or fall back to deterministic mock wording. Product, stock, price, promotion, campaign, and shelf facts still come only from VitaFlow/mock data.
 
@@ -101,6 +123,14 @@ Or use the dedicated VRM helper, which sets the local frontend values before Vit
 npm.cmd run dev:vrm --prefix frontend
 ```
 
+To start both local demo terminals from one PowerShell prompt, use:
+
+```powershell
+.\scripts\start-local-ai-demo.ps1
+```
+
+This helper checks that root `.env` exists, reminds you about `frontend/.env.local`, checks fixed ports 8001 and 5175, starts the backend and frontend in separate terminals, and does not modify or print secret values.
+
 Open [http://127.0.0.1:5175](http://127.0.0.1:5175).
 
 Vite reads `frontend/.env.local` only at startup. If the browser still shows the holographic assistant after editing `frontend/.env.local`, stop the existing 5175 frontend process and restart it with one of the commands above.
@@ -125,6 +155,7 @@ The assistant bay also shows the current renderer/model in a tiny dev-only badge
 
 If the selected VRM cannot render, the kiosk keeps the holographic fallback and writes a console warning with a clear reason:
 
+- `VITE_AVATAR_RENDERER is not set to vrm; using fallback renderer`
 - `missing-vrm-model-url`
 - `vrm-load-failed`
 - `webgl-unavailable`

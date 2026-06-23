@@ -1,4 +1,4 @@
-import type { HealthResponse } from "../types";
+import type { RuntimeStatusResponse } from "../types";
 import {
   getConfiguredAvatarRenderer,
   type AvatarRendererKind,
@@ -7,13 +7,15 @@ import { getDefaultVrmAvatarModelKey } from "./avatar/AvatarRuntimeConfig";
 
 
 interface RuntimeDiagnosticsProps {
-  health: HealthResponse | null;
+  runtimeStatus: RuntimeStatusResponse | null;
+  providerStatusUnavailable?: boolean;
   avatarRenderer?: AvatarRendererKind;
   vrmModel?: string;
 }
 
 function RuntimeDiagnostics({
-  health,
+  runtimeStatus,
+  providerStatusUnavailable = false,
   avatarRenderer,
   vrmModel,
 }: RuntimeDiagnosticsProps) {
@@ -23,15 +25,20 @@ function RuntimeDiagnostics({
 
   const renderer = avatarRenderer ?? getConfiguredAvatarRenderer();
   const selectedVrmModel = vrmModel ?? getDefaultVrmAvatarModelKey();
-  const providers = health?.provider_summary;
 
   return (
     <aside
       className="runtime-diagnostics"
       aria-label="Local demo runtime diagnostics"
     >
-      <span>AI: {providers?.ai ?? "unknown"}</span>
-      <span>STT: {providers?.stt ?? "unknown"}</span>
+      {providerStatusUnavailable ? (
+        <span>Provider status unavailable</span>
+      ) : (
+        <>
+          <span>AI: {runtimeStatus?.ai_provider ?? "loading"}</span>
+          <span>STT: {runtimeStatus?.stt_provider ?? "loading"}</span>
+        </>
+      )}
       <span>Avatar: {renderer}</span>
       {renderer === "vrm" ? <span>VRM: {selectedVrmModel}</span> : null}
     </aside>

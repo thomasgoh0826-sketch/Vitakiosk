@@ -6,6 +6,7 @@ import type {
   Poster,
   ProductSearchResponse,
   Promotion,
+  RuntimeStatusResponse,
   TranscriptionResponse,
 } from "../types";
 
@@ -24,6 +25,7 @@ export class ApiError extends Error {
 
 export interface VitaKioskApiClient {
   health?(): Promise<HealthResponse>;
+  runtimeStatus?(): Promise<RuntimeStatusResponse>;
   transcribe(audio: Blob, sessionId: string): Promise<TranscriptionResponse>;
   respond(sessionId: string, text: string, branchId: string): Promise<AIResponse>;
   synthesize(sessionId: string, text: string): Promise<Blob>;
@@ -56,6 +58,10 @@ export class VitaKioskApi implements VitaKioskApiClient {
 
   health(): Promise<HealthResponse> {
     return this.json("/health");
+  }
+
+  runtimeStatus(): Promise<RuntimeStatusResponse> {
+    return this.json("/api/runtime/status");
   }
 
   async transcribe(audio: Blob, sessionId: string): Promise<TranscriptionResponse> {
