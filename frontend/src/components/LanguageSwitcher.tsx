@@ -8,7 +8,6 @@ interface LanguageOption {
 
 const LANGUAGE_OPTIONS: LanguageOption[] = [
   { value: "en", label: "EN", ariaLabel: "English keyboard" },
-  { value: "zh", label: "中文", ariaLabel: "Chinese keyboard" },
 ];
 
 interface LanguageSwitcherProps {

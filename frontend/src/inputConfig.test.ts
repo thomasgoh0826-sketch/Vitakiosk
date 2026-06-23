@@ -11,9 +11,9 @@ describe("typed input config", () => {
     expect(getTypedInputConfig({ VITE_TEXT_INPUT_MODE: "popup" }).mode).toBe("popup");
   });
 
-  it("supports English and Chinese input preference only", () => {
+  it("keeps the virtual keyboard backup in English QWERTY mode only", () => {
     expect(getTypedInputConfig({ VITE_KEYBOARD_DEFAULT_LANGUAGE: "zh" }).defaultLanguage).toBe(
-      "zh",
+      "en",
     );
     expect(getTypedInputConfig({ VITE_KEYBOARD_DEFAULT_LANGUAGE: "bm" }).defaultLanguage).toBe(
       "en",

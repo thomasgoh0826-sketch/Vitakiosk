@@ -4232,27 +4232,6 @@ body {
   margin-top: 2px;
 }
 
-.device-ime-panel {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: clamp(10px, 1.1dvw, 18px);
-  min-height: clamp(86px, 13dvh, 124px);
-  padding: clamp(12px, 1.25dvw, 18px);
-  border: 1px solid rgba(155, 108, 255, 0.28);
-  border-radius: clamp(14px, 1.2dvw, 20px);
-  background:
-    radial-gradient(circle at 16% 0%, rgba(155, 108, 255, 0.18), transparent 38%),
-    rgba(3, 10, 24, 0.56);
-}
-
-.device-ime-panel p {
-  margin: 0;
-  color: var(--text-primary);
-  font-size: clamp(0.78rem, 0.92dvw, 1.05rem);
-  line-height: 1.45;
-}
-
 .keyboard-action-row {
   justify-content: flex-end;
   gap: 8px;
@@ -4378,11 +4357,6 @@ body {
     min-height: min(560px, calc(100dvh - 20px));
     max-height: calc(100dvh - 20px);
     overflow-y: auto;
-  }
-
-  .device-ime-panel {
-    align-items: stretch;
-    flex-direction: column;
   }
 
   .keyboard-row {

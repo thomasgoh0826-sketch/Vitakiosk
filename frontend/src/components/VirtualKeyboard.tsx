@@ -42,12 +42,6 @@ function VirtualKeyboard({
     });
   };
 
-  useEffect(() => {
-    if (language === "zh") {
-      focusTextarea();
-    }
-  }, [language]);
-
   const insertText = (text: string) => {
     if (disabled) {
       return;
@@ -166,69 +160,45 @@ function VirtualKeyboard({
           rows={4}
           disabled={disabled}
           autoFocus
-          placeholder="Type your question here. EN mode has an on-screen QWERTY keyboard; Chinese input uses your device pinyin IME or external keyboard."
+          placeholder="Type your question here. Use the EN on-screen keyboard, device IME, or external keyboard."
           onChange={(event) => onChange(event.target.value)}
         />
 
         <div className="typing-modal-guidance" aria-live="polite">
-          {language === "zh" ? (
-            <p>
-              Use device Chinese keyboard / pinyin IME for Chinese input. This kiosk
-              keyboard does not include custom word or product phrase shortcuts.
-            </p>
-          ) : (
-            <p>EN mode supports English and Bahasa Melayu typing with QWERTY keys or your device keyboard.</p>
-          )}
+          <p>
+            EN mode supports English and Bahasa Melayu typing with QWERTY keys.
+            For Chinese input, use your device IME, pinyin keyboard, or external keyboard.
+          </p>
         </div>
 
-        {language === "zh" ? (
-          <div className="device-ime-panel" role="region" aria-label="Chinese device keyboard guidance">
-            <p>
-              Use device Chinese keyboard / pinyin IME, Windows touch keyboard, iPad
-              keyboard, or an external keyboard for Chinese typing.
-            </p>
+        <div
+          className="virtual-keyboard-layout"
+          role="group"
+          aria-label="English virtual keyboard"
+          data-keyboard-mode={language}
+        >
+          {renderLetterRows()}
+          <div className="keyboard-row keyboard-command-row">
+            <button
+              type="button"
+              className="keyboard-key keyboard-key-wide"
+              aria-label="Space"
+              disabled={disabled}
+              onClick={handleSpace}
+            >
+              Space
+            </button>
             <button
               type="button"
               className="keyboard-key keyboard-key-command"
-              aria-label="Use device Chinese keyboard"
-              disabled={disabled}
-              onClick={focusTextarea}
+              aria-label="Backspace"
+              disabled={disabled || !value}
+              onClick={backspace}
             >
-              Use device keyboard
+              Backspace
             </button>
           </div>
-        ) : null}
-
-        {language === "en" ? (
-          <div
-            className="virtual-keyboard-layout"
-            role="group"
-            aria-label="English virtual keyboard"
-            data-keyboard-mode={language}
-          >
-            {renderLetterRows()}
-            <div className="keyboard-row keyboard-command-row">
-              <button
-                type="button"
-                className="keyboard-key keyboard-key-wide"
-                aria-label="Space"
-                disabled={disabled}
-                onClick={handleSpace}
-              >
-                Space
-              </button>
-              <button
-                type="button"
-                className="keyboard-key keyboard-key-command"
-                aria-label="Backspace"
-                disabled={disabled || !value}
-                onClick={backspace}
-              >
-                Backspace
-              </button>
-            </div>
-          </div>
-        ) : null}
+        </div>
 
         <div className="keyboard-action-row">
           <button

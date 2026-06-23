@@ -40,9 +40,10 @@ Typed path: customer text input -> same AI response endpoint and safety/product 
 - Submitting typed text calls the same high-level AI/business/safety workflow used after voice transcription, including red-flag escalation, product lookup, promotion matching, unknown-product purchasing queries, subtitles, and TTS/poster updates.
 - Typed input must not bypass safety guardrails, invent product facts, or show product/promotion/shelf data outside VitaFlow/mock adapter results.
 - Reset/New Customer clears typed input and closes any custom keyboard.
-- `VITE_ENABLE_TYPED_INPUT=true`, `VITE_TEXT_INPUT_MODE=native|popup`, and `VITE_KEYBOARD_DEFAULT_LANGUAGE=en|zh` control typed input availability and keyboard strategy.
+- `VITE_ENABLE_TYPED_INPUT=true` and `VITE_TEXT_INPUT_MODE=native|popup` control typed input availability and keyboard strategy; the built-in virtual keyboard backup is EN QWERTY only.
 - Native mode is the default and must allow normal browser/device text behavior: focus, copy-paste, backspace, external keyboards, iPad keyboard, Windows touch keyboard, Chinese IME, and Bahasa Melayu text typed in EN mode.
-- Popup mode is explicit and opens a focused typing screen with a large textarea, EN/中文 switch, Clear, Close/Done, and Send; closing preserves the draft while Send submits through the same safety-first workflow as voice.
+- Popup mode is explicit and opens a focused typing screen with a large textarea, EN QWERTY backup keyboard, Clear, Close/Done, and Send; closing preserves the draft while Send submits through the same safety-first workflow as voice.
+- Chinese typing uses the device native Chinese IME / pinyin keyboard or external keyboard in the textarea; VitaKiosk does not ship a custom Chinese virtual keyboard or pinyin candidate dictionary.
 
 ## Test evidence
 

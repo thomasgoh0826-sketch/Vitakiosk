@@ -52,7 +52,7 @@ describe("typed input layout CSS contract", () => {
     expect(normalizedStyles).toContain("minmax(192px, 0.9fr)");
     expect(normalizedStyles).toContain(".virtual-keyboard-layout {");
     expect(normalizedStyles).toContain("align-content: end");
-    expect(normalizedStyles).toContain(".device-ime-panel {");
+    expect(normalizedStyles).not.toContain(".device-ime-panel {");
     expect(normalizedStyles).not.toContain(".pinyin-candidates {");
     expect(normalizedStyles).toContain(".keyboard-key-wide");
   });
@@ -62,6 +62,9 @@ describe("typed input layout CSS contract", () => {
     expect(normalizedVirtualKeyboardSource).not.toContain("DEFAULT_ZH_CANDIDATES");
     expect(normalizedVirtualKeyboardSource).not.toContain("Insert candidate");
     expect(normalizedVirtualKeyboardSource).not.toContain("Demo Chinese candidates");
-    expect(normalizedVirtualKeyboardSource).toContain("Use device Chinese keyboard / pinyin IME");
+    expect(normalizedVirtualKeyboardSource).not.toContain("Chinese keyboard");
+    expect(normalizedVirtualKeyboardSource).not.toContain("Chinese device keyboard guidance");
+    expect(normalizedVirtualKeyboardSource).not.toContain("Chinese pinyin virtual keyboard");
+    expect(normalizedVirtualKeyboardSource).not.toContain("Use device Chinese keyboard");
   });
 });
