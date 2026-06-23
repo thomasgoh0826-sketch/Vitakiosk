@@ -130,7 +130,7 @@ Use `docs/local-demo-env.md` when you want the local backend to run faster-whisp
 python -m uvicorn backend.app.main:app --reload --host 127.0.0.1 --port 8001
 
 # Frontend
-npm.cmd run dev --prefix frontend -- --host 127.0.0.1 --port 5175
+npm.cmd run dev --prefix frontend -- --host 127.0.0.1 --port 5175 --strictPort
 ```
 
 Frontend URL: [http://127.0.0.1:5175](http://127.0.0.1:5175).
@@ -162,12 +162,19 @@ In a second terminal:
 ```powershell
 $env:VITE_API_BASE_URL="http://127.0.0.1:8000"
 $env:VITE_WS_BASE_URL="ws://127.0.0.1:8000"
-npm.cmd run dev --prefix frontend -- --host 127.0.0.1 --port 5175
+npm.cmd run dev --prefix frontend -- --host 127.0.0.1 --port 5175 --strictPort
 ```
 
 Open [http://127.0.0.1:5175](http://127.0.0.1:5175). Use an iPad landscape viewport such as 1024×768 for kiosk review. Browser microphone permission is required for Tap to Speak. The main button starts recording; sustained silence stops recording automatically, and the smaller `Start` control resets the kiosk for a fresh customer session without refreshing.
 
 The typed input panel below Shelf navigation is available by default for customers who cannot or prefer not to speak. The default is `VITE_TEXT_INPUT_MODE=native`, which relies on the iPad, Windows touch keyboard, external keyboard, copy-paste, and the operating system IME for pinyin/Chinese input. Only EN and 中文 input preferences are shown; Bahasa Melayu is typed in EN mode. If a deployment needs a focused kiosk typing screen, opt in with `VITE_TEXT_INPUT_MODE=popup`; the popup preserves the draft when closed and still uses normal native text input rather than fake product/promotion shortcuts.
+
+The Vite dev server is pinned to `127.0.0.1:5175` with strict port mode. If port 5175 is occupied, Vite fails clearly instead of silently switching to 5176, 5177, or 5178. Find the old dev server and close it before restarting:
+
+```powershell
+Get-NetTCPConnection -LocalPort 5175 -State Listen
+Get-NetTCPConnection -LocalPort 5175 -State Listen | Select-Object LocalAddress,LocalPort,OwningProcess
+```
 
 ### Local VRM avatar demo
 

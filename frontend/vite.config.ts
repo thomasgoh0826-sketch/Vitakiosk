@@ -8,6 +8,11 @@ export default defineConfig({
     chunkSizeWarningLimit: 950,
   },
   plugins: [react()],
+  server: {
+    host: "127.0.0.1",
+    port: 5175,
+    strictPort: true,
+  },
   test: {
     environment: "jsdom",
     setupFiles: "./src/test/setup.ts",

@@ -27,6 +27,8 @@ The repository includes a tiny fictional VitaKiosk humanoid GLB placeholder so t
 
 ## Renderer selection
 
+The frontend dev server is fixed to `http://127.0.0.1:5175` through the package script and Vite config. If 5175 is already occupied, Vite fails instead of switching ports; close the old dev server before restarting.
+
 Lottie remains the default:
 
 ```powershell
@@ -156,7 +158,7 @@ The current renderers load GLB and VRM assets through the local Vite asset pipel
    $env:VITE_VRM_MODEL='vita-new'
    $env:VITE_API_BASE_URL='http://127.0.0.1:8000'
    $env:VITE_WS_BASE_URL='ws://127.0.0.1:8000'
-   npm.cmd run dev --prefix frontend -- --host 127.0.0.1 --port 5175
+   npm.cmd run dev --prefix frontend -- --host 127.0.0.1 --port 5175 --strictPort
    ```
 
 5. Verify the runtime DOM reports `data-avatar-renderer="vrm"` and `data-avatar-model-key="vita-new"`.

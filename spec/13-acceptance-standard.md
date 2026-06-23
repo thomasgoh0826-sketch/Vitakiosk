@@ -84,6 +84,10 @@ A feature is accepted only when:
   `http://127.0.0.1:5175`, `http://localhost:5175`,
   `http://127.0.0.1:5173`, and `http://localhost:5173` without wildcard
   origins.
+- Local frontend dev server acceptance requires Vite to bind
+  `127.0.0.1:5175` with `strictPort: true`; if the port is occupied, the
+  command must fail clearly instead of switching to 5176, 5177, 5178, or any
+  other port.
 - Pharmacist escalation acceptance requires a visible confirmation with the
   escalation ID when available, a `Start New Customer` / reset action, no browser
   refresh requirement, an idle ready state after reset, and proof that the

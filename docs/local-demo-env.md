@@ -92,10 +92,17 @@ Use Vite-exposed variables. `VITE_AVATAR_RENDERER=vrm` selects the browser VRM r
 Start the frontend:
 
 ```powershell
-npm.cmd run dev --prefix frontend -- --host 127.0.0.1 --port 5175
+npm.cmd run dev --prefix frontend -- --host 127.0.0.1 --port 5175 --strictPort
 ```
 
 Open [http://127.0.0.1:5175](http://127.0.0.1:5175).
+
+Port 5175 is fixed. If it is occupied, Vite must fail instead of switching to a higher port. Check the existing listener and close the old dev server before restarting:
+
+```powershell
+Get-NetTCPConnection -LocalPort 5175 -State Listen
+Get-NetTCPConnection -LocalPort 5175 -State Listen | Select-Object LocalAddress,LocalPort,OwningProcess
+```
 
 In dev mode, the kiosk shows a small local diagnostics badge:
 
