@@ -87,13 +87,18 @@ class FakeAudioContext {
   }
 }
 
-function buildApi(redFlag = false, unclear = false) {
+function buildApi(redFlag = false, unclear = false, correctedTranscript?: string) {
   return {
     transcribe: vi.fn().mockResolvedValue({
       transcript: unclear ? "" : redFlag ? "I cannot breathe" : "price of relief balm",
       provider: "mock_stt",
       language: unclear ? "unknown" : "english",
+      confidence: unclear ? 0.2 : 1,
       clarification_needed: unclear,
+      corrected_transcript: correctedTranscript
+        ?? (unclear ? "" : redFlag ? "I cannot breathe" : "price of relief balm"),
+      detected_terms: [],
+      possible_product_matches: [],
     }),
     respond: vi.fn().mockResolvedValue(
       redFlag
@@ -307,6 +312,29 @@ describe("useVoiceInteraction", () => {
     expect(api.respond).not.toHaveBeenCalled();
     expect(api.synthesize).not.toHaveBeenCalled();
     expect(sendState).toHaveBeenCalledWith("idle");
+  });
+
+  it("uses corrected transcript for the safety and AI response workflow", async () => {
+    const api = buildApi(false, false, "price of Panadol");
+    const { result } = renderHook(() =>
+      useVoiceInteraction({
+        sessionId: "session-corrected",
+        branchId: "SG-001",
+        api,
+        serverState: "idle",
+        sendState: vi.fn(),
+      }),
+    );
+
+    await act(async () => result.current.startRecording());
+    await act(async () => result.current.stopRecording());
+
+    expect(result.current.transcript).toBe("price of relief balm");
+    expect(api.respond).toHaveBeenCalledWith(
+      "session-corrected",
+      "price of Panadol",
+      "SG-001",
+    );
   });
 
   it("resets pharmacist escalation state for a new customer without deleting the ticket", async () => {

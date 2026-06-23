@@ -4,7 +4,7 @@ import os
 from dataclasses import dataclass
 
 
-ALLOWED_STT_PROVIDERS = frozenset({"mock", "openai_whisper"})
+ALLOWED_STT_PROVIDERS = frozenset({"mock", "openai_whisper", "faster_whisper"})
 ALLOWED_TTS_PROVIDERS = frozenset({"mock", "elevenlabs"})
 ALLOWED_AI_PROVIDERS = frozenset({"mock", "openai", "ollama"})
 ALLOWED_VITAFLOW_PROVIDERS = frozenset({"mock", "readonly_api"})
@@ -17,6 +17,14 @@ def _env_choice(name: str, default: str) -> str:
 
 def _env_text(name: str, default: str = "") -> str:
     return os.getenv(name, default).strip()
+
+
+def _env_float(name: str, default: float) -> float:
+    raw_value = os.getenv(name, str(default)).strip()
+    try:
+        return float(raw_value)
+    except ValueError as exc:
+        raise RuntimeError(f"{name} must be a number") from exc
 
 
 def _validate_choice(name: str, value: str, allowed: frozenset[str]) -> None:
@@ -34,6 +42,12 @@ class Settings:
     vitaflow_provider: str
     vision_provider: str
     openai_api_key: str
+    faster_whisper_model_size: str
+    faster_whisper_device: str
+    faster_whisper_compute_type: str
+    faster_whisper_model_dir: str
+    faster_whisper_language: str
+    stt_low_confidence_threshold: float
     elevenlabs_api_key: str
     elevenlabs_voice_id: str
     ollama_base_url: str
@@ -49,6 +63,21 @@ class Settings:
             vitaflow_provider=_env_choice("VITAFLOW_PROVIDER", "mock"),
             vision_provider=_env_choice("VISION_PROVIDER", "mock"),
             openai_api_key=_env_text("OPENAI_API_KEY"),
+            faster_whisper_model_size=_env_text("FASTER_WHISPER_MODEL_SIZE", "small"),
+            faster_whisper_device=_env_text("FASTER_WHISPER_DEVICE", "cpu"),
+            faster_whisper_compute_type=_env_text(
+                "FASTER_WHISPER_COMPUTE_TYPE",
+                "int8",
+            ),
+            faster_whisper_model_dir=_env_text(
+                "FASTER_WHISPER_MODEL_DIR",
+                ".models/whisper",
+            ),
+            faster_whisper_language=_env_choice("FASTER_WHISPER_LANGUAGE", "auto"),
+            stt_low_confidence_threshold=_env_float(
+                "STT_LOW_CONFIDENCE_THRESHOLD",
+                0.55,
+            ),
             elevenlabs_api_key=_env_text("ELEVENLABS_API_KEY"),
             elevenlabs_voice_id=_env_text("ELEVENLABS_VOICE_ID"),
             ollama_base_url=_env_text("OLLAMA_BASE_URL"),

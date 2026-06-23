@@ -13,7 +13,11 @@ def test_transcribe_accepts_audio(client: TestClient) -> None:
         "transcript": "show me pain relief products",
         "provider": "mock_stt",
         "language": "english",
+        "confidence": 1.0,
         "clarification_needed": False,
+        "corrected_transcript": "show me pain relief products",
+        "detected_terms": [],
+        "possible_product_matches": [],
     }
 
 

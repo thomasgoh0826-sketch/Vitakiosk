@@ -20,7 +20,7 @@ React kiosk
        └─ Web Audio analyser + playback
 
 FastAPI
-  ├─ voice routes → MockSTT default / OpenAIWhisperSTT explicit / MockTTS
+  ├─ voice routes → MockSTT default / OpenAIWhisperSTT explicit / FasterWhisperSTT explicit / MockTTS
   ├─ AI route → SafetyGuardrails → MockAIBrain
   ├─ catalog routes → MockVitaFlowAPI / PromotionEngine / PosterEngine
   ├─ action routes → in-memory purchasing and escalation stores
@@ -31,9 +31,9 @@ FastAPI
 
 1. Tap starts MediaRecorder and local `listening` state.
 2. Tap again, manual stop, or silence auto-stop uploads audio to the selected STT adapter and moves to `thinking`.
-3. Mock STT remains the default. `STT_PROVIDER=openai_whisper` may be enabled only in local `.env` with `OPENAI_API_KEY`; tests and CI keep mock mode.
-4. STT returns transcript metadata only: transcript text, provider, inferred language, and `clarification_needed`.
-5. If STT marks speech unclear, the frontend asks the customer to try again and does not call the AI response or TTS workflow.
+3. Mock STT remains the default. `STT_PROVIDER=openai_whisper` may be enabled only in local `.env` with `OPENAI_API_KEY`; `STT_PROVIDER=faster_whisper` may be enabled only in local `.env` with local model settings. Tests and CI keep mock mode.
+4. STT returns transcript metadata only: transcript text, provider, inferred language, confidence when available, corrected transcript, detected terms, possible product/category matches, and `clarification_needed`.
+5. If STT marks speech unclear or low confidence, the frontend asks the customer to try again and does not call the AI response or TTS workflow.
 6. Safety guardrails run before product lookup or response construction.
 7. A red flag or diagnosis request creates an escalation and emits `pharmacist_escalation`.
 8. Safe requests are classified and resolved against the mock VitaFlow adapter.
@@ -80,7 +80,7 @@ The frontend ignores malformed or cross-session events. When WebSocket is unavai
 
 ## Adapter boundaries
 
-- `STTAdapter`: audio bytes and content type to a `TranscriptionResult` containing transcript, provider, language, and clarification status.
+- `STTAdapter`: audio bytes and content type to a `TranscriptionResult` containing transcript, provider, language, optional confidence, corrected transcript, detected terms, possible product/category matches, and clarification status.
 - `TTSAdapter`: safe text to audio bytes.
 - `AIBrain`: text and branch to typed AI result.
 - `VitaFlowAdapter`: query and branch to authoritative product records.
@@ -95,15 +95,15 @@ The shipped dependency graph instantiates mock adapters by default through `serv
 
 | Layer | Default | Future explicit values | Required configuration |
 |---|---|---|---|
-| STT | `STT_PROVIDER=mock` | `openai_whisper` | `OPENAI_API_KEY` |
+| STT | `STT_PROVIDER=mock` | `openai_whisper`, `faster_whisper` | `OPENAI_API_KEY` for OpenAI or local faster-whisper model settings |
 | TTS | `TTS_PROVIDER=mock` | `elevenlabs` | `ELEVENLABS_API_KEY`, `ELEVENLABS_VOICE_ID` |
 | AI | `AI_PROVIDER=mock` | `openai`, `ollama` | `OPENAI_API_KEY` or `OLLAMA_BASE_URL` |
 | VitaFlow | `VITAFLOW_PROVIDER=mock` | `readonly_api` | `VITAFLOW_API_BASE_URL` |
 | Vision | `VISION_PROVIDER=mock` | `barcode_ocr` | reviewed OCR/barcode configuration |
 
-Live values are selected only by explicit provider variables. `STT_PROVIDER=openai_whisper` creates the OpenAI transcription adapter and can call OpenAI only when a local `OPENAI_API_KEY` is present. Other live values remain reviewed placeholder adapters in this mock-first demo. Missing configuration fails closed instead of falling back to guessed data.
+Live or local provider values are selected only by explicit provider variables. `STT_PROVIDER=openai_whisper` creates the OpenAI transcription adapter and can call OpenAI only when a local `OPENAI_API_KEY` is present. `STT_PROVIDER=faster_whisper` creates a local faster-whisper adapter that loads model files from the ignored `.models/` path and applies a local pharmacy correction layer. Other live values remain reviewed placeholder adapters in this mock-first demo. Missing configuration fails closed instead of falling back to guessed data.
 
-To enable one live provider locally, change exactly one selector in local `.env`, provide only that layer's credential or endpoint, run the backend contract tests, and manually review safety/non-invention behavior before enabling another layer. For STT, use `STT_PROVIDER=openai_whisper` and `OPENAI_API_KEY=` locally only; do not commit `.env`, recordings, transcripts from real customers, logs, or audio artifacts. Tests and CI must keep selectors in mock mode.
+To enable one live or local provider locally, change exactly one selector in local `.env`, provide only that layer's credential, endpoint, or model settings, run the backend contract tests, and manually review safety/non-invention behavior before enabling another layer. For STT, use either `STT_PROVIDER=openai_whisper` with `OPENAI_API_KEY=` or `STT_PROVIDER=faster_whisper` with `FASTER_WHISPER_*` settings locally only; do not commit `.env`, downloaded models, recordings, transcripts from real customers, logs, cache files, or audio artifacts. Tests and CI must keep selectors in mock mode.
 
 The first VitaFlow live integration is constrained to `readonly_api`: it may read approved product, stock, price, promotion, and shelf fields from a reviewed API only. It must not write sales, stock, purchasing, promotion, customer, or shelf data, and it must not inspect the ERP release directory or database directly.
 

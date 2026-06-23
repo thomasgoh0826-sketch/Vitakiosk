@@ -11,6 +11,7 @@ from services.contracts import (
     TTSAdapter,
     VitaFlowAdapter,
 )
+from services.faster_whisper_stt import FasterWhisperSTT
 from services.leaflet_engine import LeafletEngine
 from services.openai_stt import OpenAIWhisperSTT
 from services.poster_engine import PosterEngine
@@ -49,8 +50,9 @@ def create_provider_bundle(settings: Settings) -> ProviderBundle:
 
     Mock adapters remain the default. Live providers are returned only when
     their explicit provider selector is set; credentials alone never switch an
-    adapter to live behavior. STT has an implemented OpenAI Whisper adapter;
-    other live-provider selectors remain reviewed placeholders.
+    adapter to live behavior. STT has implemented OpenAI Whisper and local
+    faster-whisper adapters; other live-provider selectors remain reviewed
+    placeholders.
     """
 
     settings.validate()
@@ -95,12 +97,21 @@ def create_provider_bundle(settings: Settings) -> ProviderBundle:
 def _create_stt(settings: Settings) -> STTAdapter:
     if settings.stt_provider == "mock":
         return MockSTT()
-    return OpenAIWhisperSTT(
-        api_key=_require(
-            settings.openai_api_key,
-            "OPENAI_API_KEY",
-            "STT_PROVIDER=openai_whisper",
-        ),
+    if settings.stt_provider == "openai_whisper":
+        return OpenAIWhisperSTT(
+            api_key=_require(
+                settings.openai_api_key,
+                "OPENAI_API_KEY",
+                "STT_PROVIDER=openai_whisper",
+            ),
+        )
+    return FasterWhisperSTT(
+        model_size=settings.faster_whisper_model_size,
+        device=settings.faster_whisper_device,
+        compute_type=settings.faster_whisper_compute_type,
+        model_dir=settings.faster_whisper_model_dir,
+        language=settings.faster_whisper_language,
+        low_confidence_threshold=settings.stt_low_confidence_threshold,
     )
 
 

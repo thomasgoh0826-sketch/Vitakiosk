@@ -19,7 +19,9 @@ class MockSTT:
             transcript="show me pain relief products",
             provider=self.provider_name,
             language="english",
+            confidence=1.0,
             clarification_needed=False,
+            corrected_transcript="show me pain relief products",
         )
 
 

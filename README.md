@@ -2,7 +2,7 @@
 
 VitaKiosk is a mock-first, live-ready pharmacy kiosk demo for iPad landscape use. It combines a Lottie assistant, tap-to-speak browser voice capture with silence auto-stop, a safety-first intent pipeline, fictional VitaFlow-shaped data, mock WAV speech, and session-scoped WebSocket updates.
 
-By default, the demo does not call OpenAI, ElevenLabs, Ollama, or VitaFlow ERP. It does not read customer or sales records. Whisper/OpenAI STT is available only for reviewed local testing when `STT_PROVIDER=openai_whisper` and a local `OPENAI_API_KEY` are set in `.env`.
+By default, the demo does not call OpenAI, ElevenLabs, Ollama, or VitaFlow ERP. It does not read customer or sales records. OpenAI Whisper STT and local faster-whisper STT are available only for reviewed local testing through explicit `STT_PROVIDER` values in `.env`.
 
 ## Safety rules
 
@@ -35,6 +35,12 @@ Mock mode requires no key. Keep these secret fields empty for the demo:
 - `VITAFLOW_PROVIDER=mock`
 - `VISION_PROVIDER=mock`
 - `OPENAI_API_KEY`
+- `FASTER_WHISPER_MODEL_SIZE=small`
+- `FASTER_WHISPER_DEVICE=cpu`
+- `FASTER_WHISPER_COMPUTE_TYPE=int8`
+- `FASTER_WHISPER_MODEL_DIR=.models/whisper`
+- `FASTER_WHISPER_LANGUAGE=auto`
+- `STT_LOW_CONFIDENCE_THRESHOLD=0.55`
 - `ELEVENLABS_API_KEY`
 - `ELEVENLABS_VOICE_ID`
 - `OLLAMA_BASE_URL`
@@ -61,7 +67,31 @@ Then start the normal backend and frontend. Test short phrases such as:
 - “Ada ubat batuk?”
 - “I am pregnant, can I take this supplement?”
 
-Expected behavior: the customer transcript appears in the left subtitle bubble, unclear speech asks the customer to try again, and red-flag wording still stops normal recommendation flow and escalates to pharmacist. Do not save or commit real customer audio, transcripts, logs, or recordings.
+Expected behavior: the transcript is used internally for the safety-first workflow, the main UI keeps the customer transcript hidden, unclear speech asks the customer to try again, and red-flag wording still stops normal recommendation flow and escalates to pharmacist. Do not save or commit real customer audio, transcripts, logs, or recordings.
+
+### Optional local faster-whisper STT test
+
+Use this only in local `.env`; do not commit `.env`, downloaded models, raw audio, recordings, transcripts from real customers, cache files, or logs:
+
+```powershell
+STT_PROVIDER=faster_whisper
+FASTER_WHISPER_MODEL_SIZE=small
+FASTER_WHISPER_DEVICE=cpu
+FASTER_WHISPER_COMPUTE_TYPE=int8
+FASTER_WHISPER_MODEL_DIR=.models/whisper
+FASTER_WHISPER_LANGUAGE=auto
+STT_LOW_CONFIDENCE_THRESHOLD=0.55
+```
+
+The first manual run may download model files into `.models/whisper`, which is ignored by Git. Test phrases:
+
+- “Where is Panadol?”
+- “这个 probiotic 有 promotion 吗?”
+- “Panadol ada stock 吗?”
+- “Ada ubat batuk?”
+- “I cannot breathe”
+
+Expected behavior: the transcript is converted locally, language is detected or inferred, common Malaysian pharmacy terms are corrected through the local dictionary layer, unclear or low-confidence speech asks for clarification, and existing red-flag wording still escalates to pharmacist before product recommendation. The customer transcript remains hidden from the main kiosk UI unless the explicit dev debug flag is enabled.
 
 ## Install
 
@@ -98,7 +128,7 @@ Open [http://127.0.0.1:5175](http://127.0.0.1:5175). Use an iPad landscape viewp
 | Method | Path | Mock behavior |
 |---|---|---|
 | GET | `/health` | Reports service and provider mode |
-| POST | `/api/voice/transcribe` | Returns deterministic mock transcript plus provider/language/clarification metadata; optional Whisper STT only when explicitly enabled locally |
+| POST | `/api/voice/transcribe` | Returns deterministic mock transcript plus provider/language/confidence/correction/clarification metadata; optional OpenAI Whisper or local faster-whisper STT only when explicitly enabled locally |
 | POST | `/api/ai/respond` | Runs safety and mock intent workflow |
 | POST | `/api/voice/tts` | Returns a generated WAV tone |
 | GET | `/api/products/search` | Searches fictional branch-scoped products |
@@ -127,6 +157,7 @@ Before every commit, inspect staged paths and run the staged-file check. If `.en
 Consumers depend on interfaces in `services/contracts.py` and `frontend/src/components/avatar/AvatarRenderer.ts`. Current and future adapters include:
 
 - OpenAI/Whisper STT adapter for explicit local testing through `STT_PROVIDER=openai_whisper`.
+- Local faster-whisper STT adapter for explicit local testing through `STT_PROVIDER=faster_whisper`, with correction metadata from mock VitaFlow product names and a local pharmacy term lexicon.
 - OpenAI/Ollama AI adapters as future reviewed work.
 - ElevenLabs TTS adapter as future reviewed work.
 - VitaFlow HTTP API connector as future reviewed work.
@@ -146,13 +177,13 @@ Controlled provider mode is per layer:
 
 | Layer | Default | Future selector |
 |---|---|---|
-| STT | `STT_PROVIDER=mock` | `openai_whisper` |
+| STT | `STT_PROVIDER=mock` | `openai_whisper` or `faster_whisper` |
 | TTS | `TTS_PROVIDER=mock` | `elevenlabs` |
 | AI | `AI_PROVIDER=mock` | `openai` or `ollama` |
 | VitaFlow | `VITAFLOW_PROVIDER=mock` | `readonly_api` |
 | Vision | `VISION_PROVIDER=mock` | `barcode_ocr` |
 
-To test a live provider locally, edit only one selector in local `.env`, provide only that provider's required key or URL, and rerun backend safety, non-invention, and source-of-truth tests. The STT adapter can call OpenAI only when `STT_PROVIDER=openai_whisper` is explicitly selected; the TTS, AI, VitaFlow, and vision live classes remain placeholders until separate reviewed tasks implement them.
+To test a live or local speech provider locally, edit only one selector in local `.env`, provide only that provider's required key or model settings, and rerun backend safety, non-invention, and source-of-truth tests. The STT adapter can call OpenAI only when `STT_PROVIDER=openai_whisper` is explicitly selected; faster-whisper runs locally and stores model files under the ignored `.models/` path. The TTS, AI, VitaFlow, and vision live classes remain placeholders until separate reviewed tasks implement them.
 
 The first VitaFlow live task must use a reviewed read-only API or sanitized copy. It must not write to VitaFlow and must not read the ERP release directory or database directly.
 

@@ -113,7 +113,11 @@ class TranscriptionResult:
     transcript: str
     provider: str
     language: str = "unknown"
+    confidence: float | None = None
     clarification_needed: bool = False
+    corrected_transcript: str | None = None
+    detected_terms: tuple[str, ...] = ()
+    possible_product_matches: tuple[dict[str, object], ...] = ()
 
 
 class Intent(str, Enum):

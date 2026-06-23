@@ -23,7 +23,7 @@
 - Keep provider-neutral adapter contracts so live integrations can be added deliberately.
 - Never switch to a live provider merely because a credential exists; provider selection must be an explicit reviewed configuration change.
 - Keep `VITAKIOSK_PROVIDER_MODE=mock`; controlled live testing is per-layer only through `STT_PROVIDER`, `TTS_PROVIDER`, `AI_PROVIDER`, `VITAFLOW_PROVIDER`, and `VISION_PROVIDER`.
-- Supported provider selectors are `mock`, `openai_whisper`, `elevenlabs`, `openai`, `ollama`, `readonly_api`, and `barcode_ocr` as documented in `.env.example`; tests must leave them in mock mode unless a reviewed task says otherwise.
+- Supported provider selectors are `mock`, `openai_whisper`, `faster_whisper`, `elevenlabs`, `openai`, `ollama`, `readonly_api`, and `barcode_ocr` as documented in `.env.example`; tests must leave them in mock mode unless a reviewed task says otherwise.
 - The first VitaFlow live connector must be `readonly_api` only and must never write stock, sales, customer, purchasing, promotion, or shelf data.
 - Credentials must be read from environment variables; never hardcode a key, token, password, database URL, or private key.
 

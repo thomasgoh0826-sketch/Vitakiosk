@@ -41,10 +41,13 @@ A feature is accepted only when:
   `Tap to Stop` fallback, browser-side silence auto-stop, and a secondary
   `Start` / `Start New Customer` reset action instead of a small `Hold to
   Speak` fallback.
-- STT provider acceptance requires mock STT by default, `STT_PROVIDER=openai_whisper`
-  as the only opt-in Whisper selector, `OPENAI_API_KEY` read from local
-  environment only, no live STT network calls in tests or CI, transcript
-  language metadata for English/Chinese/Malay/mixed speech, and an unclear
+- STT provider acceptance requires mock STT by default, explicit
+  `STT_PROVIDER=openai_whisper` or `STT_PROVIDER=faster_whisper` selection for
+  non-mock STT, credentials/model settings read from local environment only, no
+  live STT network calls or faster-whisper model downloads in tests or CI,
+  transcript language metadata for English/Chinese/Malay/mixed speech,
+  confidence/correction metadata when available, local pharmacy dictionary
+  correction without inventing product facts, and an unclear/low-confidence
   speech path that asks for clarification instead of calling AI, TTS, product,
   promotion, or recommendation workflows.
 - Local development CORS acceptance requires explicit support for

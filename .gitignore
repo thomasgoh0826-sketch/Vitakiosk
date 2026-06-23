@@ -18,6 +18,10 @@ __pycache__/
 .mypy_cache/
 .ruff_cache/
 htmlcov/
+.models/
+.cache/
+huggingface/
+faster-whisper-cache/
 
 # Node and frontend builds
 node_modules/
@@ -45,6 +49,11 @@ sales-data/
 private-data/
 recordings/
 generated-audio/
+*.wav
+*.webm
+*.mp3
+*.m4a
+*.ogg
 
 # Editors and operating systems
 .DS_Store

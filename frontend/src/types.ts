@@ -107,9 +107,19 @@ export type TranscriptionLanguage =
 
 export interface TranscriptionResponse {
   transcript: string;
-  provider: "mock_stt" | "openai_whisper";
+  provider: "mock_stt" | "openai_whisper" | "faster_whisper";
   language: TranscriptionLanguage;
+  confidence: number | null;
   clarification_needed: boolean;
+  corrected_transcript: string;
+  detected_terms: string[];
+  possible_product_matches: Array<{
+    id: string | null;
+    name: string;
+    kind: string;
+    confidence: number;
+    source: string;
+  }>;
 }
 
 export interface ItemListResponse<T> {

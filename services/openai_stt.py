@@ -200,7 +200,9 @@ class OpenAIWhisperSTT:
                 transcript="",
                 provider=self.provider_name,
                 language="unknown",
+                confidence=None,
                 clarification_needed=True,
+                corrected_transcript="",
             )
 
         return TranscriptionResult(
@@ -212,7 +214,9 @@ class OpenAIWhisperSTT:
                 if isinstance(payload, dict)
                 else None,
             ),
+            confidence=None,
             clarification_needed=False,
+            corrected_transcript=transcript,
         )
 
     @staticmethod

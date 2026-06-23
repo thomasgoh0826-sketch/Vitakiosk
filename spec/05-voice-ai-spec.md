@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Connect tap-to-speak browser audio to the safety-first response pipeline while keeping STT mock by default and Whisper/OpenAI STT explicitly opt-in.
+Connect tap-to-speak browser audio to the safety-first response pipeline while keeping STT mock by default and OpenAI Whisper / local faster-whisper STT explicitly opt-in.
 
 ## Flow
 
@@ -21,10 +21,12 @@ MediaRecorder plus browser-side silence detection -> selected STT adapter -> cla
 - Empty audio is rejected with 422.
 - The demo completes listening, thinking, speaking, and idle states without a provider key.
 - `STT_PROVIDER` and `TTS_PROVIDER` default to `mock`.
-- OpenAI Whisper and ElevenLabs credentials do not activate live voice providers unless the matching provider selector is explicitly changed.
-- `STT_PROVIDER=openai_whisper` is the only supported live STT selector and requires `OPENAI_API_KEY` from local environment variables.
-- Whisper/OpenAI STT accepts the existing voice upload payload and returns transcript text, provider, detected or inferred language, and clarification status.
+- OpenAI Whisper, local faster-whisper, and ElevenLabs settings do not activate live or local voice providers unless the matching provider selector is explicitly changed.
+- `STT_PROVIDER=openai_whisper` requires `OPENAI_API_KEY` from local environment variables.
+- `STT_PROVIDER=faster_whisper` requires local `FASTER_WHISPER_*` settings and loads models only when that provider is explicitly selected and used.
+- Whisper/OpenAI and faster-whisper STT accept the existing voice upload payload and return transcript text, provider, detected or inferred language, confidence when available, corrected transcript, detected terms, possible product/category matches, and clarification status.
 - STT supports English, Chinese, Malay, and mixed Malaysian-style speech metadata while preserving product and medicine names in the transcript text.
+- Local faster-whisper STT applies a post-STT correction layer using mock VitaFlow product names, aliases, and a local Malaysian pharmacy term lexicon; it must not invent stock, price, promotion, shelf location, or product facts.
 - Unclear speech returns `clarification_needed=true`; the frontend asks the customer to try again and must not call AI response, product recommendation, TTS, or promotion flow for that unclear transcript.
 - STT remains conversion-only and must not diagnose, prescribe, recommend products, or generate medical advice.
 - Tests must not call OpenAI Whisper, ElevenLabs, or any external speech provider.
@@ -40,5 +42,6 @@ MediaRecorder plus browser-side silence detection -> selected STT adapter -> cla
 - `frontend/src/hooks/useVoiceInteraction.test.ts`
 - `backend/tests/test_api.py`
 - `backend/tests/test_provider_config.py`
+- `backend/tests/test_faster_whisper_stt.py`
 - `backend/tests/test_openai_stt.py`
 - Manual microphone evidence in `reports/test-evidence.md`.

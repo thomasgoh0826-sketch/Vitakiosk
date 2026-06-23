@@ -2,6 +2,7 @@ import pytest
 
 from backend.app.config import Settings
 from services.ai_brain import MockAIBrain
+from services.faster_whisper_stt import FasterWhisperSTT
 from services.openai_stt import OpenAIWhisperSTT
 from services.product_vision import MockProductVision
 from services.providers import create_provider_bundle
@@ -17,6 +18,12 @@ PROVIDER_ENV = (
     "VITAFLOW_PROVIDER",
     "VISION_PROVIDER",
     "OPENAI_API_KEY",
+    "FASTER_WHISPER_MODEL_SIZE",
+    "FASTER_WHISPER_DEVICE",
+    "FASTER_WHISPER_COMPUTE_TYPE",
+    "FASTER_WHISPER_MODEL_DIR",
+    "FASTER_WHISPER_LANGUAGE",
+    "STT_LOW_CONFIDENCE_THRESHOLD",
     "ELEVENLABS_API_KEY",
     "ELEVENLABS_VOICE_ID",
     "OLLAMA_BASE_URL",
@@ -77,6 +84,8 @@ def test_credentials_do_not_auto_enable_live_providers(
     monkeypatch.setenv("ELEVENLABS_VOICE_ID", "voice-not-real-test-value")
     monkeypatch.setenv("OLLAMA_BASE_URL", "http://localhost:11434")
     monkeypatch.setenv("VITAFLOW_API_BASE_URL", "https://vitaflow.invalid")
+    monkeypatch.setenv("FASTER_WHISPER_MODEL_SIZE", "small")
+    monkeypatch.setenv("FASTER_WHISPER_MODEL_DIR", ".models/whisper")
 
     bundle = create_provider_bundle(Settings.from_environment())
 
@@ -110,6 +119,26 @@ def test_openai_whisper_stt_fails_closed_without_api_key(
 
     with pytest.raises(RuntimeError, match="OPENAI_API_KEY"):
         create_provider_bundle(Settings.from_environment())
+
+
+def test_faster_whisper_stt_requires_explicit_provider_selection(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    clear_provider_env(monkeypatch)
+    monkeypatch.setenv("STT_PROVIDER", "faster_whisper")
+    monkeypatch.setenv("FASTER_WHISPER_MODEL_SIZE", "small")
+    monkeypatch.setenv("FASTER_WHISPER_DEVICE", "cpu")
+    monkeypatch.setenv("FASTER_WHISPER_COMPUTE_TYPE", "int8")
+    monkeypatch.setenv("FASTER_WHISPER_MODEL_DIR", ".models/whisper")
+    monkeypatch.setenv("STT_LOW_CONFIDENCE_THRESHOLD", "0.55")
+
+    bundle = create_provider_bundle(Settings.from_environment())
+
+    assert isinstance(bundle.stt, FasterWhisperSTT)
+    assert bundle.stt.provider_name == "faster_whisper"
+    assert isinstance(bundle.tts, MockTTS)
+    assert isinstance(bundle.ai_brain, MockAIBrain)
+    assert isinstance(bundle.vitaflow, MockVitaFlowAPI)
 
 
 def test_invalid_provider_selector_is_rejected(

@@ -242,9 +242,11 @@ function useVoiceInteraction({
 
       const transcription = await api.transcribe(recording, sessionId);
       setTranscript(transcription.transcript);
+      const workflowTranscript =
+        transcription.corrected_transcript?.trim() || transcription.transcript;
       if (
         transcription.clarification_needed
-        || transcription.transcript.trim().length === 0
+        || workflowTranscript.trim().length === 0
       ) {
         setProduct(null);
         setPromotions([]);
@@ -262,7 +264,7 @@ function useVoiceInteraction({
         return;
       }
       setResponseText("Preparing answer...");
-      const response = await api.respond(sessionId, transcription.transcript, branchId);
+      const response = await api.respond(sessionId, workflowTranscript, branchId);
       setHasResult(true);
       setProduct(response.product);
       setPromotions(response.promotions);
