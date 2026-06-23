@@ -50,6 +50,13 @@ A feature is accepted only when:
   correction without inventing product facts, and an unclear/low-confidence
   speech path that asks for clarification instead of calling AI, TTS, product,
   promotion, or recommendation workflows.
+- Ollama AI provider acceptance requires mock AI by default, explicit
+  `AI_PROVIDER=ollama` selection for local Ollama, no real Ollama calls in tests
+  or CI, structured JSON validation, safety checks before and after model
+  output, deterministic fallback when Ollama is offline or unsafe,
+  VitaFlow/mock-only product facts, whitelisted UI actions only, matching
+  language context for English/Chinese/Malay/mixed transcripts, and proof that
+  red-flag and pregnancy flows escalate before any Ollama product wording.
 - Local development CORS acceptance requires explicit support for
   `http://127.0.0.1:5175`, `http://localhost:5175`,
   `http://127.0.0.1:5173`, and `http://localhost:5173` without wildcard

@@ -21,7 +21,7 @@ React kiosk
 
 FastAPI
   ├─ voice routes → MockSTT default / OpenAIWhisperSTT explicit / FasterWhisperSTT explicit / MockTTS
-  ├─ AI route → SafetyGuardrails → MockAIBrain
+  ├─ AI route → SafetyGuardrails → MockAIBrain default / OllamaAIBrain explicit local wording
   ├─ catalog routes → MockVitaFlowAPI / PromotionEngine / PosterEngine
   ├─ action routes → in-memory purchasing and escalation stores
   └─ ConnectionManager → session-scoped WebSockets
@@ -34,13 +34,15 @@ FastAPI
 3. Mock STT remains the default. `STT_PROVIDER=openai_whisper` may be enabled only in local `.env` with `OPENAI_API_KEY`; `STT_PROVIDER=faster_whisper` may be enabled only in local `.env` with local model settings. Tests and CI keep mock mode.
 4. STT returns transcript metadata only: transcript text, provider, inferred language, confidence when available, corrected transcript, detected terms, possible product/category matches, and `clarification_needed`.
 5. If STT marks speech unclear or low confidence, the frontend asks the customer to try again and does not call the AI response or TTS workflow.
-6. Safety guardrails run before product lookup or response construction.
+6. Safety guardrails run before product lookup, unknown-product handling, purchasing-query creation, promotion matching, shelf navigation, AI wording, or recommendation construction.
 7. A red flag or diagnosis request creates an escalation and emits `pharmacist_escalation`.
 8. Safe requests are classified and resolved against the mock VitaFlow adapter.
 9. Unknown products create a purchasing query; no product fields are synthesized.
-10. Safe text is converted to a local WAV by mock TTS.
-11. Web Audio activity drives the waveform and mouth scale during `speaking`.
-12. Playback completion returns to `idle`.
+10. When `AI_PROVIDER=ollama` is explicitly selected, the backend sends only the corrected transcript, detected language, detected terms, safe VitaFlow/mock facts, branch-valid promotion/campaign facts, safety context, and allowed UI actions to local Ollama as a JSON-only wording request.
+11. Ollama output is validated as structured JSON, checked against safety guardrails again, and rejected if it invents stock, price, promotion, shelf, product, or medical facts. Offline, invalid, or unsafe output falls back to the deterministic mock AI result.
+12. Safe text is converted to a local WAV by mock TTS.
+13. Web Audio activity drives the waveform and mouth scale during `speaking`.
+14. Playback completion returns to `idle`.
 
 ## Controlled UI actions and leaflet flow
 
@@ -82,7 +84,7 @@ The frontend ignores malformed or cross-session events. When WebSocket is unavai
 
 - `STTAdapter`: audio bytes and content type to a `TranscriptionResult` containing transcript, provider, language, optional confidence, corrected transcript, detected terms, possible product/category matches, and clarification status.
 - `TTSAdapter`: safe text to audio bytes.
-- `AIBrain`: text and branch to typed AI result.
+- `AIBrain`: text and branch to typed AI result. `MockAIBrain` is deterministic and default; `OllamaAIBrain` is an explicit local structured wording provider that keeps the deterministic workflow as the fact and safety authority.
 - `VitaFlowAdapter`: query and branch to authoritative product records.
 - `ProductVisionAdapter`: image bytes to product identifier or no match.
 - `AvatarRenderer`: avatar state and normalized audio activity to visual output. Lottie remains the default renderer; `VITE_AVATAR_RENDERER=threejs` lazy-loads the optional Three.js renderer. When `frontend/src/assets/avatar/vitakiosk-avatar.glb` is bundled, the renderer loads the GLB humanoid avatar. Missing or failed GLB loads fall back to the abstract hologram without changing backend, WebSocket, provider, or safety contracts.
@@ -97,13 +99,13 @@ The shipped dependency graph instantiates mock adapters by default through `serv
 |---|---|---|---|
 | STT | `STT_PROVIDER=mock` | `openai_whisper`, `faster_whisper` | `OPENAI_API_KEY` for OpenAI or local faster-whisper model settings |
 | TTS | `TTS_PROVIDER=mock` | `elevenlabs` | `ELEVENLABS_API_KEY`, `ELEVENLABS_VOICE_ID` |
-| AI | `AI_PROVIDER=mock` | `openai`, `ollama` | `OPENAI_API_KEY` or `OLLAMA_BASE_URL` |
+| AI | `AI_PROVIDER=mock` | `openai`, `ollama` | `OPENAI_API_KEY` for future OpenAI or `OLLAMA_BASE_URL`, `OLLAMA_MODEL`, `OLLAMA_TIMEOUT_SECONDS` for local Ollama |
 | VitaFlow | `VITAFLOW_PROVIDER=mock` | `readonly_api` | `VITAFLOW_API_BASE_URL` |
 | Vision | `VISION_PROVIDER=mock` | `barcode_ocr` | reviewed OCR/barcode configuration |
 
-Live or local provider values are selected only by explicit provider variables. `STT_PROVIDER=openai_whisper` creates the OpenAI transcription adapter and can call OpenAI only when a local `OPENAI_API_KEY` is present. `STT_PROVIDER=faster_whisper` creates a local faster-whisper adapter that loads model files from the ignored `.models/` path and applies a local pharmacy correction layer. Other live values remain reviewed placeholder adapters in this mock-first demo. Missing configuration fails closed instead of falling back to guessed data.
+Live or local provider values are selected only by explicit provider variables. `STT_PROVIDER=openai_whisper` creates the OpenAI transcription adapter and can call OpenAI only when a local `OPENAI_API_KEY` is present. `STT_PROVIDER=faster_whisper` creates a local faster-whisper adapter that loads model files from the ignored `.models/` path and applies a local pharmacy correction layer. `AI_PROVIDER=ollama` creates a local Ollama JSON wording adapter; it does not replace VitaFlow/mock data authority and it falls back to mock AI when local Ollama is offline or unsafe. OpenAI AI, TTS, VitaFlow, and vision live values remain reviewed placeholder adapters in this mock-first demo. Missing configuration fails closed instead of falling back to guessed data.
 
-To enable one live or local provider locally, change exactly one selector in local `.env`, provide only that layer's credential, endpoint, or model settings, run the backend contract tests, and manually review safety/non-invention behavior before enabling another layer. For STT, use either `STT_PROVIDER=openai_whisper` with `OPENAI_API_KEY=` or `STT_PROVIDER=faster_whisper` with `FASTER_WHISPER_*` settings locally only; do not commit `.env`, downloaded models, recordings, transcripts from real customers, logs, cache files, or audio artifacts. Tests and CI must keep selectors in mock mode.
+To enable one live or local provider locally, change exactly one selector in local `.env`, provide only that layer's credential, endpoint, or model settings, run the backend contract tests, and manually review safety/non-invention behavior before enabling another layer. For STT, use either `STT_PROVIDER=openai_whisper` with `OPENAI_API_KEY=` or `STT_PROVIDER=faster_whisper` with `FASTER_WHISPER_*` settings locally only. For AI, use `AI_PROVIDER=ollama` with local `OLLAMA_BASE_URL`, `OLLAMA_MODEL`, and `OLLAMA_TIMEOUT_SECONDS` only. Do not commit `.env`, downloaded models, recordings, transcripts from real customers, logs, cache files, prompts, or audio artifacts. Tests and CI must keep selectors in mock mode.
 
 The first VitaFlow live integration is constrained to `readonly_api`: it may read approved product, stock, price, promotion, and shelf fields from a reviewed API only. It must not write sales, stock, purchasing, promotion, customer, or shelf data, and it must not inspect the ERP release directory or database directly.
 

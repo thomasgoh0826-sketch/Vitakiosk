@@ -33,10 +33,18 @@ for (const key of [
   "ELEVENLABS_API_KEY",
   "ELEVENLABS_VOICE_ID",
   "OLLAMA_BASE_URL",
+  "OLLAMA_MODEL",
+  "OLLAMA_TIMEOUT_SECONDS",
   "VITAFLOW_API_BASE_URL",
 ]) {
   if (key.endsWith("_PROVIDER") || key === "VITAKIOSK_PROVIDER_MODE") {
     assert.match(envExample, new RegExp(`^${key}=mock$`, "m"));
+  } else if (key === "OLLAMA_BASE_URL") {
+    assert.match(envExample, /^OLLAMA_BASE_URL=http:\/\/localhost:11434$/m);
+  } else if (key === "OLLAMA_MODEL") {
+    assert.match(envExample, /^OLLAMA_MODEL=qwen2\.5:7b$/m);
+  } else if (key === "OLLAMA_TIMEOUT_SECONDS") {
+    assert.match(envExample, /^OLLAMA_TIMEOUT_SECONDS=20$/m);
   } else {
     assert.match(envExample, new RegExp(`^${key}=$`, "m"));
   }

@@ -160,6 +160,29 @@ def test_pregnancy_and_breastfeeding_terms_require_pharmacist_review(text: str) 
     assert decision.reason_code == "pregnancy_safety"
 
 
+@pytest.mark.parametrize(
+    "text",
+    [
+        "Can a child take this medicine?",
+        "I have kidney disease, can I use this?",
+        "liver disease and supplement question",
+        "I take blood thinner medicine",
+        "severe allergy after taking this",
+        "chest pain now",
+        "breathing difficulty",
+        "I feel fainting",
+        "high fever for three days",
+        "severe symptoms after medicine",
+    ],
+)
+def test_high_risk_condition_terms_escalate_to_pharmacist(text: str) -> None:
+    decision = SafetyGuardrails().evaluate(text)
+
+    assert decision.allowed is False
+    assert decision.requires_pharmacist is True
+    assert decision.reason_code == "red_flag"
+
+
 def test_safe_product_request_is_allowed() -> None:
     decision = SafetyGuardrails().evaluate("Where is the relief balm?")
 

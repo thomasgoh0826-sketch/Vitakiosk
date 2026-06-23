@@ -2,7 +2,7 @@
 
 VitaKiosk is a mock-first, live-ready pharmacy kiosk demo for iPad landscape use. It combines a Lottie assistant, tap-to-speak browser voice capture with silence auto-stop, a safety-first intent pipeline, fictional VitaFlow-shaped data, mock WAV speech, and session-scoped WebSocket updates.
 
-By default, the demo does not call OpenAI, ElevenLabs, Ollama, or VitaFlow ERP. It does not read customer or sales records. OpenAI Whisper STT and local faster-whisper STT are available only for reviewed local testing through explicit `STT_PROVIDER` values in `.env`.
+By default, the demo does not call OpenAI, ElevenLabs, Ollama, or VitaFlow ERP. It does not read customer or sales records. OpenAI Whisper STT, local faster-whisper STT, and local Ollama AI wording are available only for reviewed local testing through explicit provider values in `.env`.
 
 ## Safety rules
 
@@ -43,7 +43,9 @@ Mock mode requires no key. Keep these secret fields empty for the demo:
 - `STT_LOW_CONFIDENCE_THRESHOLD=0.55`
 - `ELEVENLABS_API_KEY`
 - `ELEVENLABS_VOICE_ID`
-- `OLLAMA_BASE_URL`
+- `OLLAMA_BASE_URL=http://localhost:11434`
+- `OLLAMA_MODEL=qwen2.5:7b`
+- `OLLAMA_TIMEOUT_SECONDS=20`
 - `VITAFLOW_API_BASE_URL`
 - `VITE_API_BASE_URL=http://127.0.0.1:8000`
 - `VITE_WS_BASE_URL=ws://127.0.0.1:8000`
@@ -93,6 +95,29 @@ The first manual run may download model files into `.models/whisper`, which is i
 
 Expected behavior: the transcript is converted locally, language is detected or inferred, common Malaysian pharmacy terms are corrected through the local dictionary layer, unclear or low-confidence speech asks for clarification, and existing red-flag wording still escalates to pharmacist before product recommendation. The customer transcript remains hidden from the main kiosk UI unless the explicit dev debug flag is enabled.
 
+### Optional local Ollama AI test
+
+Use this only in local `.env`; do not commit `.env`, Ollama logs, model cache files, prompts from real customers, or transcripts:
+
+```powershell
+AI_PROVIDER=ollama
+OLLAMA_BASE_URL=http://localhost:11434
+OLLAMA_MODEL=qwen2.5:7b
+OLLAMA_TIMEOUT_SECONDS=20
+```
+
+Ollama is used only as a local structured wording layer. The backend still runs safety guardrails before product flow, resolves product facts through VitaFlow/mock data, sends only safe context to Ollama, validates JSON output, runs safety checks after the model response, and falls back to the deterministic mock AI result if Ollama is offline or unsafe. Product, stock, price, promotion, campaign, and shelf facts must come only from VitaFlow/mock data.
+
+Manual local phrases:
+
+- "Where is Panadol?"
+- "这个 probiotic 有 promotion 吗?"
+- "Panadol ada stock 吗?"
+- "Ada ubat batuk?"
+- "I am pregnant, can I take this supplement?"
+
+Expected behavior: matching-language safe wording when Ollama is available, no invented product facts, unknown products still create purchasing queries instead of guesses, and pregnancy/breastfeeding/red-flag questions escalate before any Ollama wording or product flow.
+
 ## Install
 
 Run all commands from the repository root.
@@ -129,7 +154,7 @@ Open [http://127.0.0.1:5175](http://127.0.0.1:5175). Use an iPad landscape viewp
 |---|---|---|
 | GET | `/health` | Reports service and provider mode |
 | POST | `/api/voice/transcribe` | Returns deterministic mock transcript plus provider/language/confidence/correction/clarification metadata; optional OpenAI Whisper or local faster-whisper STT only when explicitly enabled locally |
-| POST | `/api/ai/respond` | Runs safety and mock intent workflow |
+| POST | `/api/ai/respond` | Runs safety and mock intent workflow; optional local Ollama wording only when `AI_PROVIDER=ollama` is explicitly selected |
 | POST | `/api/voice/tts` | Returns a generated WAV tone |
 | GET | `/api/products/search` | Searches fictional branch-scoped products |
 | GET | `/api/promotions/match` | Filters active branch-aware promotions |
@@ -158,7 +183,7 @@ Consumers depend on interfaces in `services/contracts.py` and `frontend/src/comp
 
 - OpenAI/Whisper STT adapter for explicit local testing through `STT_PROVIDER=openai_whisper`.
 - Local faster-whisper STT adapter for explicit local testing through `STT_PROVIDER=faster_whisper`, with correction metadata from mock VitaFlow product names and a local pharmacy term lexicon.
-- OpenAI/Ollama AI adapters as future reviewed work.
+- Ollama local AI adapter for explicit local testing through `AI_PROVIDER=ollama`; OpenAI AI remains a future reviewed placeholder.
 - ElevenLabs TTS adapter as future reviewed work.
 - VitaFlow HTTP API connector as future reviewed work.
 - Rive, Three.js GLB, or Three.js VRM avatar renderer.
@@ -183,7 +208,7 @@ Controlled provider mode is per layer:
 | VitaFlow | `VITAFLOW_PROVIDER=mock` | `readonly_api` |
 | Vision | `VISION_PROVIDER=mock` | `barcode_ocr` |
 
-To test a live or local speech provider locally, edit only one selector in local `.env`, provide only that provider's required key or model settings, and rerun backend safety, non-invention, and source-of-truth tests. The STT adapter can call OpenAI only when `STT_PROVIDER=openai_whisper` is explicitly selected; faster-whisper runs locally and stores model files under the ignored `.models/` path. The TTS, AI, VitaFlow, and vision live classes remain placeholders until separate reviewed tasks implement them.
+To test a live or local provider locally, edit only one selector in local `.env`, provide only that provider's required key, endpoint, or model settings, and rerun backend safety, non-invention, and source-of-truth tests. The STT adapter can call OpenAI only when `STT_PROVIDER=openai_whisper` is explicitly selected; faster-whisper runs locally and stores model files under the ignored `.models/` path. The Ollama AI adapter can call local Ollama only when `AI_PROVIDER=ollama` is explicitly selected, and it falls back to the mock workflow if the local server is offline or returns invalid/unsafe JSON. The TTS, OpenAI AI, VitaFlow, and vision live classes remain placeholders until separate reviewed tasks implement them.
 
 The first VitaFlow live task must use a reviewed read-only API or sanitized copy. It must not write to VitaFlow and must not read the ERP release directory or database directly.
 

@@ -27,6 +27,14 @@ def _env_float(name: str, default: float) -> float:
         raise RuntimeError(f"{name} must be a number") from exc
 
 
+def _env_int(name: str, default: int) -> int:
+    raw_value = os.getenv(name, str(default)).strip()
+    try:
+        return int(raw_value)
+    except ValueError as exc:
+        raise RuntimeError(f"{name} must be an integer") from exc
+
+
 def _validate_choice(name: str, value: str, allowed: frozenset[str]) -> None:
     if value not in allowed:
         allowed_values = ", ".join(sorted(allowed))
@@ -51,6 +59,8 @@ class Settings:
     elevenlabs_api_key: str
     elevenlabs_voice_id: str
     ollama_base_url: str
+    ollama_model: str
+    ollama_timeout_seconds: int
     vitaflow_api_base_url: str
 
     @classmethod
@@ -80,7 +90,9 @@ class Settings:
             ),
             elevenlabs_api_key=_env_text("ELEVENLABS_API_KEY"),
             elevenlabs_voice_id=_env_text("ELEVENLABS_VOICE_ID"),
-            ollama_base_url=_env_text("OLLAMA_BASE_URL"),
+            ollama_base_url=_env_text("OLLAMA_BASE_URL", "http://localhost:11434"),
+            ollama_model=_env_text("OLLAMA_MODEL", "qwen2.5:7b"),
+            ollama_timeout_seconds=_env_int("OLLAMA_TIMEOUT_SECONDS", 20),
             vitaflow_api_base_url=_env_text("VITAFLOW_API_BASE_URL"),
         )
 

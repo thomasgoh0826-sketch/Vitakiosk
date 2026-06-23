@@ -13,6 +13,7 @@ from services.contracts import (
 )
 from services.faster_whisper_stt import FasterWhisperSTT
 from services.leaflet_engine import LeafletEngine
+from services.ollama_ai import OllamaAIBrain
 from services.openai_stt import OpenAIWhisperSTT
 from services.poster_engine import PosterEngine
 from services.product_vision import BarcodeOCRVision, MockProductVision
@@ -154,7 +155,21 @@ def _create_ai_brain(
     if settings.ai_provider == "openai":
         _require(settings.openai_api_key, "OPENAI_API_KEY", "AI_PROVIDER=openai")
     if settings.ai_provider == "ollama":
-        _require(settings.ollama_base_url, "OLLAMA_BASE_URL", "AI_PROVIDER=ollama")
+        return OllamaAIBrain(
+            vitaflow=vitaflow,
+            promotion_engine=promotion_engine,
+            leaflet_engine=leaflet_engine,
+            guardrails=guardrails,
+            purchasing_store=purchasing_store,
+            escalation_store=escalation_store,
+            base_url=_require(
+                settings.ollama_base_url,
+                "OLLAMA_BASE_URL",
+                "AI_PROVIDER=ollama",
+            ),
+            model=settings.ollama_model,
+            timeout_seconds=settings.ollama_timeout_seconds,
+        )
     return LiveAIPlaceholder(
         provider_name=settings.ai_provider,
         guardrails=guardrails,

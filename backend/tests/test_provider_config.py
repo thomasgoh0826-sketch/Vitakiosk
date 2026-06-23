@@ -3,6 +3,7 @@ import pytest
 from backend.app.config import Settings
 from services.ai_brain import MockAIBrain
 from services.faster_whisper_stt import FasterWhisperSTT
+from services.ollama_ai import OllamaAIBrain
 from services.openai_stt import OpenAIWhisperSTT
 from services.product_vision import MockProductVision
 from services.providers import create_provider_bundle
@@ -27,6 +28,8 @@ PROVIDER_ENV = (
     "ELEVENLABS_API_KEY",
     "ELEVENLABS_VOICE_ID",
     "OLLAMA_BASE_URL",
+    "OLLAMA_MODEL",
+    "OLLAMA_TIMEOUT_SECONDS",
     "VITAFLOW_API_BASE_URL",
 )
 
@@ -139,6 +142,36 @@ def test_faster_whisper_stt_requires_explicit_provider_selection(
     assert isinstance(bundle.tts, MockTTS)
     assert isinstance(bundle.ai_brain, MockAIBrain)
     assert isinstance(bundle.vitaflow, MockVitaFlowAPI)
+
+
+def test_ollama_ai_requires_explicit_provider_selection_without_calling_network(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    clear_provider_env(monkeypatch)
+    monkeypatch.setenv("AI_PROVIDER", "ollama")
+    monkeypatch.setenv("OLLAMA_BASE_URL", "http://localhost:11434")
+    monkeypatch.setenv("OLLAMA_MODEL", "qwen2.5:7b")
+    monkeypatch.setenv("OLLAMA_TIMEOUT_SECONDS", "20")
+
+    bundle = create_provider_bundle(Settings.from_environment())
+
+    assert isinstance(bundle.stt, MockSTT)
+    assert isinstance(bundle.tts, MockTTS)
+    assert isinstance(bundle.ai_brain, OllamaAIBrain)
+    assert bundle.ai_brain.model == "qwen2.5:7b"
+    assert isinstance(bundle.vitaflow, MockVitaFlowAPI)
+
+
+def test_ollama_settings_have_local_defaults(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    clear_provider_env(monkeypatch)
+
+    settings = Settings.from_environment()
+
+    assert settings.ollama_base_url == "http://localhost:11434"
+    assert settings.ollama_model == "qwen2.5:7b"
+    assert settings.ollama_timeout_seconds == 20
 
 
 def test_invalid_provider_selector_is_rejected(
