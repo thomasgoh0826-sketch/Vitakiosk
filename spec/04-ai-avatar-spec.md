@@ -30,14 +30,17 @@ Three.js/VRM controls body motion, face expressions, blinking, head movement, id
 - `VITE_AVATAR_RENDERER=vrm` enables the optional VRM renderer without changing backend, WebSocket, mock data, provider, or safety behavior.
 - Plain `AVATAR_RENDERER` must not select the browser renderer; local frontend runtime configuration must use `VITE_AVATAR_RENDERER`.
 - `VITE_VRM_MODEL=vita` selects `frontend/src/assets/avatar/vita.vrm`; `VITE_VRM_MODEL=vita-new` selects `frontend/src/assets/avatar/vita-new.vrm` for controlled visual replacement testing.
-- In development mode, the assistant may show a small non-customer renderer debug badge with the current renderer name.
-- If the VRM renderer uses a fallback because the configured model is missing or model rendering fails, the developer console must include a warning with a clear fallback reason.
+- In development mode, the assistant may show a small non-customer renderer debug badge with the current renderer name and selected VRM model key.
+- In development mode, the kiosk may show a local runtime diagnostics badge with backend provider summary and frontend avatar renderer/model, including `AI: ollama`, `STT: faster_whisper`, `Avatar: vrm`, and `VRM: vita-new` for the local demo profile.
+- Backend AI provider selection must not change the frontend avatar renderer, and frontend avatar renderer selection must not change the backend AI provider.
+- If the VRM renderer uses a fallback because the configured model is missing, model rendering fails, or WebGL is unavailable, the developer console must include a warning with a clear fallback reason.
 - The Three.js renderer has accessible labels for every avatar state and supports idle, listening, thinking, speaking, error, and pharmacist escalation.
 - The VRM renderer has accessible labels for every avatar state and supports idle, listening, thinking, speaking, error, and pharmacist escalation.
 - When a GLB model is bundled at `frontend/src/assets/avatar/vitakiosk-avatar.glb`, the Three.js renderer loads it as a humanoid AI pharmacist avatar.
 - When a VRM model is bundled at `frontend/src/assets/avatar/vita.vrm`, the VRM renderer loads it as a self-hosted character avatar.
 - When `VITE_VRM_MODEL=vita-new` and `frontend/src/assets/avatar/vita-new.vrm` is bundled, the VRM renderer loads the alternate self-hosted test character and exposes `data-avatar-model-key="vita-new"` for runtime QA.
 - If `VITE_VRM_MODEL=vita-new` is selected but the alternate asset is unavailable or invalid, the renderer must fall back safely instead of silently displaying `vita.vrm` as if the selected test model loaded.
+- The local Ollama + VRM demo profile is accepted only when `frontend/.env.local` can select `VITE_AVATAR_RENDERER=vrm` and `VITE_VRM_MODEL=vita-new` while backend `.env` independently selects `AI_PROVIDER=ollama`; Ollama offline fallback must not hide or reset the VRM avatar.
 - If no GLB model is available or it fails to load, the renderer falls back to lightweight geometry, rings, particles, and panels.
 - If no VRM model is available or it fails to load, the renderer falls back safely without crashing the kiosk.
 - GLB and VRM models must stay lightweight enough for iPad landscape kiosk use, with a preferred target of 5 MB or less and review required before accepting models above 10 MB.

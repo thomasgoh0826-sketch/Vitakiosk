@@ -157,7 +157,8 @@ function canUseWebGL(): boolean {
 
 type VrmFallbackReason =
   | "missing-vrm-model-url"
-  | "vrm-scene-error";
+  | "vrm-load-failed"
+  | "webgl-unavailable";
 
 function warnVrmFallback(
   reason: VrmFallbackReason,
@@ -448,7 +449,7 @@ class AvatarSceneBoundary extends Component<AvatarSceneBoundaryProps, AvatarScen
   }
 
   componentDidCatch(error: unknown) {
-    warnVrmFallback("vrm-scene-error", {
+    warnVrmFallback("vrm-load-failed", {
       modelKey: this.props.modelKey,
       modelUrl: this.props.modelUrl,
       error: error instanceof Error ? error.message : String(error),
@@ -532,6 +533,16 @@ function VrmAvatarRenderer({
       });
     }
   }, [hasVrmModel, vrmModelKey]);
+
+  useEffect(() => {
+    if (!webglAvailable) {
+      warnVrmFallback("webgl-unavailable", {
+        modelKey: hasVrmModel ? vrmModelKey : "fallback",
+        modelUrl: resolvedVrmModelUrl,
+        configuredRenderer: import.meta.env.VITE_AVATAR_RENDERER || "missing",
+      });
+    }
+  }, [hasVrmModel, resolvedVrmModelUrl, vrmModelKey, webglAvailable]);
 
   return (
     <div

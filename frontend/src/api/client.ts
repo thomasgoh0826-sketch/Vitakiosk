@@ -1,5 +1,6 @@
 import type {
   AIResponse,
+  HealthResponse,
   ItemListResponse,
   MockActionResponse,
   Poster,
@@ -22,6 +23,7 @@ export class ApiError extends Error {
 }
 
 export interface VitaKioskApiClient {
+  health?(): Promise<HealthResponse>;
   transcribe(audio: Blob, sessionId: string): Promise<TranscriptionResponse>;
   respond(sessionId: string, text: string, branchId: string): Promise<AIResponse>;
   synthesize(sessionId: string, text: string): Promise<Blob>;
@@ -50,6 +52,10 @@ export class VitaKioskApi implements VitaKioskApiClient {
       throw new ApiError(await safeErrorMessage(response), response.status);
     }
     return (await response.json()) as T;
+  }
+
+  health(): Promise<HealthResponse> {
+    return this.json("/health");
   }
 
   async transcribe(audio: Blob, sessionId: string): Promise<TranscriptionResponse> {

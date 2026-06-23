@@ -10,6 +10,13 @@ def test_health_reports_mock_mode(client: TestClient) -> None:
         "status": "ok",
         "service": "vitakiosk-api",
         "provider_mode": "mock",
+        "provider_summary": {
+            "stt": "mock",
+            "tts": "mock",
+            "ai": "mock",
+            "vitaflow": "mock",
+            "vision": "mock",
+        },
     }
 
 

@@ -8,6 +8,7 @@ import LeafletModal from "./components/LeafletModal";
 import PharmacistEscalationPanel from "./components/PharmacistEscalationPanel";
 import ProductCard from "./components/ProductCard";
 import PromotionPoster, { type PromotionPanelMode } from "./components/PromotionPoster";
+import RuntimeDiagnostics from "./components/RuntimeDiagnostics";
 import ShelfMap from "./components/ShelfMap";
 import TapToSpeakButton from "./components/TapToSpeakButton";
 import TypedInputPanel from "./components/TypedInputPanel";
@@ -15,7 +16,7 @@ import useKioskSocket from "./hooks/useKioskSocket";
 import useVoiceInteraction from "./hooks/useVoiceInteraction";
 import { getTypedInputConfig } from "./inputConfig";
 import { MOCK_LEAFLETS } from "./mockLeaflets";
-import type { AvatarState, Leaflet, Product, UiAction } from "./types";
+import type { AvatarState, HealthResponse, Leaflet, Product, UiAction } from "./types";
 import { isApprovedUiAction } from "./uiActions";
 
 
@@ -89,6 +90,7 @@ function App() {
   const [modalLeafletId, setModalLeafletId] = useState<string | null>(null);
   const [typedQuestion, setTypedQuestion] = useState("");
   const [typedInputResetToken, setTypedInputResetToken] = useState(0);
+  const [runtimeHealth, setRuntimeHealth] = useState<HealthResponse | null>(null);
   const [pharmacistConfirmationRequested, setPharmacistConfirmationRequested] =
     useState(false);
   const typedInputConfig = getTypedInputConfig();
@@ -115,6 +117,32 @@ function App() {
     : voice.state;
   const escalationActive = avatarState === "pharmacist_escalation";
   const connectionCopy = socket.connected ? "Connected" : "Local state mode";
+
+  useEffect(() => {
+    if (!import.meta.env.DEV) {
+      return undefined;
+    }
+
+    let active = true;
+
+    void api
+      .health()
+      .then((health) => {
+        if (active) {
+          setRuntimeHealth(health);
+        }
+      })
+      .catch((error: unknown) => {
+        if (active) {
+          setRuntimeHealth(null);
+        }
+        console.warn("VitaKiosk runtime diagnostics unavailable", { error });
+      });
+
+    return () => {
+      active = false;
+    };
+  }, []);
 
   const requestAssistance = useCallback(() => {
     void api
@@ -360,6 +388,8 @@ function App() {
         onClose={() => setModalLeafletId(null)}
         onSelect={setModalLeafletId}
       />
+
+      <RuntimeDiagnostics health={runtimeHealth} />
 
       <footer className="kiosk-footer">
         <span><i className="status-dot" aria-hidden="true" /> {connectionCopy}</span>

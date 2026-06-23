@@ -98,6 +98,21 @@ export interface AIResponse {
   source: string;
 }
 
+export interface ProviderSummary {
+  stt: string;
+  tts: string;
+  ai: string;
+  vitaflow: string;
+  vision: string;
+}
+
+export interface HealthResponse {
+  status: string;
+  service: string;
+  provider_mode: string;
+  provider_summary: ProviderSummary;
+}
+
 export type TranscriptionLanguage =
   | "english"
   | "chinese"

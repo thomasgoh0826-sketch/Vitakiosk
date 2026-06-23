@@ -73,6 +73,13 @@ A feature is accepted only when:
   VitaFlow/mock-only product facts, whitelisted UI actions only, matching
   language context for English/Chinese/Malay/mixed transcripts, and proof that
   red-flag and pregnancy flows escalate before any Ollama product wording.
+- Local Ollama + VRM demo acceptance requires example-only backend and frontend
+  env files, backend provider summary through `/health`, dev-only runtime
+  diagnostics showing AI/STT provider and avatar renderer/model, proof that
+  backend `AI_PROVIDER=ollama` does not reset frontend `VITE_AVATAR_RENDERER=vrm`,
+  proof that frontend renderer config does not change backend provider mode, and
+  a clear VRM fallback console reason for missing model, load failure, or WebGL
+  unavailability.
 - Local development CORS acceptance requires explicit support for
   `http://127.0.0.1:5175`, `http://localhost:5175`,
   `http://127.0.0.1:5173`, and `http://localhost:5173` without wildcard

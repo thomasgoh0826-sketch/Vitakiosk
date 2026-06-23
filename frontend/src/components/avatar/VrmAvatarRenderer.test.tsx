@@ -67,6 +67,27 @@ describe("VrmAvatarRenderer", () => {
     expect(avatar).toHaveAttribute("data-avatar-model-url", "/assets/avatar/vita-new.vrm");
   });
 
+  it("logs a clear fallback reason when WebGL is unavailable", () => {
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => undefined);
+
+    render(
+      <VrmAvatarRenderer
+        state="idle"
+        audioActivity={0}
+        vrmModelKey="vita-new"
+        vrmModelUrl="/assets/avatar/vita-new.vrm"
+      />,
+    );
+
+    expect(warn).toHaveBeenCalledWith(
+      expect.stringContaining("VitaKiosk VRM fallback"),
+      expect.objectContaining({
+        reason: "webgl-unavailable",
+        modelKey: "vita-new",
+      }),
+    );
+  });
+
   it("does not show technical VRM renderer labels to customers", () => {
     render(
       <VrmAvatarRenderer

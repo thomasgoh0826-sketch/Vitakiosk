@@ -1,8 +1,17 @@
+import {
+  getConfiguredVrmAvatarModelKey,
+  type VrmAvatarModelKey,
+} from "./AvatarRuntimeConfig";
+
 export const DEFAULT_AVATAR_MODEL_MODULE_KEY = "../../assets/avatar/vitakiosk-avatar.glb";
 export const DEFAULT_VRM_AVATAR_MODEL_MODULE_KEY = "../../assets/avatar/vita.vrm";
 export const VITA_NEW_VRM_AVATAR_MODEL_MODULE_KEY = "../../assets/avatar/vita-new.vrm";
 
-export type VrmAvatarModelKey = "vita" | "vita-new";
+export {
+  getConfiguredVrmAvatarModelKey,
+  getDefaultVrmAvatarModelKey,
+  type VrmAvatarModelKey,
+} from "./AvatarRuntimeConfig";
 
 type AvatarModelModules = Record<string, string>;
 
@@ -32,12 +41,6 @@ export function getAvatarModelUrlFromModules(modules: AvatarModelModules): strin
 
 export function getDefaultAvatarModelUrl(): string | null {
   return getAvatarModelUrlFromModules(avatarModelModules);
-}
-
-export function getConfiguredVrmAvatarModelKey(
-  configuredModel = import.meta.env.VITE_VRM_MODEL,
-): VrmAvatarModelKey {
-  return configuredModel === "vita-new" ? "vita-new" : "vita";
 }
 
 function getVrmModelModuleKey(modelKey: VrmAvatarModelKey): string {
@@ -74,8 +77,4 @@ export function getVrmAvatarModelUrlFromModules(
 
 export function getDefaultVrmAvatarModelUrl(): string | null {
   return getVrmAvatarModelUrlFromModules(vrmAvatarModelModules);
-}
-
-export function getDefaultVrmAvatarModelKey(): VrmAvatarModelKey {
-  return getConfiguredVrmAvatarModelKey();
 }

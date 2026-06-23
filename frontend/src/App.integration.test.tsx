@@ -7,10 +7,14 @@ const hookMocks = vi.hoisted(() => ({
   socket: vi.fn(),
   voice: vi.fn(),
   escalate: vi.fn(),
+  health: vi.fn(),
 }));
 
 vi.mock("./api/client", () => ({
-  api: { escalatePharmacist: hookMocks.escalate },
+  api: {
+    escalatePharmacist: hookMocks.escalate,
+    health: hookMocks.health,
+  },
 }));
 vi.mock("./hooks/useKioskSocket", () => ({ default: hookMocks.socket }));
 vi.mock("./hooks/useVoiceInteraction", () => ({ default: hookMocks.voice }));
@@ -28,7 +32,20 @@ describe("integrated kiosk panels", () => {
     submitText.mockReset();
     resetVoice.mockReset();
     sendState.mockReset();
+    hookMocks.health.mockReset();
     vi.unstubAllEnvs();
+    hookMocks.health.mockResolvedValue({
+      status: "ok",
+      service: "vitakiosk-api",
+      provider_mode: "mock",
+      provider_summary: {
+        stt: "mock",
+        tts: "mock",
+        ai: "mock",
+        vitaflow: "mock",
+        vision: "mock",
+      },
+    });
     hookMocks.escalate.mockReset();
     hookMocks.escalate.mockResolvedValue({
       id: "ESC-0099",
@@ -118,6 +135,34 @@ describe("integrated kiosk panels", () => {
     expect(screen.getByText("$12.50")).toBeInTheDocument();
     expect(screen.getByText("Relief Balm Demo Leaflet")).toBeInTheDocument();
     expect(screen.getAllByText(/Mock VitaFlow/i).length).toBeGreaterThan(0);
+  });
+
+  it("shows local demo provider and avatar diagnostics in dev mode without coupling backend and frontend config", async () => {
+    vi.stubEnv("VITE_AVATAR_RENDERER", "vrm");
+    vi.stubEnv("VITE_VRM_MODEL", "vita-new");
+    hookMocks.health.mockResolvedValueOnce({
+      status: "ok",
+      service: "vitakiosk-api",
+      provider_mode: "mock",
+      provider_summary: {
+        stt: "faster_whisper",
+        tts: "mock",
+        ai: "ollama",
+        vitaflow: "mock",
+        vision: "mock",
+      },
+    });
+
+    render(<App />);
+
+    const diagnostics = await screen.findByLabelText("Local demo runtime diagnostics");
+    expect(diagnostics).toHaveTextContent("AI: ollama");
+    expect(diagnostics).toHaveTextContent("STT: faster_whisper");
+    expect(diagnostics).toHaveTextContent("Avatar: vrm");
+    expect(diagnostics).toHaveTextContent("VRM: vita-new");
+    expect(
+      await screen.findByLabelText(/vrm (character|fallback) ai avatar: ready/i),
+    ).toHaveAttribute("data-avatar-model-key", "vita-new");
   });
 
   it("shows cinematic AI subtitle while hiding the customer transcript from the main UI", () => {

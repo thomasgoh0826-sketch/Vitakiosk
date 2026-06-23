@@ -110,6 +110,7 @@ describe("AvatarAssistant", () => {
     expect(avatar).toHaveAttribute("data-avatar-renderer", "vrm");
     expect(avatar).toHaveAttribute("data-avatar-model-key", "vita-new");
     expect(screen.getByText("Renderer: vrm")).toBeInTheDocument();
+    expect(screen.getByText("Model: vita-new")).toBeInTheDocument();
   });
 
   it("shows the default holographic renderer when VITE_AVATAR_RENDERER is missing", () => {

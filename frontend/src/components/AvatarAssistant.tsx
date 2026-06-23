@@ -5,6 +5,7 @@ import {
   getConfiguredAvatarRenderer,
   type AvatarRendererKind,
 } from "./avatar/AvatarRenderer";
+import { getDefaultVrmAvatarModelKey } from "./avatar/AvatarRuntimeConfig";
 import LottieAvatarRenderer from "./avatar/LottieAvatarRenderer";
 
 
@@ -35,6 +36,7 @@ function AvatarAssistant({
 }: AvatarAssistantProps) {
   const stateLabel = STATE_LABELS[state];
   const rendererKind = renderer ?? getConfiguredAvatarRenderer();
+  const vrmModelKey = getDefaultVrmAvatarModelKey();
   const showRendererDebug = import.meta.env.DEV;
   const avatarRenderer = (() => {
     if (rendererKind === "vrm") {
@@ -104,7 +106,8 @@ function AvatarAssistant({
         </span>
         {showRendererDebug ? (
           <span className="avatar-renderer-debug" aria-label={`Current avatar renderer ${rendererKind}`}>
-            Renderer: {rendererKind}
+            <span>Renderer: {rendererKind}</span>
+            {rendererKind === "vrm" ? <span>Model: {vrmModelKey}</span> : null}
           </span>
         ) : null}
       </div>

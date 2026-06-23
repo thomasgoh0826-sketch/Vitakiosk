@@ -121,6 +121,22 @@ Manual local phrases:
 
 Expected behavior: matching-language safe wording when Ollama is available, no invented product facts, unknown products still create purchasing queries instead of guesses, and pregnancy/breastfeeding/red-flag questions escalate before any Ollama wording or product flow.
 
+### Local Ollama + VRM demo profile
+
+Use `docs/local-demo-env.md` when you want the local backend to run faster-whisper + Ollama and the frontend to run the self-hosted VRM avatar at the same time. Backend provider values belong in local `.env`; frontend avatar/API values belong in `frontend/.env.local`.
+
+```powershell
+# Backend
+python -m uvicorn backend.app.main:app --reload --host 127.0.0.1 --port 8001
+
+# Frontend
+npm.cmd run dev --prefix frontend -- --host 127.0.0.1 --port 5175
+```
+
+Frontend URL: [http://127.0.0.1:5175](http://127.0.0.1:5175).
+
+The dev-only runtime badge should show `AI: ollama`, `STT: faster_whisper`, `Avatar: vrm`, and `VRM: vita-new`. Ollama and VRM are independent configs: if Ollama is offline, the backend must fall back safely without hiding the VRM avatar; if VRM fails, the frontend falls back to the holographic assistant and logs the reason without changing backend provider mode.
+
 ## Install
 
 Run all commands from the repository root.
@@ -178,7 +194,7 @@ Use `VITE_AVATAR_RENDERER=vrm`; plain `AVATAR_RENDERER` is not read by the brows
 
 | Method | Path | Mock behavior |
 |---|---|---|
-| GET | `/health` | Reports service and provider mode |
+| GET | `/health` | Reports service, provider mode, and provider summary for dev diagnostics |
 | POST | `/api/voice/transcribe` | Returns deterministic mock transcript plus provider/language/confidence/correction/clarification metadata; optional OpenAI Whisper or local faster-whisper STT only when explicitly enabled locally |
 | POST | `/api/ai/respond` | Runs safety and mock intent workflow; optional local Ollama wording only when `AI_PROVIDER=ollama` is explicitly selected |
 | POST | `/api/voice/tts` | Returns a generated WAV tone |

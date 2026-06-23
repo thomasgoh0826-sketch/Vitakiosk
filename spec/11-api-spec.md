@@ -11,6 +11,7 @@ Expose typed mock contracts for the kiosk without provider-specific route logic.
 ## Acceptance criteria
 
 - Every requested route is present in OpenAPI except the WebSocket, which is registered separately.
+- `/health` returns service status, provider mode, and a provider summary for development diagnostics without requiring live provider credentials.
 - Empty audio and empty search values return validation errors.
 - `/api/voice/transcribe` returns `transcript`, `provider`, `language`, `confidence`, `clarification_needed`, `corrected_transcript`, `detected_terms`, and `possible_product_matches` metadata for mock, explicitly enabled OpenAI Whisper STT, and explicitly enabled local faster-whisper STT.
 - TTS returns `audio/wav` and `X-Voice-Provider: mock_tts`.

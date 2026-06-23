@@ -33,11 +33,12 @@ app.include_router(actions.router)
 
 
 @app.get("/health")
-def health() -> dict[str, str]:
+def health() -> dict[str, object]:
     return {
         "status": "ok",
         "service": "vitakiosk-api",
         "provider_mode": settings.provider_mode,
+        "provider_summary": settings.provider_summary,
     }
 
 
