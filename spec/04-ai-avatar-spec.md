@@ -32,6 +32,8 @@ Three.js/VRM controls body motion, face expressions, blinking, head movement, id
 - `VITE_VRM_MODEL=vita` selects `frontend/src/assets/avatar/vita.vrm`; `VITE_VRM_MODEL=vita-new` selects `frontend/src/assets/avatar/vita-new.vrm` for controlled visual replacement testing.
 - In development mode, the assistant may show a small non-customer renderer debug badge with the current renderer name and selected VRM model key.
 - In development mode, the kiosk may show a local runtime diagnostics badge with backend provider summary and frontend avatar renderer/model, including `AI: ollama`, `STT: faster_whisper`, `Avatar: vrm`, and `VRM: vita-new` for the local demo profile.
+- The frontend provides an explicit local VRM startup helper (`npm.cmd run dev:vrm --prefix frontend`) that injects `VITE_AVATAR_RENDERER=vrm`, `VITE_VRM_MODEL=vita-new`, `VITE_API_BASE_URL=http://127.0.0.1:8001`, and `VITE_WS_BASE_URL=ws://127.0.0.1:8001` before Vite starts.
+- If port 5175 is already occupied, the local VRM startup helper must fail clearly with strict-port behavior and show the PowerShell command for identifying the old listener instead of silently switching ports.
 - Backend AI provider selection must not change the frontend avatar renderer, and frontend avatar renderer selection must not change the backend AI provider.
 - If the VRM renderer uses a fallback because the configured model is missing, model rendering fails, or WebGL is unavailable, the developer console must include a warning with a clear fallback reason.
 - The Three.js renderer has accessible labels for every avatar state and supports idle, listening, thinking, speaking, error, and pharmacist escalation.

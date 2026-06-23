@@ -95,7 +95,15 @@ Start the frontend:
 npm.cmd run dev --prefix frontend -- --host 127.0.0.1 --port 5175 --strictPort
 ```
 
+Or use the dedicated VRM helper, which sets the local frontend values before Vite starts:
+
+```powershell
+npm.cmd run dev:vrm --prefix frontend
+```
+
 Open [http://127.0.0.1:5175](http://127.0.0.1:5175).
+
+Vite reads `frontend/.env.local` only at startup. If the browser still shows the holographic assistant after editing `frontend/.env.local`, stop the existing 5175 frontend process and restart it with one of the commands above.
 
 Port 5175 is fixed. If it is occupied, Vite must fail instead of switching to a higher port. Check the existing listener and close the old dev server before restarting:
 

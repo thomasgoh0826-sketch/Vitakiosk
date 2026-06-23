@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "dev:vrm": "node ./scripts/dev-vrm.mjs",
     "build": "tsc --noEmit && vite build",
     "test": "vitest",
     "test:run": "vitest run"

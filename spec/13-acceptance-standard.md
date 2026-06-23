@@ -83,7 +83,9 @@ A feature is accepted only when:
   backend `AI_PROVIDER=ollama` does not reset frontend `VITE_AVATAR_RENDERER=vrm`,
   proof that frontend renderer config does not change backend provider mode, and
   a clear VRM fallback console reason for missing model, load failure, or WebGL
-  unavailability.
+  unavailability. It must include a strict-port local VRM startup helper that
+  injects the documented Vite variables before startup and fails clearly if an
+  old 5175 dev server is still running.
 - Local development CORS acceptance requires explicit support for
   `http://127.0.0.1:5175`, `http://localhost:5175`,
   `http://127.0.0.1:5173`, and `http://localhost:5173` without wildcard

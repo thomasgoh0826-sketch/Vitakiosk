@@ -133,6 +133,12 @@ python -m uvicorn backend.app.main:app --reload --host 127.0.0.1 --port 8001
 npm.cmd run dev --prefix frontend -- --host 127.0.0.1 --port 5175 --strictPort
 ```
 
+For the VRM demo, you may also use the dedicated startup helper, which injects the frontend VRM values at Vite startup:
+
+```powershell
+npm.cmd run dev:vrm --prefix frontend
+```
+
 Frontend URL: [http://127.0.0.1:5175](http://127.0.0.1:5175).
 
 The dev-only runtime badge should show `AI: ollama`, `STT: faster_whisper`, `Avatar: vrm`, and `VRM: vita-new`. Ollama and VRM are independent configs: if Ollama is offline, the backend must fall back safely without hiding the VRM avatar; if VRM fails, the frontend falls back to the holographic assistant and logs the reason without changing backend provider mode.
@@ -196,6 +202,14 @@ VITE_KEYBOARD_DEFAULT_LANGUAGE=en
 ```
 
 Use `VITE_AVATAR_RENDERER=vrm`; plain `AVATAR_RENDERER` is not read by the browser runtime. If the VRM renderer cannot use the selected local model, the kiosk keeps the holographic fallback and writes a developer console warning with the fallback reason.
+
+Vite reads `frontend/.env.local` only when the dev server starts. If you create or edit `frontend/.env.local` while the frontend is already running, stop the old 5175 dev server and restart it. As a no-copy option for local demos, run:
+
+```powershell
+npm.cmd run dev:vrm --prefix frontend
+```
+
+This helper sets `VITE_AVATAR_RENDERER=vrm`, `VITE_VRM_MODEL=vita-new`, `VITE_API_BASE_URL=http://127.0.0.1:8001`, and `VITE_WS_BASE_URL=ws://127.0.0.1:8001` before Vite starts.
 
 ## API surface
 
