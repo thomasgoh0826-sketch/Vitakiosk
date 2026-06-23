@@ -31,6 +31,15 @@ def _normalise(value: str) -> str:
     return " ".join(_TOKEN_PATTERN.findall(value.casefold()))
 
 
+COMMON_TRANSCRIPT_REWRITES = {
+    "aida you bat batuck": "ada ubat batuk",
+    "aida you bat batuk": "ada ubat batuk",
+    "ada you bat batuck": "ada ubat batuk",
+    "ada you bat batuk": "ada ubat batuk",
+    "you bat batuck": "ubat batuk",
+}
+
+
 def _mock_product_terms() -> tuple[CorrectionTerm, ...]:
     terms: list[CorrectionTerm] = []
     for product in MOCK_PRODUCTS:
@@ -61,7 +70,20 @@ COMMON_PHARMACY_TERMS: tuple[CorrectionTerm, ...] = (
     ),
     CorrectionTerm(
         canonical="ubat batuk",
-        variants=("ubat batuk", "ubat batok"),
+        variants=(
+            "ubat batuk",
+            "ubat batok",
+            "aida you bat batuck",
+            "aida you bat batuk",
+            "you bat batuck",
+            "batuk",
+        ),
+        kind="category_term",
+        source="correction_lexicon",
+    ),
+    CorrectionTerm(
+        canonical="cough medicine",
+        variants=("cough medicine", "cough medication", "cough syrup", "cough"),
         kind="category_term",
         source="correction_lexicon",
     ),
@@ -100,6 +122,9 @@ def _replace_variant(text: str, variant: str, canonical: str) -> str:
 
 def correct_transcript(transcript: str) -> TranscriptCorrection:
     corrected = " ".join(transcript.split())
+    rewritten = COMMON_TRANSCRIPT_REWRITES.get(_normalise(corrected))
+    if rewritten:
+        corrected = rewritten
     detected: list[str] = []
     matches: list[dict[str, object]] = []
 
@@ -115,6 +140,14 @@ def correct_transcript(transcript: str) -> TranscriptCorrection:
             continue
 
         for variant in sorted(term.variants, key=len, reverse=True):
+            normalized_variant = _normalise(variant)
+            normalized_canonical = _normalise(term.canonical)
+            normalized_corrected = _normalise(corrected)
+            if (
+                normalized_variant in normalized_canonical
+                and normalized_canonical in normalized_corrected
+            ):
+                continue
             corrected = _replace_variant(corrected, variant, term.canonical)
 
         if term.canonical not in detected:

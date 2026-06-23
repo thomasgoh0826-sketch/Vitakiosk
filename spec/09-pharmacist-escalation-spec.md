@@ -6,11 +6,15 @@ Stop unsafe self-service flows and request human assistance.
 
 ## Triggers
 
-Red-flag phrases, diagnosis requests, and manual customer assistance requests.
+Red-flag phrases, pregnancy or breastfeeding safety questions, diagnosis
+requests, and manual customer assistance requests.
 
 ## Acceptance criteria
 
 - Red flags short-circuit before VitaFlow lookup and TTS.
+- Pregnancy and breastfeeding questions short-circuit before product lookup,
+  promotion matching, shelf navigation, unknown-product handling, and
+  purchasing-query creation.
 - Diagnosis requests do not produce a diagnosis.
 - Escalation creates an `ESC-####` mock record.
 - WebSocket emits `pharmacist_escalation` for the correct session.

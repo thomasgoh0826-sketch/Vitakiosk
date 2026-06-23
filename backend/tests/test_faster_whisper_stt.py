@@ -58,6 +58,8 @@ def test_faster_whisper_detects_multilingual_pharmacy_speech(
         ("where is pana doll", "where is Panadol", "Panadol"),
         ("do you have probio gut", "do you have ProbioGut", "ProbioGut"),
         ("ada ubat batok", "ada ubat batuk", "ubat batuk"),
+        ("Aida you bat batuck", "ada ubat batuk", "ubat batuk"),
+        ("any cough medicine?", "any cough medicine?", "cough medicine"),
     ],
 )
 def test_product_dictionary_correction_uses_mock_pharmacy_terms(
@@ -125,4 +127,38 @@ def test_red_flag_transcript_still_escalates_through_existing_safety_rules() -> 
 
     assert result.intent is Intent.RED_FLAG
     assert result.requires_pharmacist is True
+    assert result.escalation_id == escalations.items[0].id
+
+
+@pytest.mark.parametrize(
+    "transcribed_text",
+    [
+        "I am pregnant, can I take this supplement?",
+        "Can pregnant women take this?",
+        "Saya hamil boleh makan supplement ini?",
+        "孕妇可以吃这个吗?",
+    ],
+)
+def test_pregnancy_transcript_escalates_without_purchasing_query(
+    transcribed_text: str,
+) -> None:
+    stt = FasterWhisperSTT(model_runner=transcriber(transcribed_text, confidence=0.96))
+    transcript = stt.transcribe(b"mock audio", "audio/webm")
+    purchasing = PurchasingQueryStore()
+    escalations = EscalationStore()
+    brain = MockAIBrain(
+        vitaflow=MockVitaFlowAPI(),
+        promotion_engine=PromotionEngine(),
+        guardrails=SafetyGuardrails(),
+        purchasing_store=purchasing,
+        escalation_store=escalations,
+    )
+
+    result = brain.respond(transcript.corrected_transcript, branch_id="SG-001")
+
+    assert result.intent is Intent.RED_FLAG
+    assert result.requires_pharmacist is True
+    assert result.safety_reason == "pregnancy_safety"
+    assert result.purchasing_query_id is None
+    assert len(purchasing.items) == 0
     assert result.escalation_id == escalations.items[0].id

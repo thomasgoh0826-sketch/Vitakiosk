@@ -138,6 +138,28 @@ def test_diagnosis_request_is_blocked_and_handed_off() -> None:
     assert decision.reason_code == "diagnosis_request"
 
 
+@pytest.mark.parametrize(
+    "text",
+    [
+        "I am pregnant, can I take this supplement?",
+        "pregnancy supplement question",
+        "expecting mother asking about vitamins",
+        "breast feeding and cough medicine",
+        "ibu mengandung boleh makan supplement?",
+        "Saya hamil boleh makan supplement ini?",
+        "怀孕可以吃这个吗?",
+        "孕妇可以吃这个吗?",
+        "哺乳可以吃这个吗?",
+    ],
+)
+def test_pregnancy_and_breastfeeding_terms_require_pharmacist_review(text: str) -> None:
+    decision = SafetyGuardrails().evaluate(text)
+
+    assert decision.allowed is False
+    assert decision.requires_pharmacist is True
+    assert decision.reason_code == "pregnancy_safety"
+
+
 def test_safe_product_request_is_allowed() -> None:
     decision = SafetyGuardrails().evaluate("Where is the relief balm?")
 

@@ -12,11 +12,13 @@ Classify requests deterministically before any future model integration.
 
 - Phrase-table classification covers every required intent.
 - Safety runs before classification and product lookup.
+- Safety evaluates raw, corrected, and normalized request text before product lookup, unknown-product handling, purchasing-query creation, promotion matching, shelf navigation, or recommendation text.
 - `AI_PROVIDER` defaults to `mock`.
 - Safety guardrails run before any live AI adapter response path.
 - OpenAI or Ollama credentials alone cannot activate a live AI adapter.
 - Tests must use the mock AI provider only and must not call external model services.
 - Product counselling remains non-diagnostic and recommends pharmacist review.
+- Pregnancy and breastfeeding questions, including English, Malay, and Chinese terms, return pharmacist escalation/review before any product, promotion, shelf, or purchasing-query flow.
 - Price, stock, promotion, and shelf responses reproduce adapter facts exactly.
 - Unknown products return no product and create one purchasing query.
 - Backend AI responses may include only structured whitelisted `ui_actions`; arbitrary UI instructions are not valid output.

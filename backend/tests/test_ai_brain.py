@@ -79,6 +79,38 @@ def test_diagnosis_request_is_handed_to_pharmacist_without_lookup() -> None:
     assert vitaflow.search_count == 0
 
 
+@pytest.mark.parametrize(
+    "text",
+    [
+        "I am pregnant, can I take this supplement?",
+        "Can pregnant women take this?",
+        "Saya hamil boleh makan supplement ini?",
+        "孕妇可以吃这个吗?",
+    ],
+)
+def test_pregnancy_safety_questions_escalate_before_product_flow(text: str) -> None:
+    vitaflow = CountingVitaFlow()
+    brain, purchasing, escalations = build_brain(vitaflow=vitaflow)
+
+    result = brain.respond(text, branch_id="SG-001")
+
+    assert result.intent is Intent.RED_FLAG
+    assert result.requires_pharmacist is True
+    assert result.safety_reason == "pregnancy_safety"
+    assert result.escalation_id == escalations.items[0].id
+    assert result.purchasing_query_id is None
+    assert result.product is None
+    assert result.promotions == ()
+    assert result.leaflets == ()
+    assert len(purchasing.items) == 0
+    assert vitaflow.search_count == 0
+    assert "pregnancy" in result.message.casefold()
+    assert "pharmacist" in result.message.casefold()
+    assert [action.type for action in result.ui_actions] == [
+        "REQUEST_PHARMACIST_ASSISTANCE"
+    ]
+
+
 def test_unknown_product_creates_one_purchasing_query() -> None:
     brain, purchasing, _ = build_brain()
 

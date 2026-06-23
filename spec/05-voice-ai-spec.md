@@ -26,7 +26,8 @@ MediaRecorder plus browser-side silence detection -> selected STT adapter -> cla
 - `STT_PROVIDER=faster_whisper` requires local `FASTER_WHISPER_*` settings and loads models only when that provider is explicitly selected and used.
 - Whisper/OpenAI and faster-whisper STT accept the existing voice upload payload and return transcript text, provider, detected or inferred language, confidence when available, corrected transcript, detected terms, possible product/category matches, and clarification status.
 - STT supports English, Chinese, Malay, and mixed Malaysian-style speech metadata while preserving product and medicine names in the transcript text.
-- Local faster-whisper STT applies a post-STT correction layer using mock VitaFlow product names, aliases, and a local Malaysian pharmacy term lexicon; it must not invent stock, price, promotion, shelf location, or product facts.
+- Local faster-whisper STT applies a post-STT correction layer using mock VitaFlow product names, aliases, and a local Malaysian pharmacy term lexicon, including likely cough/`ubat batuk` variants; it must not invent stock, price, promotion, shelf location, or product facts.
+- Safety guardrails evaluate the corrected transcript before any AI/product flow, so pregnancy and breastfeeding safety questions still escalate even when STT output is routed through correction metadata.
 - Unclear speech returns `clarification_needed=true`; the frontend asks the customer to try again and must not call AI response, product recommendation, TTS, or promotion flow for that unclear transcript.
 - STT remains conversion-only and must not diagnose, prescribe, recommend products, or generate medical advice.
 - Tests must not call OpenAI Whisper, ElevenLabs, or any external speech provider.

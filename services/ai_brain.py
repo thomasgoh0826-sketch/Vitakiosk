@@ -13,6 +13,7 @@ from services.models import (
 )
 from services.promotion_engine import PromotionEngine
 from services.safety_guardrails import SafetyGuardrails
+from services.transcript_correction import correct_transcript
 from services.workflows import EscalationStore, PurchasingQueryStore
 
 
@@ -42,7 +43,8 @@ class MockAIBrain:
         session_id: str | None = None,
     ) -> AIResult:
         safe_text = " ".join(text.split())
-        safety = self._guardrails.evaluate(safe_text)
+        corrected_text = correct_transcript(safe_text).corrected_transcript
+        safety = self._guardrails.evaluate_any(safe_text, corrected_text)
         if not safety.allowed:
             escalation = self._escalation_store.create(
                 safety.reason_code or "safety_handoff",
@@ -51,10 +53,7 @@ class MockAIBrain:
             self._clear_pending(session_id)
             return AIResult(
                 intent=Intent.RED_FLAG,
-                message=(
-                    "I cannot assess or diagnose this. "
-                    "A pharmacist has been asked to assist you now."
-                ),
+                message=self._safety_message(safety.reason_code),
                 requires_pharmacist=True,
                 escalation_id=escalation.id,
                 safety_reason=safety.reason_code,
@@ -402,6 +401,18 @@ class MockAIBrain:
             return f"{product.name} {field_name} is unavailable from VitaFlow."
         return f"VitaFlow mock {field_name} for {product.name}: {value}."
 
+    @staticmethod
+    def _safety_message(reason_code: str | None) -> str:
+        if reason_code == "pregnancy_safety":
+            return (
+                "For your safety, please speak with our pharmacist before "
+                "taking supplements during pregnancy."
+            )
+        return (
+            "I cannot assess or diagnose this. "
+            "A pharmacist has been asked to assist you now."
+        )
+
 
 __all__ = ["Intent", "MockAIBrain"]
 
@@ -433,7 +444,8 @@ class LiveAIPlaceholder:
     ) -> AIResult:
         del session_id
         safe_text = " ".join(text.split())
-        safety = self._guardrails.evaluate(safe_text)
+        corrected_text = correct_transcript(safe_text).corrected_transcript
+        safety = self._guardrails.evaluate_any(safe_text, corrected_text)
         if not safety.allowed:
             escalation = self._escalation_store.create(
                 safety.reason_code or "safety_handoff",
@@ -441,10 +453,7 @@ class LiveAIPlaceholder:
             )
             return AIResult(
                 intent=Intent.RED_FLAG,
-                message=(
-                    "I cannot assess or diagnose this. "
-                    "A pharmacist has been asked to assist you now."
-                ),
+                message=MockAIBrain._safety_message(safety.reason_code),
                 requires_pharmacist=True,
                 escalation_id=escalation.id,
                 safety_reason=safety.reason_code,
