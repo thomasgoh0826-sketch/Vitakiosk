@@ -1,8 +1,10 @@
 import { describe, expect, it } from "vitest";
 
+import virtualKeyboardSource from "./components/VirtualKeyboard.tsx?raw";
 import styles from "./styles.css?raw";
 
 const normalizedStyles = styles.replace(/\r\n/g, "\n");
+const normalizedVirtualKeyboardSource = virtualKeyboardSource.replace(/\r\n/g, "\n");
 
 describe("typed input layout CSS contract", () => {
   it("does not shrink the whole kiosk behind a fixed canvas wrapper", () => {
@@ -37,8 +39,16 @@ describe("typed input layout CSS contract", () => {
     expect(normalizedStyles).toContain("minmax(192px, 0.9fr)");
     expect(normalizedStyles).toContain(".virtual-keyboard-layout {");
     expect(normalizedStyles).toContain("align-content: end");
-    expect(normalizedStyles).toContain(".pinyin-panel {");
-    expect(normalizedStyles).toContain(".pinyin-candidates {");
+    expect(normalizedStyles).toContain(".device-ime-panel {");
+    expect(normalizedStyles).not.toContain(".pinyin-candidates {");
     expect(normalizedStyles).toContain(".keyboard-key-wide");
+  });
+
+  it("does not ship a custom Chinese pharmacy phrase dictionary in the keyboard", () => {
+    expect(normalizedVirtualKeyboardSource).not.toContain("COMMON_ZH_CANDIDATES");
+    expect(normalizedVirtualKeyboardSource).not.toContain("DEFAULT_ZH_CANDIDATES");
+    expect(normalizedVirtualKeyboardSource).not.toContain("Insert candidate");
+    expect(normalizedVirtualKeyboardSource).not.toContain("Demo Chinese candidates");
+    expect(normalizedVirtualKeyboardSource).toContain("Use device Chinese keyboard / pinyin IME");
   });
 });

@@ -4171,8 +4171,7 @@ body {
   margin: 0;
 }
 
-.keyboard-latin-layout,
-.keyboard-quick-grid {
+.keyboard-latin-layout {
   display: grid;
   gap: 7px;
 }
@@ -4221,69 +4220,25 @@ body {
   margin-top: 2px;
 }
 
-.pinyin-panel {
-  display: grid;
-  grid-template-columns: minmax(116px, 0.22fr) minmax(0, 1fr);
-  gap: clamp(6px, 0.7dvw, 10px);
-  align-items: stretch;
-}
-
-.pinyin-composition,
-.pinyin-candidates {
-  min-height: clamp(38px, 5dvh, 48px);
+.device-ime-panel {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: clamp(10px, 1.1dvw, 18px);
+  min-height: clamp(86px, 13dvh, 124px);
+  padding: clamp(12px, 1.25dvw, 18px);
   border: 1px solid rgba(155, 108, 255, 0.28);
-  border-radius: 14px;
-  background: rgba(3, 10, 24, 0.56);
+  border-radius: clamp(14px, 1.2dvw, 20px);
+  background:
+    radial-gradient(circle at 16% 0%, rgba(155, 108, 255, 0.18), transparent 38%),
+    rgba(3, 10, 24, 0.56);
 }
 
-.pinyin-composition {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0 12px;
-  color: var(--neon-cyan);
-  font-size: clamp(0.78rem, 1dvw, 1.08rem);
-  font-weight: 900;
-  letter-spacing: 0.06em;
-}
-
-.pinyin-candidates {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  overflow-x: auto;
-  padding: 5px;
-}
-
-.pinyin-candidate {
-  min-height: clamp(32px, 4.2dvh, 42px);
-  min-width: clamp(58px, 7dvw, 104px);
-  flex: 0 0 auto;
-  border-radius: 999px;
-  padding: 0 12px;
-  font-weight: 900;
-  color: #f4fbff !important;
-  background: rgba(155, 108, 255, 0.16) !important;
-}
-
-.pinyin-empty {
-  padding: 0 10px;
-  color: var(--text-muted);
-  font-size: clamp(0.66rem, 0.74dvw, 0.9rem);
-}
-
-.keyboard-quick-grid {
-  grid-template-columns: repeat(auto-fit, minmax(82px, 1fr));
-}
-
-.keyboard-quick-grid-compact {
-  grid-template-columns: repeat(auto-fit, minmax(76px, 1fr));
-}
-
-.keyboard-key-phrase {
-  min-width: 0;
-  padding: 0 10px;
-  color: #eaffff;
+.device-ime-panel p {
+  margin: 0;
+  color: var(--text-primary);
+  font-size: clamp(0.78rem, 0.92dvw, 1.05rem);
+  line-height: 1.45;
 }
 
 .keyboard-action-row {
@@ -4413,8 +4368,9 @@ body {
     overflow-y: auto;
   }
 
-  .pinyin-panel {
-    grid-template-columns: minmax(0, 1fr);
+  .device-ime-panel {
+    align-items: stretch;
+    flex-direction: column;
   }
 
   .keyboard-row {

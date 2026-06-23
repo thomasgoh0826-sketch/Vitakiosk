@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 
 import type { KeyboardLanguage } from "../inputConfig";
 import LanguageSwitcher from "./LanguageSwitcher";
@@ -14,66 +14,11 @@ interface VirtualKeyboardProps {
   onClose: () => void;
 }
 
-interface PinyinCandidate {
-  pinyin: string;
-  text: string;
-}
-
 const QWERTY_ROWS = [
   ["Q", "W", "E", "R", "T", "Y", "U", "I", "O", "P"],
   ["A", "S", "D", "F", "G", "H", "J", "K", "L"],
   ["Z", "X", "C", "V", "B", "N", "M"],
 ];
-
-const COMMON_ZH_CANDIDATES: PinyinCandidate[] = [
-  { pinyin: "zhe", text: "这个" },
-  { pinyin: "zhege", text: "这个" },
-  { pinyin: "chanpin", text: "产品" },
-  { pinyin: "you", text: "有" },
-  { pinyin: "ma", text: "吗" },
-  { pinyin: "cuxiao", text: "促销" },
-  { pinyin: "promotion", text: "promotion" },
-  { pinyin: "zainali", text: "在哪里" },
-  { pinyin: "kucun", text: "库存" },
-  { pinyin: "jiage", text: "价格" },
-  { pinyin: "yaojishi", text: "药剂师" },
-  { pinyin: "huaiyun", text: "怀孕" },
-  { pinyin: "yishengjun", text: "益生菌" },
-  { pinyin: "changwei", text: "肠胃" },
-  { pinyin: "weishengsu", text: "维生素" },
-  { pinyin: "panadol", text: "Panadol" },
-  { pinyin: "probiotic", text: "probiotic" },
-];
-
-const DEFAULT_ZH_CANDIDATES = [
-  "这个",
-  "产品",
-  "有",
-  "吗",
-  "促销",
-  "在哪里",
-  "库存",
-  "价格",
-  "药剂师",
-  "怀孕",
-  "益生菌",
-  "维生素",
-  "Panadol",
-  "probiotic",
-];
-
-function getCandidates(pinyinBuffer: string): string[] {
-  const normalized = pinyinBuffer.trim().toLowerCase();
-  if (!normalized) {
-    return DEFAULT_ZH_CANDIDATES;
-  }
-
-  const matches = COMMON_ZH_CANDIDATES.filter((candidate) =>
-    candidate.pinyin.startsWith(normalized),
-  ).map((candidate) => candidate.text);
-
-  return Array.from(new Set(matches)).slice(0, 8);
-}
 
 function VirtualKeyboard({
   value,
@@ -86,22 +31,22 @@ function VirtualKeyboard({
   onClose,
 }: VirtualKeyboardProps) {
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
-  const [pinyinBuffer, setPinyinBuffer] = useState("");
-  const candidates = useMemo(() => getCandidates(pinyinBuffer), [pinyinBuffer]);
 
   useEffect(() => {
     textareaRef.current?.focus();
   }, []);
-
-  useEffect(() => {
-    setPinyinBuffer("");
-  }, [language]);
 
   const focusTextarea = () => {
     requestAnimationFrame(() => {
       textareaRef.current?.focus();
     });
   };
+
+  useEffect(() => {
+    if (language === "zh") {
+      focusTextarea();
+    }
+  }, [language]);
 
   const insertText = (text: string) => {
     if (disabled) {
@@ -123,12 +68,6 @@ function VirtualKeyboard({
 
   const backspace = () => {
     if (disabled) {
-      return;
-    }
-
-    if (language === "zh" && pinyinBuffer) {
-      setPinyinBuffer((current) => current.slice(0, -1));
-      focusTextarea();
       return;
     }
 
@@ -161,34 +100,16 @@ function VirtualKeyboard({
       return;
     }
 
-    if (language === "zh") {
-      setPinyinBuffer((current) => `${current}${letter.toLowerCase()}`);
-      focusTextarea();
-      return;
-    }
-
     insertText(letter.toLowerCase());
   };
 
   const handleSpace = () => {
-    if (language === "zh" && pinyinBuffer && candidates[0]) {
-      insertText(candidates[0]);
-      setPinyinBuffer("");
-      return;
-    }
-
     insertText(" ");
   };
 
   const clearDraft = () => {
-    setPinyinBuffer("");
     onClear();
     focusTextarea();
-  };
-
-  const insertCandidate = (candidate: string) => {
-    insertText(candidate);
-    setPinyinBuffer("");
   };
 
   const renderLetterRows = () => (
@@ -245,15 +166,15 @@ function VirtualKeyboard({
           rows={4}
           disabled={disabled}
           autoFocus
-          placeholder="Type your question here. You can use the on-screen keyboard, pinyin candidates, Chinese IME, or an external keyboard."
+          placeholder="Type your question here. EN mode has an on-screen QWERTY keyboard; Chinese input uses your device pinyin IME or external keyboard."
           onChange={(event) => onChange(event.target.value)}
         />
 
         <div className="typing-modal-guidance" aria-live="polite">
           {language === "zh" ? (
             <p>
-              中文 mode is demo pinyin input: tap pinyin letters, choose a candidate, or use
-              your device keyboard for full native Chinese IME.
+              Use device Chinese keyboard / pinyin IME for Chinese input. This kiosk
+              keyboard does not include custom word or product phrase shortcuts.
             </p>
           ) : (
             <p>EN mode supports English and Bahasa Melayu typing with QWERTY keys or your device keyboard.</p>
@@ -261,74 +182,53 @@ function VirtualKeyboard({
         </div>
 
         {language === "zh" ? (
-          <div className="pinyin-panel">
-            <div
-              className="pinyin-composition"
-              role="status"
-              aria-label="Pinyin composition"
-              aria-live="polite"
-            >
-              {pinyinBuffer ? pinyinBuffer : "Tap pinyin keys"}
-            </div>
-            <div className="pinyin-candidates" role="region" aria-label="Chinese candidates">
-              {candidates.length ? (
-                candidates.map((candidate) => (
-                  <button
-                    key={`${pinyinBuffer || "default"}-${candidate}`}
-                    type="button"
-                    className="pinyin-candidate"
-                    aria-label={`Insert candidate ${candidate}`}
-                    disabled={disabled}
-                    onClick={() => insertCandidate(candidate)}
-                  >
-                    {candidate}
-                  </button>
-                ))
-              ) : (
-                <span className="pinyin-empty">No demo candidate. Use device keyboard.</span>
-              )}
-            </div>
-          </div>
-        ) : null}
-
-        <div
-          className="virtual-keyboard-layout"
-          role="group"
-          aria-label={language === "zh" ? "Chinese pinyin virtual keyboard" : "English virtual keyboard"}
-          data-keyboard-mode={language}
-        >
-          {renderLetterRows()}
-          <div className="keyboard-row keyboard-command-row">
-            <button
-              type="button"
-              className="keyboard-key keyboard-key-wide"
-              aria-label="Space"
-              disabled={disabled}
-              onClick={handleSpace}
-            >
-              Space
-            </button>
+          <div className="device-ime-panel" role="region" aria-label="Chinese device keyboard guidance">
+            <p>
+              Use device Chinese keyboard / pinyin IME, Windows touch keyboard, iPad
+              keyboard, or an external keyboard for Chinese typing.
+            </p>
             <button
               type="button"
               className="keyboard-key keyboard-key-command"
-              aria-label="Backspace"
-              disabled={disabled || (!value && !pinyinBuffer)}
-              onClick={backspace}
+              aria-label="Use device Chinese keyboard"
+              disabled={disabled}
+              onClick={focusTextarea}
             >
-              Backspace
+              Use device keyboard
             </button>
-            {language === "zh" ? (
+          </div>
+        ) : null}
+
+        {language === "en" ? (
+          <div
+            className="virtual-keyboard-layout"
+            role="group"
+            aria-label="English virtual keyboard"
+            data-keyboard-mode={language}
+          >
+            {renderLetterRows()}
+            <div className="keyboard-row keyboard-command-row">
+              <button
+                type="button"
+                className="keyboard-key keyboard-key-wide"
+                aria-label="Space"
+                disabled={disabled}
+                onClick={handleSpace}
+              >
+                Space
+              </button>
               <button
                 type="button"
                 className="keyboard-key keyboard-key-command"
-                aria-label="Use device keyboard"
-                onClick={focusTextarea}
+                aria-label="Backspace"
+                disabled={disabled || !value}
+                onClick={backspace}
               >
-                Use device keyboard
+                Backspace
               </button>
-            ) : null}
+            </div>
           </div>
-        </div>
+        ) : null}
 
         <div className="keyboard-action-row">
           <button
@@ -336,7 +236,7 @@ function VirtualKeyboard({
             className="keyboard-command"
             aria-label="Clear typed question"
             onClick={clearDraft}
-            disabled={(!value && !pinyinBuffer) || disabled}
+            disabled={!value || disabled}
           >
             Clear
           </button>
@@ -360,8 +260,8 @@ function VirtualKeyboard({
         </div>
 
         <p className="virtual-keyboard-note">
-          Demo Chinese candidates are limited for kiosk use. Native and external keyboards
-          remain available for full IME typing.
+          Native and external keyboards remain available for full IME typing. The kiosk
+          keyboard does not provide product, promotion, or medical phrase shortcuts.
         </p>
       </div>
     </div>
