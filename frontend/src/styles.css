@@ -3906,8 +3906,7 @@ body {
 .typed-input-form,
 .typed-input-actions,
 .virtual-keyboard-header,
-.keyboard-action-row,
-.language-switcher {
+.keyboard-action-row {
   display: flex;
   align-items: center;
 }
@@ -4113,27 +4112,6 @@ body {
   display: block;
   margin-top: 2px;
   font-size: clamp(0.78rem, 0.9dvw, 1.05rem);
-}
-
-.language-switcher {
-  gap: 5px;
-  padding: 3px;
-  border: 1px solid rgba(143, 165, 189, 0.16);
-  border-radius: 999px;
-  background: rgba(3, 10, 24, 0.58);
-}
-
-.language-switcher-button {
-  min-width: 50px;
-  min-height: 34px;
-  border-radius: 999px;
-  font-weight: 900;
-}
-
-.language-switcher-button[aria-pressed="true"] {
-  border-color: rgba(66, 245, 255, 0.72);
-  color: #001015;
-  background: linear-gradient(135deg, var(--neon-cyan), rgba(155, 108, 255, 0.72));
 }
 
 .virtual-keyboard-close {

@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 
-import type { KeyboardLanguage, TypedInputConfig } from "../inputConfig";
+import type { TypedInputConfig } from "../inputConfig";
 import VirtualKeyboard from "./VirtualKeyboard";
 
 interface TypedInputPanelProps {
@@ -27,15 +27,12 @@ function TypedInputPanel({
   onSubmit,
 }: TypedInputPanelProps) {
   const [typingScreenOpen, setTypingScreenOpen] = useState(false);
-  const [keyboardLanguage, setKeyboardLanguage] =
-    useState<KeyboardLanguage>(config.defaultLanguage);
   const inputRef = useRef<HTMLInputElement | null>(null);
   const usesPopupKeyboard = config.mode === "popup";
 
   useEffect(() => {
     setTypingScreenOpen(false);
-    setKeyboardLanguage(config.defaultLanguage);
-  }, [config.defaultLanguage, resetToken]);
+  }, [resetToken]);
 
   useEffect(() => {
     if (!usesPopupKeyboard) {
@@ -67,10 +64,8 @@ function TypedInputPanel({
   const typingScreen = typingScreenOpen ? (
     <VirtualKeyboard
       value={value}
-      language={keyboardLanguage}
       disabled={disabled}
       onChange={onChange}
-      onLanguageChange={setKeyboardLanguage}
       onClear={onClear}
       onSubmit={submitQuestion}
       onClose={() => setTypingScreenOpen(false)}

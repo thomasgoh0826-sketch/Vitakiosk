@@ -52,7 +52,6 @@ Mock mode requires no key. Keep these secret fields empty for the demo:
 - `VITE_AVATAR_RENDERER` may be left empty for the default Lottie avatar; set `VITE_AVATAR_RENDERER=threejs` or `VITE_AVATAR_RENDERER=vrm` only for reviewed local 3D avatar testing.
 - `VITE_ENABLE_TYPED_INPUT=true` keeps the accessibility typed input visible.
 - `VITE_TEXT_INPUT_MODE=native` is the default and relies on the device/browser keyboard; set `VITE_TEXT_INPUT_MODE=popup` only when a focused full-screen typing modal is needed.
-- `VITE_KEYBOARD_DEFAULT_LANGUAGE=en` initializes the popup input preference; supported values are `en` and `zh`. Bahasa Melayu text is typed in EN mode.
 
 `.env` is ignored. Never stage it.
 
@@ -181,7 +180,7 @@ npm.cmd run dev --prefix frontend -- --host 127.0.0.1 --port 5175 --strictPort
 
 Open [http://127.0.0.1:5175](http://127.0.0.1:5175). Use an iPad landscape viewport such as 1024×768 for kiosk review. Browser microphone permission is required for Tap to Speak. The main button starts recording; sustained silence stops recording automatically, and the smaller `Start` control resets the kiosk for a fresh customer session without refreshing.
 
-The typed input panel below Shelf navigation is available by default for customers who cannot or prefer not to speak. The default is `VITE_TEXT_INPUT_MODE=native`, which relies on the iPad, Windows touch keyboard, external keyboard, copy-paste, and the operating system IME for pinyin/Chinese input. Only EN and 中文 input preferences are shown; Bahasa Melayu is typed in EN mode. If a deployment needs a focused kiosk typing screen, opt in with `VITE_TEXT_INPUT_MODE=popup`; the popup preserves the draft when closed and still uses normal native text input rather than fake product/promotion shortcuts.
+The typed input panel below Shelf navigation is available by default for customers who cannot or prefer not to speak. The default is `VITE_TEXT_INPUT_MODE=native`, which relies on the iPad, Windows touch keyboard, external keyboard, copy-paste, and the operating system IME for pinyin/Chinese input. The compact keyboard icon opens an EN QWERTY virtual keyboard backup for English and Bahasa Melayu only; there is no custom Chinese keyboard toggle, phrase dictionary, or pinyin candidate system. Chinese text remains supported through the normal input field using the device keyboard or OS IME. If a deployment needs a focused kiosk typing screen, opt in with `VITE_TEXT_INPUT_MODE=popup`; the popup preserves the draft when closed and still uses the same safe typed workflow rather than fake product/promotion shortcuts.
 
 The Vite dev server is pinned to `127.0.0.1:5175` with strict port mode. If port 5175 is occupied, Vite fails clearly instead of silently switching to 5176, 5177, or 5178. Find the old dev server and close it before restarting:
 
@@ -206,7 +205,6 @@ VITE_VRM_MODEL=vita-new
 VITE_API_BASE_URL=http://127.0.0.1:8001
 VITE_WS_BASE_URL=ws://127.0.0.1:8001
 VITE_TEXT_INPUT_MODE=native
-VITE_KEYBOARD_DEFAULT_LANGUAGE=en
 ```
 
 Use `VITE_AVATAR_RENDERER=vrm`; plain `AVATAR_RENDERER` is not read by the browser runtime. If the VRM renderer cannot use the selected local model, the kiosk keeps the holographic fallback and writes a developer console warning with the fallback reason.

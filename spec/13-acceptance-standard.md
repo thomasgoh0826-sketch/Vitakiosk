@@ -56,7 +56,7 @@ A feature is accepted only when:
   backspace, external keyboards, iPad keyboard, Windows touch keyboard, Chinese
   IME, and Bahasa Melayu text typed in EN mode.
 - Popup typed input must open intentionally from the compact keyboard icon, show
-  a large textarea with the current draft, offer an EN QWERTY backup keyboard,
+  a large textarea with the current draft, offer an EN QWERTY-only backup keyboard,
   preserve the draft when closed, send from the popup, and clear/close
   on reset.
 - Popup typed input must render as a viewport-level overlay outside the compact
@@ -64,12 +64,13 @@ A feature is accepted only when:
   not accepted as a small nested popup clipped or contained by the normal kiosk
   grid row.
 - Popup typed input must include visible, touch-friendly input support.
-  EN mode must show QWERTY keys with Space and Backspace. It must not include a
-  Chinese virtual keyboard mode, hardcoded Chinese word/product/promotion/
-  medicine/pharmacy phrase buttons, or pinyin candidate keyboard. Chinese text
-  input must remain possible through the normal textarea using the device
-  native Chinese IME / pinyin keyboard or external keyboard. A modal that shows
-  only a large textarea without the EN keyboard backup is not accepted.
+  EN QWERTY must show keys with Space and Backspace. It must not include a
+  language toggle, BM toggle, Chinese virtual keyboard mode, hardcoded Chinese
+  word/product/promotion/medicine/pharmacy phrase buttons, or pinyin candidate
+  keyboard. Chinese text input must remain possible through the normal textarea
+  using the device native Chinese IME / pinyin keyboard or external keyboard.
+  A modal that shows only a large textarea without the EN keyboard backup is not
+  accepted.
 - Typed submissions must reuse the same AI/business/safety workflow as voice
   instead of a separate product logic path.
 - Typed-input screenshot evidence must include the compact typed panel, native

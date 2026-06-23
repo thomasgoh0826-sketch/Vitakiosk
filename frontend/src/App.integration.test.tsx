@@ -424,13 +424,13 @@ describe("integrated kiosk panels", () => {
     const dialog = screen.getByRole("dialog", { name: /VitaKiosk typing screen/i });
     expect(dialog).toBeInTheDocument();
     expect(screen.getByLabelText("Typing screen draft")).toHaveValue("Panadol ada stock 吗?");
-    expect(screen.getByRole("button", { name: "English keyboard" })).toHaveAttribute(
-      "aria-pressed",
-      "true",
-    );
+    expect(screen.queryByRole("group", { name: "Input language preference" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "English keyboard" })).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Chinese keyboard" })).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: /Bahasa Melayu keyboard/i })).not.toBeInTheDocument();
     expect(within(dialog).getByRole("group", { name: "English virtual keyboard" })).toBeInTheDocument();
+    expect(dialog).toHaveTextContent("Use the device keyboard for Chinese pinyin or external keyboard input.");
+    expect(dialog).not.toHaveTextContent("中文");
     expect(within(dialog).queryByRole("button", { name: /Type 这个/i })).not.toBeInTheDocument();
 
     fireEvent.click(screen.getByRole("button", { name: "Close typing screen" }));
@@ -466,6 +466,8 @@ describe("integrated kiosk panels", () => {
     await waitFor(() => {
       expect(draft).toHaveFocus();
     });
+    expect(within(dialog).queryByRole("group", { name: "Input language preference" })).not.toBeInTheDocument();
+    expect(within(dialog).queryByRole("button", { name: "English keyboard" })).not.toBeInTheDocument();
     expect(within(dialog).queryByRole("button", { name: "Chinese keyboard" })).not.toBeInTheDocument();
     expect(
       within(dialog).queryByRole("region", { name: "Chinese device keyboard guidance" }),
@@ -476,6 +478,8 @@ describe("integrated kiosk panels", () => {
     expect(within(dialog).queryByRole("button", { name: /Insert candidate/i })).not.toBeInTheDocument();
     expect(within(dialog).queryByRole("group", { name: "Chinese pinyin virtual keyboard" })).not.toBeInTheDocument();
     expect(within(dialog).getByRole("group", { name: "English virtual keyboard" })).toBeInTheDocument();
+    expect(dialog).toHaveTextContent("Use the device keyboard for Chinese pinyin or external keyboard input.");
+    expect(dialog).not.toHaveTextContent("中文");
 
     fireEvent.change(draft, { target: { value: "è¿™ä¸ª probiotic æœ‰ promotion å—?" } });
     expect(draft).toHaveValue("è¿™ä¸ª probiotic æœ‰ promotion å—?");

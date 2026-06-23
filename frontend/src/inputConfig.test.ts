@@ -12,11 +12,6 @@ describe("typed input config", () => {
   });
 
   it("keeps the virtual keyboard backup in English QWERTY mode only", () => {
-    expect(getTypedInputConfig({ VITE_KEYBOARD_DEFAULT_LANGUAGE: "zh" }).defaultLanguage).toBe(
-      "en",
-    );
-    expect(getTypedInputConfig({ VITE_KEYBOARD_DEFAULT_LANGUAGE: "bm" }).defaultLanguage).toBe(
-      "en",
-    );
+    expect("defaultLanguage" in getTypedInputConfig({})).toBe(false);
   });
 });

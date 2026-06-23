@@ -1,14 +1,9 @@
 import { useEffect, useRef } from "react";
 
-import type { KeyboardLanguage } from "../inputConfig";
-import LanguageSwitcher from "./LanguageSwitcher";
-
 interface VirtualKeyboardProps {
   value: string;
-  language: KeyboardLanguage;
   disabled?: boolean;
   onChange: (value: string) => void;
-  onLanguageChange: (language: KeyboardLanguage) => void;
   onClear: () => void;
   onSubmit: () => void;
   onClose: () => void;
@@ -22,10 +17,8 @@ const QWERTY_ROWS = [
 
 function VirtualKeyboard({
   value,
-  language,
   disabled = false,
   onChange,
-  onLanguageChange,
   onClear,
   onSubmit,
   onClose,
@@ -141,7 +134,6 @@ function VirtualKeyboard({
             <span className="typed-input-kicker">Focused typing</span>
             <strong>Type your question</strong>
           </div>
-          <LanguageSwitcher value={language} onChange={onLanguageChange} />
           <button
             className="virtual-keyboard-close"
             type="button"
@@ -160,14 +152,13 @@ function VirtualKeyboard({
           rows={4}
           disabled={disabled}
           autoFocus
-          placeholder="Type your question here. Use the EN on-screen keyboard, device IME, or external keyboard."
+          placeholder="Type your question here. Use the EN on-screen keyboard, device keyboard, or external keyboard."
           onChange={(event) => onChange(event.target.value)}
         />
 
         <div className="typing-modal-guidance" aria-live="polite">
           <p>
-            EN mode supports English and Bahasa Melayu typing with QWERTY keys.
-            For Chinese input, use your device IME, pinyin keyboard, or external keyboard.
+            EN QWERTY is a backup for English and Bahasa Melayu. Use the device keyboard for Chinese pinyin or external keyboard input.
           </p>
         </div>
 
@@ -175,7 +166,7 @@ function VirtualKeyboard({
           className="virtual-keyboard-layout"
           role="group"
           aria-label="English virtual keyboard"
-          data-keyboard-mode={language}
+          data-keyboard-mode="en"
         >
           {renderLetterRows()}
           <div className="keyboard-row keyboard-command-row">
