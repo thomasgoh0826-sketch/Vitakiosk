@@ -172,6 +172,7 @@ class OllamaAIBrain:
             "model": self.model,
             "stream": False,
             "format": "json",
+            "options": {"temperature": 0},
             "messages": [
                 {
                     "role": "system",
@@ -259,7 +260,7 @@ class OllamaAIBrain:
             return False
         if not isinstance(intent, str) or intent not in {item.value for item in Intent} | {"clarification"}:
             return False
-        if intent != base_result.intent.value:
+        if not self._intent_is_compatible(intent, base_result.intent):
             return False
         if not isinstance(answer, str) or not answer.strip():
             return False
@@ -276,12 +277,33 @@ class OllamaAIBrain:
         return self._ui_actions_are_safe(ui_actions, base_result.ui_actions)
 
     @staticmethod
+    def _intent_is_compatible(model_intent: str, workflow_intent: Intent) -> bool:
+        if model_intent == workflow_intent.value:
+            return True
+        if workflow_intent is Intent.UNKNOWN_PRODUCT:
+            return model_intent in {
+                Intent.PRODUCT_SEARCH.value,
+                Intent.PRICE_CHECK.value,
+                Intent.STOCK_CHECK.value,
+                Intent.PROMOTION_CHECK.value,
+                Intent.CAMPAIGN_CHECK.value,
+                Intent.SHELF_LOCATION.value,
+            }
+        return False
+
+    @staticmethod
     def _ui_actions_are_safe(
         model_actions: list[object],
         allowed_actions: tuple[UiAction, ...],
     ) -> bool:
         allowed_types = {action.type.value for action in allowed_actions}
         for item in model_actions:
+            if isinstance(item, str):
+                if item not in {action.value for action in UiActionType}:
+                    return False
+                if item not in allowed_types:
+                    return False
+                continue
             if not isinstance(item, dict):
                 return False
             action_type = item.get("type")

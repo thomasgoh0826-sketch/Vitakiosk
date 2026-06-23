@@ -87,10 +87,63 @@ def test_ollama_uses_structured_json_answer_without_overriding_vitaflow_facts() 
     request = transport.requests[0]
     assert request["model"] == "qwen2.5:7b"
     assert request["format"] == "json"
+    assert request["options"]["temperature"] == 0
     prompt = json.dumps(request["messages"], ensure_ascii=False)
     assert "corrected_transcript" in prompt
     assert "VitaFlow/mock product facts" in prompt
     assert "allowed_ui_actions" in prompt
+
+
+def test_ollama_accepts_whitelisted_string_ui_actions_from_real_model_style() -> None:
+    brain, _, _, _ = build_brain(
+        transport=RecordingTransport(
+            {
+                "language": "en",
+                "intent": "price_check",
+                "answer": "Relief Balm is $12.50 according to VitaFlow mock data.",
+                "emotion": "friendly",
+                "ui_actions": ["SHOW_PRODUCT", "SHOW_PROMOTION_LEAFLET"],
+                "requires_pharmacist": False,
+                "safety_notes": [],
+            }
+        )
+    )
+
+    result = brain.respond("what is the price of relief balm", branch_id="SG-001")
+
+    assert result.source == "ollama"
+    assert [action.type for action in result.ui_actions] == [
+        "SHOW_PRODUCT",
+        "SHOW_PROMOTION_LEAFLET",
+    ]
+
+
+def test_ollama_can_word_unknown_product_when_model_keeps_requested_intent() -> None:
+    brain, purchasing, _, _ = build_brain(
+        transport=RecordingTransport(
+            {
+                "language": "zh",
+                "intent": "stock_check",
+                "answer": (
+                    "We did not find Panadol in VitaFlow mock data. "
+                    "Purchasing query PQ-0001 has been created."
+                ),
+                "emotion": "neutral",
+                "ui_actions": [],
+                "requires_pharmacist": False,
+                "safety_notes": [],
+            }
+        )
+    )
+
+    result = brain.respond("Panadol ada stock 吗?", branch_id="SG-001")
+
+    assert result.intent is Intent.UNKNOWN_PRODUCT
+    assert result.source == "ollama"
+    assert result.product is None
+    assert result.purchasing_query_id == purchasing.items[0].id
+    assert "Panadol" in result.message
+    assert "Purchasing query" in result.message
 
 
 def test_ollama_offline_falls_back_to_mock_workflow_without_crashing() -> None:
