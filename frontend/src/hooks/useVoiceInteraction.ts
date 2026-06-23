@@ -189,6 +189,92 @@ function useVoiceInteraction({
     sendState("idle");
   }, [audioElement, releaseMedia, sendState, stopSilenceMonitor]);
 
+  const stopCurrentAudio = useCallback(() => {
+    if (audioElement) {
+      audioElement.onended = null;
+      audioElement.onerror = null;
+      audioElement.pause?.();
+      audioElement.currentTime = 0;
+      setAudioElement(null);
+    }
+    if (audioUrlRef.current) {
+      URL.revokeObjectURL(audioUrlRef.current);
+      audioUrlRef.current = null;
+    }
+  }, [audioElement]);
+
+  const runTextWorkflow = useCallback(async (
+    workflowTranscript: string,
+    displayTranscript = workflowTranscript,
+  ) => {
+    const safeTranscript = workflowTranscript.trim();
+    if (!safeTranscript) {
+      return;
+    }
+
+    stopSilenceMonitor();
+    releaseMedia();
+    stopCurrentAudio();
+    chunksRef.current = [];
+    setError(null);
+    setTranscript(displayTranscript);
+    setResponseText("Preparing answer...");
+    setState("thinking");
+    sendState("thinking");
+
+    try {
+      const response = await api.respond(sessionId, safeTranscript, branchId);
+      setHasResult(true);
+      setProduct(response.product);
+      setPromotions(response.promotions);
+      setLeaflets(response.leaflets ?? []);
+      setUiActions(response.ui_actions ?? []);
+      setResponseText(response.message);
+      setPurchasingQueryId(response.purchasing_query_id);
+      setEscalationId(response.escalation_id);
+      setResultId((current) => current + 1);
+
+      if (response.requires_pharmacist) {
+        setState("pharmacist_escalation");
+        return;
+      }
+
+      const [speech, posters] = await Promise.all([
+        api.synthesize(sessionId, response.message),
+        api.idlePosters(branchId),
+      ]);
+      setPoster(posters.items[0] ?? null);
+      const audioUrl = URL.createObjectURL(speech);
+      audioUrlRef.current = audioUrl;
+      const audio = new Audio(audioUrl) as HTMLAudioElement;
+      setAudioElement(audio);
+      setState("speaking");
+
+      await new Promise<void>((resolve, reject) => {
+        audio.onended = () => resolve();
+        audio.onerror = () => reject(new Error("Audio playback failed"));
+        void audio.play().catch(reject);
+      });
+      URL.revokeObjectURL(audioUrl);
+      audioUrlRef.current = null;
+      setAudioElement(null);
+      setState("idle");
+      sendState("idle");
+    } catch (caught) {
+      releaseMedia();
+      setState("error");
+      setError(caught instanceof Error ? caught.message : "Voice request failed.");
+    }
+  }, [
+    api,
+    branchId,
+    releaseMedia,
+    sendState,
+    sessionId,
+    stopCurrentAudio,
+    stopSilenceMonitor,
+  ]);
+
   const startRecording = useCallback(async () => {
     setError(null);
     autoStopInProgressRef.current = false;
@@ -263,52 +349,19 @@ function useVoiceInteraction({
         sendState("idle");
         return;
       }
-      setResponseText("Preparing answer...");
-      const response = await api.respond(sessionId, workflowTranscript, branchId);
-      setHasResult(true);
-      setProduct(response.product);
-      setPromotions(response.promotions);
-      setLeaflets(response.leaflets ?? []);
-      setUiActions(response.ui_actions ?? []);
-      setResponseText(response.message);
-      setPurchasingQueryId(response.purchasing_query_id);
-      setEscalationId(response.escalation_id);
-      setResultId((current) => current + 1);
-
-      if (response.requires_pharmacist) {
-        setState("pharmacist_escalation");
-        return;
-      }
-
-      const [speech, posters] = await Promise.all([
-        api.synthesize(sessionId, response.message),
-        api.idlePosters(branchId),
-      ]);
-      setPoster(posters.items[0] ?? null);
-      const audioUrl = URL.createObjectURL(speech);
-      audioUrlRef.current = audioUrl;
-      const audio = new Audio(audioUrl) as HTMLAudioElement;
-      setAudioElement(audio);
-      setState("speaking");
-
-      await new Promise<void>((resolve, reject) => {
-        audio.onended = () => resolve();
-        audio.onerror = () => reject(new Error("Audio playback failed"));
-        void audio.play().catch(reject);
-      });
-      URL.revokeObjectURL(audioUrl);
-      audioUrlRef.current = null;
-      setAudioElement(null);
-      setState("idle");
-      sendState("idle");
+      await runTextWorkflow(workflowTranscript, transcription.transcript);
     } catch (caught) {
       releaseMedia();
       setState("error");
       setError(caught instanceof Error ? caught.message : "Voice request failed.");
     }
-  }, [api, branchId, releaseMedia, sendState, sessionId, stopSilenceMonitor]);
+  }, [api, releaseMedia, runTextWorkflow, sendState, sessionId, stopSilenceMonitor]);
 
   stopRecordingRef.current = stopRecording;
+
+  const submitText = useCallback(async (text: string) => {
+    await runTextWorkflow(text);
+  }, [runTextWorkflow]);
 
   return {
     state,
@@ -327,6 +380,7 @@ function useVoiceInteraction({
     error,
     startRecording,
     stopRecording,
+    submitText,
     reset,
   };
 }

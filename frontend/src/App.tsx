@@ -10,8 +10,10 @@ import ProductCard from "./components/ProductCard";
 import PromotionPoster, { type PromotionPanelMode } from "./components/PromotionPoster";
 import ShelfMap from "./components/ShelfMap";
 import TapToSpeakButton from "./components/TapToSpeakButton";
+import TypedInputPanel from "./components/TypedInputPanel";
 import useKioskSocket from "./hooks/useKioskSocket";
 import useVoiceInteraction from "./hooks/useVoiceInteraction";
+import { getTypedInputConfig } from "./inputConfig";
 import { MOCK_LEAFLETS } from "./mockLeaflets";
 import type { AvatarState, Leaflet, Product, UiAction } from "./types";
 import { isApprovedUiAction } from "./uiActions";
@@ -85,8 +87,11 @@ function App() {
     useState<PromotionPanelMode>("idle");
   const [selectedLeafletId, setSelectedLeafletId] = useState<string | null>(null);
   const [modalLeafletId, setModalLeafletId] = useState<string | null>(null);
+  const [typedQuestion, setTypedQuestion] = useState("");
+  const [typedInputResetToken, setTypedInputResetToken] = useState(0);
   const [pharmacistConfirmationRequested, setPharmacistConfirmationRequested] =
     useState(false);
+  const typedInputConfig = getTypedInputConfig();
   const socket = useKioskSocket(sessionId);
   const voice = useVoiceInteraction({
     sessionId,
@@ -127,6 +132,8 @@ function App() {
     setPromotionPanelMode("idle");
     setSelectedLeafletId(null);
     setModalLeafletId(null);
+    setTypedQuestion("");
+    setTypedInputResetToken((current) => current + 1);
     voice.reset();
     socket.sendState("idle");
     setSessionId(createSessionId());
@@ -307,6 +314,22 @@ function App() {
           />
           <ProductCard product={product} purchasingQueryId={voice.purchasingQueryId} />
           <ShelfMap product={product} />
+          <TypedInputPanel
+            value={typedQuestion}
+            config={typedInputConfig}
+            resetToken={typedInputResetToken}
+            disabled={
+              avatarState === "listening"
+              || avatarState === "thinking"
+              || avatarState === "speaking"
+              || avatarState === "pharmacist_escalation"
+            }
+            onChange={setTypedQuestion}
+            onClear={() => setTypedQuestion("")}
+            onSubmit={(question) => {
+              void voice.submitText(question);
+            }}
+          />
         </section>
 
         <aside className="retail-safety-rail">

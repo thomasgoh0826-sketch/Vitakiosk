@@ -337,6 +337,36 @@ describe("useVoiceInteraction", () => {
     );
   });
 
+  it("submits typed text through the same AI response and TTS workflow without STT", async () => {
+    const api = buildApi();
+    const sendState = vi.fn();
+    const { result } = renderHook(() =>
+      useVoiceInteraction({
+        sessionId: "session-typed",
+        branchId: "SG-001",
+        api,
+        serverState: "idle" as AvatarState,
+        sendState,
+      }),
+    );
+
+    await act(async () => result.current.submitText("Where is Panadol?"));
+    await waitFor(() => expect(result.current.state).toBe("idle"));
+
+    expect(api.transcribe).not.toHaveBeenCalled();
+    expect(api.respond).toHaveBeenCalledWith(
+      "session-typed",
+      "Where is Panadol?",
+      "SG-001",
+    );
+    expect(api.synthesize).toHaveBeenCalledTimes(1);
+    expect(result.current.transcript).toBe("Where is Panadol?");
+    expect(result.current.product).toEqual(product);
+    expect(result.current.leaflets[0].id).toBe("MOCK-LF-PROMO-001");
+    expect(sendState).toHaveBeenCalledWith("thinking");
+    expect(sendState).toHaveBeenCalledWith("idle");
+  });
+
   it("resets pharmacist escalation state for a new customer without deleting the ticket", async () => {
     const api = buildApi(true);
     const sendState = vi.fn();

@@ -6,7 +6,7 @@ Provide a readable iPad landscape pharmacy kiosk surface.
 
 ## Required regions
 
-AI assistant, primary Tap to Speak voice control plus Start/New Customer reset, Product, Promotion, Shelf navigation, ERP data, and Pharmacist assistance.
+AI assistant, primary Tap to Speak voice control plus Start/New Customer reset, Product, Promotion, Shelf navigation, typed accessibility input, ERP data, and Pharmacist assistance.
 
 ## Acceptance criteria
 
@@ -35,11 +35,17 @@ AI assistant, primary Tap to Speak voice control plus Start/New Customer reset, 
 - Shelf navigation is rendered as an indoor map with aisle and shelf blocks, not as a plain progress stepper.
 - The map shows a labelled current position, target shelf marker, route line, Aisle, Shelf, Level, and a readable route summary.
 - The route uses only VitaFlow-provided shelf location data; unavailable locations are never inferred.
+- A typed accessibility input panel appears below Shelf navigation for customers who cannot or prefer not to speak.
+- The typed input panel has a clear `Type your question` label, visible placeholder, send action, clear action, and no raw debug/customer data.
+- In popup keyboard mode, the typed input can open a dark neon touch keyboard with English, Chinese, and Bahasa Melayu modes; in native mode, the custom keyboard is not forced.
+- The typed input and popup keyboard remain touch-friendly and must not create horizontal overflow or awkward document scrolling in the normal 1024x768 landscape kiosk view.
 
 ## Test evidence
 
 - `frontend/src/App.test.tsx`
 - `frontend/src/App.integration.test.tsx`
+- `frontend/src/components/TypedInputPanel.tsx`
+- `frontend/src/components/VirtualKeyboard.tsx`
 - `frontend/src/components/AiSubtitle.test.tsx`
 - `frontend/src/hooks/useSubtitlePlayback.test.ts`
 - `frontend/src/components/ShelfMap.test.tsx`

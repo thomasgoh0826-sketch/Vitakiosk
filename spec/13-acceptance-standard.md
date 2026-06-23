@@ -41,6 +41,15 @@ A feature is accepted only when:
   `Tap to Stop` fallback, browser-side silence auto-stop, and a secondary
   `Start` / `Start New Customer` reset action instead of a small `Hold to
   Speak` fallback.
+- Typed-input acceptance requires an accessibility input panel below Shelf
+  navigation, a clearly labelled text field, send and clear actions, optional
+  custom touch keyboard in popup mode, device-keyboard behavior in native mode,
+  English/Chinese/Bahasa Melayu keyboard mode switching, reset clearing typed
+  text and closing the keyboard, and proof that typed submissions reuse the same
+  AI/business/safety workflow as voice instead of a separate product logic path.
+- Typed-input screenshot evidence must include the compact typed panel, popup
+  keyboard, language switching, and native keyboard mode at the target iPad
+  landscape viewport.
 - STT provider acceptance requires mock STT by default, explicit
   `STT_PROVIDER=openai_whisper` or `STT_PROVIDER=faster_whisper` selection for
   non-mock STT, credentials/model settings read from local environment only, no

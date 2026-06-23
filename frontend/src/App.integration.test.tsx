@@ -20,14 +20,17 @@ vi.mock("./hooks/useVoiceInteraction", () => ({ default: hookMocks.voice }));
 describe("integrated kiosk panels", () => {
   const startRecording = vi.fn();
   const stopRecording = vi.fn();
+  const submitText = vi.fn();
   const resetVoice = vi.fn();
   const sendState = vi.fn();
 
   beforeEach(() => {
     startRecording.mockReset();
     stopRecording.mockReset();
+    submitText.mockReset();
     resetVoice.mockReset();
     sendState.mockReset();
+    vi.unstubAllEnvs();
     hookMocks.escalate.mockReset();
     hookMocks.escalate.mockResolvedValue({
       id: "ESC-0099",
@@ -105,6 +108,7 @@ describe("integrated kiosk panels", () => {
       error: null,
       startRecording,
       stopRecording,
+      submitText,
       reset: resetVoice,
     });
   });
@@ -274,6 +278,85 @@ describe("integrated kiosk panels", () => {
     expect(sendState).toHaveBeenCalledWith("idle");
     expect(screen.getByRole("button", { name: "Tap to Speak" })).toBeEnabled();
     expect(hookMocks.voice.mock.calls.at(-1)?.[0]?.sessionId).not.toBe(firstSessionId);
+  });
+
+  it("renders a typed accessibility input below the shelf map and submits through the existing AI flow", () => {
+    render(<App />);
+
+    const shelfMap = screen.getByRole("region", { name: /shelf navigation map/i });
+    const typedPanel = screen.getByRole("region", { name: /typed question input/i });
+    expect(
+      shelfMap.compareDocumentPosition(typedPanel) & Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy();
+
+    const input = screen.getByLabelText("Type your question");
+    fireEvent.change(input, { target: { value: "Where is Panadol?" } });
+    fireEvent.click(screen.getByRole("button", { name: "Send typed question" }));
+
+    expect(submitText).toHaveBeenCalledWith("Where is Panadol?");
+    expect(startRecording).not.toHaveBeenCalled();
+  });
+
+  it("opens and closes the touch popup keyboard in popup mode", () => {
+    vi.stubEnv("VITE_TEXT_INPUT_MODE", "popup");
+    render(<App />);
+
+    fireEvent.click(screen.getByRole("button", { name: "Open kiosk keyboard" }));
+
+    expect(screen.getByRole("dialog", { name: /VitaKiosk touch keyboard/i })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "English keyboard" })).toHaveAttribute(
+      "aria-pressed",
+      "true",
+    );
+    fireEvent.click(screen.getByRole("button", { name: "Close touch keyboard" }));
+    expect(screen.queryByRole("dialog", { name: /VitaKiosk touch keyboard/i })).not.toBeInTheDocument();
+  });
+
+  it("does not force the custom keyboard in native mode", () => {
+    vi.stubEnv("VITE_TEXT_INPUT_MODE", "native");
+    render(<App />);
+
+    expect(screen.queryByRole("button", { name: "Open kiosk keyboard" })).not.toBeInTheDocument();
+    fireEvent.focus(screen.getByLabelText("Type your question"));
+    expect(screen.queryByRole("dialog", { name: /VitaKiosk touch keyboard/i })).not.toBeInTheDocument();
+    expect(screen.getByText(/Device keyboard mode/i)).toBeInTheDocument();
+  });
+
+  it("switches popup keyboard language modes and supports simplified Chinese quick input", () => {
+    vi.stubEnv("VITE_TEXT_INPUT_MODE", "popup");
+    vi.stubEnv("VITE_KEYBOARD_DEFAULT_LANGUAGE", "bm");
+    render(<App />);
+
+    fireEvent.click(screen.getByRole("button", { name: "Open kiosk keyboard" }));
+    expect(screen.getByRole("button", { name: "Bahasa Melayu keyboard" })).toHaveAttribute(
+      "aria-pressed",
+      "true",
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: "Chinese keyboard" }));
+    expect(screen.getByRole("button", { name: "Chinese keyboard" })).toHaveAttribute(
+      "aria-pressed",
+      "true",
+    );
+    fireEvent.click(screen.getByRole("button", { name: "Type 这个" }));
+
+    expect(screen.getByLabelText("Type your question")).toHaveValue("这个");
+  });
+
+  it("clears typed input and closes the keyboard when starting a new customer", () => {
+    vi.stubEnv("VITE_TEXT_INPUT_MODE", "popup");
+    render(<App />);
+
+    const input = screen.getByLabelText("Type your question");
+    fireEvent.change(input, { target: { value: "Panadol ada stock 吗?" } });
+    fireEvent.click(screen.getByRole("button", { name: "Open kiosk keyboard" }));
+    expect(screen.getByRole("dialog", { name: /VitaKiosk touch keyboard/i })).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: "Start" }));
+
+    expect(input).toHaveValue("");
+    expect(screen.queryByRole("dialog", { name: /VitaKiosk touch keyboard/i })).not.toBeInTheDocument();
+    expect(resetVoice).toHaveBeenCalledTimes(1);
   });
 
   it("auto-resets the kiosk after showing pharmacist escalation confirmation", async () => {

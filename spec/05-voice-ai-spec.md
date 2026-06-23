@@ -2,11 +2,13 @@
 
 ## Purpose
 
-Connect tap-to-speak browser audio to the safety-first response pipeline while keeping STT mock by default and OpenAI Whisper / local faster-whisper STT explicitly opt-in.
+Connect tap-to-speak browser audio and accessibility typed input to the safety-first response pipeline while keeping STT mock by default and OpenAI Whisper / local faster-whisper STT explicitly opt-in.
 
 ## Flow
 
-MediaRecorder plus browser-side silence detection -> selected STT adapter -> clarification gate -> safety guardrails -> intent and mock VitaFlow lookup -> mock TTS WAV -> Web Audio playback.
+Voice path: MediaRecorder plus browser-side silence detection -> selected STT adapter -> clarification gate -> safety guardrails -> intent and mock VitaFlow lookup -> mock TTS WAV -> Web Audio playback.
+
+Typed path: customer text input -> same AI response endpoint and safety/product workflow -> mock TTS WAV/subtitles -> Web Audio playback where available.
 
 ## Acceptance criteria
 
@@ -34,6 +36,11 @@ MediaRecorder plus browser-side silence detection -> selected STT adapter -> cla
 - Red-flag responses stop before TTS playback.
 - Microphone denial, unsupported recording, and playback failure enter `error` with actionable text, and `Start` can reset the kiosk afterward.
 - Tracks, audio URLs, analyser nodes, microphone silence timers, and socket timers are cleaned up.
+- Accessibility typed input is an alternative input channel, not a replacement for Tap to Speak and not a separate business logic path.
+- Submitting typed text calls the same high-level AI/business/safety workflow used after voice transcription, including red-flag escalation, product lookup, promotion matching, unknown-product purchasing queries, subtitles, and TTS/poster updates.
+- Typed input must not bypass safety guardrails, invent product facts, or show product/promotion/shelf data outside VitaFlow/mock adapter results.
+- Reset/New Customer clears typed input and closes any custom keyboard.
+- `VITE_ENABLE_TYPED_INPUT=true`, `VITE_TEXT_INPUT_MODE=popup|native`, and `VITE_KEYBOARD_DEFAULT_LANGUAGE=en|zh|bm` control typed input availability and keyboard strategy.
 
 ## Test evidence
 

@@ -1,6 +1,6 @@
 # VitaKiosk AI Pharmacy Kiosk
 
-VitaKiosk is a mock-first, live-ready pharmacy kiosk demo for iPad landscape use. It combines a Lottie assistant, tap-to-speak browser voice capture with silence auto-stop, a safety-first intent pipeline, fictional VitaFlow-shaped data, mock WAV speech, and session-scoped WebSocket updates.
+VitaKiosk is a mock-first, live-ready pharmacy kiosk demo for iPad landscape use. It combines a Lottie assistant, tap-to-speak browser voice capture with silence auto-stop, accessible typed input with an optional kiosk keyboard, a safety-first intent pipeline, fictional VitaFlow-shaped data, mock WAV speech, and session-scoped WebSocket updates.
 
 By default, the demo does not call OpenAI, ElevenLabs, Ollama, or VitaFlow ERP. It does not read customer or sales records. OpenAI Whisper STT, local faster-whisper STT, and local Ollama AI wording are available only for reviewed local testing through explicit provider values in `.env`.
 
@@ -50,6 +50,9 @@ Mock mode requires no key. Keep these secret fields empty for the demo:
 - `VITE_API_BASE_URL=http://127.0.0.1:8000`
 - `VITE_WS_BASE_URL=ws://127.0.0.1:8000`
 - `VITE_AVATAR_RENDERER` may be left empty for the default Lottie avatar; set `VITE_AVATAR_RENDERER=threejs` or `VITE_AVATAR_RENDERER=vrm` only for reviewed local 3D avatar testing.
+- `VITE_ENABLE_TYPED_INPUT=true` keeps the accessibility typed input visible.
+- `VITE_TEXT_INPUT_MODE=popup` uses the custom kiosk keyboard; set `VITE_TEXT_INPUT_MODE=native` to rely on the device/browser keyboard.
+- `VITE_KEYBOARD_DEFAULT_LANGUAGE=en` initializes the popup keyboard in English; supported values are `en`, `zh`, and `bm`.
 
 `.env` is ignored. Never stage it.
 
@@ -147,6 +150,8 @@ npm.cmd run dev --prefix frontend -- --host 127.0.0.1 --port 5175
 ```
 
 Open [http://127.0.0.1:5175](http://127.0.0.1:5175). Use an iPad landscape viewport such as 1024×768 for kiosk review. Browser microphone permission is required for Tap to Speak. The main button starts recording; sustained silence stops recording automatically, and the smaller `Start` control resets the kiosk for a fresh customer session without refreshing.
+
+The typed input panel below Shelf navigation is available by default for customers who cannot or prefer not to speak. In popup mode it opens a touch-friendly keyboard with English, simplified Chinese quick phrases, and Bahasa Melayu modes. The Chinese mode is a kiosk demo quick-input layer, not a full OS-level IME; deployments needing full pinyin/handwriting IME can use `VITE_TEXT_INPUT_MODE=native` so the device keyboard handles it.
 
 ## API surface
 
