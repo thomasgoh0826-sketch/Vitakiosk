@@ -4421,3 +4421,112 @@ body {
     flex-wrap: wrap;
   }
 }
+
+/* Typed input rail responsiveness: constrain the rail only, never the whole kiosk. */
+
+.kiosk-shell {
+  --typed-input-rail-height: clamp(48px, 6dvh, 64px);
+}
+
+.typed-input-panel {
+  height: var(--typed-input-rail-height);
+  min-height: 48px;
+  max-height: 64px;
+  overflow: visible;
+  padding: clamp(4px, 0.55dvh, 7px) clamp(8px, 0.8dvw, 10px);
+}
+
+.typed-input-form {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  min-width: 0;
+  gap: 10px;
+}
+
+.typed-question-input {
+  flex: 1 1 auto;
+  min-width: 0;
+  height: clamp(40px, 5.4dvh, 52px);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.typed-input-actions {
+  flex: 0 0 auto;
+  min-width: max-content;
+  display: flex;
+  align-items: center;
+  flex-wrap: nowrap;
+  gap: clamp(6px, 0.62dvw, 10px);
+  overflow: visible;
+}
+
+.typed-input-actions button {
+  height: clamp(40px, 5.4dvh, 52px);
+  min-height: 40px;
+  flex-shrink: 0;
+}
+
+.typed-keyboard-button {
+  flex: 0 0 52px;
+  width: 52px;
+  min-width: 52px;
+  height: 52px;
+  display: grid;
+  place-items: center;
+}
+
+.typed-send-button {
+  flex: 0 0 72px;
+  width: 72px;
+  min-width: 72px;
+}
+
+.typed-clear-button {
+  flex: 0 0 auto;
+  max-width: 76px;
+}
+
+@media (max-height: 780px) and (orientation: landscape) {
+  .product-hero {
+    grid-template-columns: minmax(72px, 82px) minmax(0, 1fr);
+    gap: clamp(7px, 0.8dvw, 10px);
+  }
+
+  .product-identity h3 {
+    font-size: clamp(0.9rem, 1.08dvw, 1.18rem);
+  }
+
+  .product-identity p {
+    margin: 1px 0 4px;
+  }
+
+  .product-identity p,
+  .product-identity small {
+    font-size: clamp(0.48rem, 0.54dvw, 0.62rem);
+  }
+
+  .product-identity strong {
+    font-size: clamp(1.26rem, 2dvw, 1.72rem);
+  }
+
+  .product-facts {
+    gap: clamp(4px, 0.46dvw, 6px);
+    margin-top: 6px;
+  }
+
+  .product-facts div {
+    padding: 4px 6px;
+  }
+
+  .product-facts dt {
+    font-size: clamp(0.38rem, 0.38dvw, 0.48rem);
+  }
+
+  .product-facts dd {
+    margin-top: 1px;
+    font-size: clamp(0.54rem, 0.56dvw, 0.68rem);
+  }
+}

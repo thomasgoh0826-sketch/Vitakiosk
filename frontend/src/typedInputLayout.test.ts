@@ -2,29 +2,43 @@ import { describe, expect, it } from "vitest";
 
 import styles from "./styles.css?raw";
 
+const normalizedStyles = styles.replace(/\r\n/g, "\n");
+
 describe("typed input layout CSS contract", () => {
+  it("does not shrink the whole kiosk behind a fixed canvas wrapper", () => {
+    expect(normalizedStyles).not.toContain(".kiosk-viewport {");
+    expect(normalizedStyles).not.toContain("width: min(100dvw, calc(100dvh");
+    expect(normalizedStyles).not.toContain("height: min(100dvh, calc(100dvw");
+    expect(normalizedStyles).not.toContain("aspect-ratio: 4 / 3");
+  });
+
   it("keeps the normal typed input as a compact rail and protects shelf map height", () => {
-    expect(styles).toContain("--typed-input-rail-height: clamp(52px, 7dvh, 72px)");
-    expect(styles).toContain("minmax(160px, 0.88fr)");
-    expect(styles).toContain("var(--typed-input-rail-height)");
-    expect(styles).toContain("grid-template-columns: minmax(0, 1fr) auto");
+    expect(normalizedStyles).toContain("--typed-input-rail-height: clamp(48px, 6dvh, 64px)");
+    expect(normalizedStyles).toContain("minmax(160px, 0.88fr)");
+    expect(normalizedStyles).toContain("var(--typed-input-rail-height)");
+    expect(normalizedStyles).toContain(".typed-input-form {\n  display: flex;");
+    expect(normalizedStyles).toContain("text-overflow: ellipsis");
+    expect(normalizedStyles).toContain("flex: 0 0 52px");
+    expect(normalizedStyles).toContain("min-width: 52px");
+    expect(normalizedStyles).toContain("flex: 0 0 72px");
+    expect(normalizedStyles).toContain("min-width: 72px");
   });
 
   it("keeps the focused typing screen as a viewport-level overlay", () => {
-    expect(styles).toContain(".typing-modal-backdrop {\n  position: fixed;");
-    expect(styles).toContain("z-index: 260");
-    expect(styles).toContain("place-items: center");
-    expect(styles).toContain(".virtual-keyboard {\n  position: relative;");
-    expect(styles).toContain("width: min(1120px, calc(100dvw - clamp(24px, 4dvw, 60px)))");
-    expect(styles).toContain("height: min(680px, calc(100dvh - clamp(24px, 4dvw, 60px)))");
+    expect(normalizedStyles).toContain(".typing-modal-backdrop {\n  position: fixed;");
+    expect(normalizedStyles).toContain("z-index: 260");
+    expect(normalizedStyles).toContain("place-items: center");
+    expect(normalizedStyles).toContain(".virtual-keyboard {\n  position: relative;");
+    expect(normalizedStyles).toContain("width: min(1120px, calc(100dvw - clamp(24px, 4dvw, 60px)))");
+    expect(normalizedStyles).toContain("height: min(680px, calc(100dvh - clamp(24px, 4dvw, 60px)))");
   });
 
   it("reserves a real touch keyboard area inside the focused typing screen", () => {
-    expect(styles).toContain("minmax(192px, 0.9fr)");
-    expect(styles).toContain(".virtual-keyboard-layout {");
-    expect(styles).toContain("align-content: end");
-    expect(styles).toContain(".pinyin-panel {");
-    expect(styles).toContain(".pinyin-candidates {");
-    expect(styles).toContain(".keyboard-key-wide");
+    expect(normalizedStyles).toContain("minmax(192px, 0.9fr)");
+    expect(normalizedStyles).toContain(".virtual-keyboard-layout {");
+    expect(normalizedStyles).toContain("align-content: end");
+    expect(normalizedStyles).toContain(".pinyin-panel {");
+    expect(normalizedStyles).toContain(".pinyin-candidates {");
+    expect(normalizedStyles).toContain(".keyboard-key-wide");
   });
 });

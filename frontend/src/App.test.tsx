@@ -1,10 +1,40 @@
 import { render, screen } from "@testing-library/react";
-import { describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import App from "./App";
 
+const apiMocks = vi.hoisted(() => ({
+  escalatePharmacist: vi.fn(),
+  runtimeStatus: vi.fn(),
+}));
+
+vi.mock("./api/client", () => ({
+  api: {
+    escalatePharmacist: apiMocks.escalatePharmacist,
+    runtimeStatus: apiMocks.runtimeStatus,
+  },
+}));
 
 describe("VitaKiosk shell", () => {
+  beforeEach(() => {
+    apiMocks.runtimeStatus.mockReset();
+    apiMocks.runtimeStatus.mockResolvedValue({
+      stt_provider: "mock",
+      ai_provider: "mock",
+      tts_provider: "mock",
+      vitaflow_provider: "mock",
+      vision_provider: "mock",
+      ollama_reachable: false,
+      model: "qwen2.5:7b",
+    });
+    apiMocks.escalatePharmacist.mockReset();
+    apiMocks.escalatePharmacist.mockResolvedValue({
+      id: "ESC-TEST",
+      status: "waiting_for_pharmacist",
+      source: "mock_memory",
+    });
+  });
+
   it("renders every required kiosk region", () => {
     render(<App />);
 

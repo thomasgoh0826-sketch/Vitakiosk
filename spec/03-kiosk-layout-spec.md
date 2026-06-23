@@ -26,6 +26,7 @@ AI assistant, primary Tap to Speak voice control plus Start/New Customer reset, 
 - The kiosk layout uses responsive grid/flex sizing rather than fixed pixel-only placement; target QA viewports include 1024x768, 1280x720, 1366x768, 1440x900, 1920x1080, and iPad portrait/narrow tablet fallback.
 - Landscape kiosk viewports must not create horizontal overflow and should fit the full assistant/product/promotion/shelf/ERP/safety surface in one viewport without document scrolling.
 - Portrait and narrow tablet viewports may scroll vertically, but product, shelf map, promotion poster, ERP data, pharmacist assistance, and the primary voice button must remain readable and non-overlapping.
+- Typed input responsiveness must not shrink or transform-scale the whole kiosk layout; the approved main panel proportions should fill the available kiosk viewport normally.
 - The avatar bay, VRM/Three.js canvas, shelf map, poster, and product cards resize with their containers using fluid sizing, aspect-ratio, CSS Grid/Flexbox, and `clamp()`-style text scales.
 - VRM mode uses a larger full-body holographic assistant chamber without customer-facing technical renderer labels; Lottie remains the default renderer unless the runtime selects VRM or Three.js.
 - VRM orbit/halo decoration is a secondary background effect; it must frame the character without crossing the visible face, torso, arms, hands, or dress.
@@ -38,6 +39,7 @@ AI assistant, primary Tap to Speak voice control plus Start/New Customer reset, 
 - A compact typed accessibility input rail appears below Shelf navigation for customers who cannot or prefer not to speak.
 - Shelf navigation has layout priority: the typed input rail must not push, overlap, or make the map incomplete at 1024x768 landscape.
 - The typed input rail has a clear accessible `Type your question` label, visible placeholder, small keyboard icon action, conditional clear action, send action, and no raw debug/customer data.
+- The compact typed input rail constrains only its own children: the text field flexes and ellipsizes, while the keyboard icon and Send button keep fixed touch-safe minimum widths.
 - The normal typed input rail is slim, single-line, and does not show a large `Accessible input` title block, large `Native keyboard mode` badge, or large `Type / Keyboard` button.
 - The default typed input mode is native device keyboard mode; focusing the compact text field must not force a custom popup.
 - The small keyboard icon opens an intentional full-screen or near full-screen typing surface when a larger typing area is needed; it preserves the current draft when closed, can send from the popup, and may cover the screen intentionally.
