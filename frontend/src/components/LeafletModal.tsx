@@ -14,8 +14,11 @@ import type { Leaflet } from "../types";
 
 const SWIPE_THRESHOLD_PX = 68;
 const DEFAULT_STAGE_WIDTH = 900;
-const DECK_STEP_RATIO = 0.72;
-const MIN_DECK_STEP_PX = 260;
+const ACTIVE_CARD_WIDTH_RATIO = 0.44;
+const SIDE_CARD_OFFSET_RATIO = 0.7;
+const SIDE_CARD_SCALE = 0.82;
+const SIDE_CARD_OPACITY = 0.72;
+const MIN_DECK_STEP_PX = 220;
 const OPEN_ANIMATION_MS = 380;
 const CLOSE_ANIMATION_MS = 240;
 
@@ -150,8 +153,28 @@ function LeafletModal({
 
   const activeLeaflet = activeIndex >= 0 ? leaflets[activeIndex] : null;
   const hasCarousel = leaflets.length > 1;
-  const stepWidth = Math.max(stageWidth * DECK_STEP_RATIO, MIN_DECK_STEP_PX);
+  const stepWidth = Math.max(stageWidth * ACTIVE_CARD_WIDTH_RATIO * SIDE_CARD_OFFSET_RATIO, MIN_DECK_STEP_PX);
   const dragProgress = hasCarousel ? dragOffset / stepWidth : 0;
+
+  useEffect(() => {
+    const element = sceneRef.current;
+    if (!element || typeof ResizeObserver === "undefined") {
+      return undefined;
+    }
+
+    const updateStageWidth = () => {
+      const width = element.getBoundingClientRect().width;
+      if (width > 0) {
+        setStageWidth(width);
+      }
+    };
+    updateStageWidth();
+
+    const observer = new ResizeObserver(updateStageWidth);
+    observer.observe(element);
+
+    return () => observer.disconnect();
+  }, []);
 
   const requestClose = useCallback(() => {
     if (closeTimerRef.current !== null || animationState === "closing") {
@@ -347,8 +370,8 @@ function LeafletModal({
     const relativePosition = index - activeIndex + dragProgress;
     const distance = Math.abs(relativePosition);
     const x = relativePosition * stepWidth;
-    const scale = Math.max(0.78, 1 - Math.min(distance, 1) * 0.14 - Math.max(distance - 1, 0) * 0.06);
-    const opacity = distance <= 0.08 ? 1 : distance <= 1.18 ? 0.62 : Math.max(0, 0.28 - (distance - 1.18) * 0.18);
+    const scale = Math.max(0.74, 1 - Math.min(distance, 1) * (1 - SIDE_CARD_SCALE) - Math.max(distance - 1, 0) * 0.06);
+    const opacity = distance <= 0.08 ? 1 : distance <= 1.18 ? SIDE_CARD_OPACITY : Math.max(0, 0.26 - (distance - 1.18) * 0.18);
     const z = Math.max(1, Math.round(100 - distance * 12));
 
     return {

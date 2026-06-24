@@ -213,6 +213,9 @@ A feature is accepted only when:
   right when real leaflets exist, motion limited to horizontal translation plus
   subtle scale/opacity/glow, and no spherical, cylindrical, orbit, wheel,
   coverflow spin, or hidden single-card replacement carousel behavior.
+- Leaflet modal deck-only corrections are accepted only if the existing
+  metadata panel remains separate from the deck and is not redesigned, moved,
+  attached to a card, removed, or animated with the leaflet cards.
 - Leaflet modal animation acceptance requires a futuristic holographic
   expansion from the clicked leaflet into the foreground overlay and a smooth
   reverse collapse on outside click or Escape. Reduced-motion mode may simplify

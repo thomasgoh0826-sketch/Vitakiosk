@@ -166,13 +166,14 @@ describe("typed input layout CSS contract", () => {
     expect(normalizedStyles).toMatch(/\.leaflet-stage-scene\s*\{[^}]*perspective: none;/);
     expect(normalizedStyles).toMatch(/\.leaflet-flat-deck-track\s*\{[^}]*position: absolute;[^}]*inset: 0;/);
     expect(normalizedStyles).not.toContain(".leaflet-depth-track");
+    expect(normalizedStyles).toMatch(/\.floating-leaflet-panel\s*\{[^}]*width: min\(44%, 520px\);/);
     expect(normalizedStyles).not.toMatch(/\.floating-leaflet-panel\s*\{[^}]*perspective\(/);
     expect(normalizedStyles).not.toMatch(/\.floating-leaflet-panel\s*\{[^}]*translateZ/);
     expect(normalizedStyles).toMatch(/\.floating-leaflet-panel\s*\{[^}]*rotateY\(0deg\)/);
     expect(normalizedStyles).not.toMatch(/\.floating-leaflet-panel\.is-active\s*\{[^}]*perspective\(/);
     expect(normalizedStyles).not.toMatch(/\.floating-leaflet-panel\.is-active\s*\{[^}]*translateZ/);
     expect(normalizedStyles).not.toMatch(/\.floating-leaflet-panel\.is-active\s*\{[^}]*rotateY\((?!0deg)/);
-    expect(normalizedStyles).toMatch(/\.floating-leaflet-panel\.is-neighbor\s*\{[^}]*opacity: var\(--leaflet-deck-opacity, 0\.62\);/);
+    expect(normalizedStyles).toMatch(/\.floating-leaflet-panel\.is-neighbor\s*\{[^}]*opacity: var\(--leaflet-deck-opacity, 0\.72\);/);
     expect(normalizedStyles).toMatch(
       /@media \(max-width: 1120px\), \(max-height: 740px\)\s*\{[\s\S]*\.leaflet-floating-stage\s*\{[\s\S]*grid-template-areas:\s*\n      "gallery"\s*\n      "copy";/,
     );

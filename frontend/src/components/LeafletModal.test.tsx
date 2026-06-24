@@ -119,11 +119,37 @@ describe("LeafletModal holographic gallery", () => {
     expect(next).toBeInTheDocument();
     expect(previous).toHaveClass("is-neighbor");
     expect(next).toHaveClass("is-neighbor");
-    expect(previous).toHaveStyle({ "--leaflet-deck-opacity": "0.62" });
-    expect(next).toHaveStyle({ "--leaflet-deck-opacity": "0.62" });
-    expect(active).toHaveStyle({ "--leaflet-deck-opacity": "1" });
+    expect(previous).toHaveStyle({
+      "--leaflet-deck-opacity": "0.72",
+      "--leaflet-deck-scale": "0.820",
+      "--leaflet-deck-x": "-277px",
+    });
+    expect(next).toHaveStyle({
+      "--leaflet-deck-opacity": "0.72",
+      "--leaflet-deck-scale": "0.820",
+      "--leaflet-deck-x": "277px",
+    });
+    expect(active).toHaveStyle({
+      "--leaflet-deck-opacity": "1",
+      "--leaflet-deck-scale": "1",
+      "--leaflet-deck-x": "0px",
+    });
     expect(previous?.getAttribute("style")).not.toContain("rotate");
     expect(next?.getAttribute("style")).not.toContain("rotate");
+  });
+
+  it("keeps the existing metadata panel separate from the flat leaflet deck", () => {
+    renderModal("LF-002");
+
+    const dialog = screen.getByRole("dialog", { name: /leaflet preview/i });
+    const metadata = within(dialog).getByRole("complementary", { name: /active leaflet metadata/i });
+    const deck = dialog.querySelector(".leaflet-flat-deck-track");
+
+    expect(metadata).toHaveClass("leaflet-meta-panel");
+    expect(metadata).toHaveTextContent("Supplement Wellness Campaign");
+    expect(metadata).toHaveTextContent("SG-001");
+    expect(metadata).toHaveTextContent("Mock VitaFlow");
+    expect(deck).not.toContainElement(metadata);
   });
 
   it("renders a single leaflet centered without fake carousel navigation", () => {
