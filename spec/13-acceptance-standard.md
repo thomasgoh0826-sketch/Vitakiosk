@@ -157,6 +157,11 @@ A feature is accepted only when:
   refresh requirement, an idle ready state after reset, and proof that the
   original escalation ticket is not canceled by resetting the kiosk UI.
 - Shelf navigation acceptance evidence includes a screenshot of the map route panel at the target iPad landscape viewport; a plain progress stepper is not accepted.
+- Enlarged Shelf Navigation viewer acceptance requires a top-level holographic
+  overlay opened by tapping/clicking or keyboard-activating the Shelf card,
+  the same source-backed route data as the normal map, no inferred missing shelf
+  data, a fully readable route/facts/map, click-outside and Escape close, and
+  click-inside retention behavior.
 - Dark neon kiosk acceptance evidence includes a 1024x768 screenshot showing the full single-screen composition.
 - The screenshot must show `Tap to Speak` as the primary interaction, a futuristic avatar bay, a poster-style promotion, the map-style shelf route, Mock VitaFlow provenance, and pharmacist safety messaging.
 - A white/light SaaS dashboard treatment or a small secondary `Hold to Speak` fallback is not accepted.
@@ -173,6 +178,11 @@ A feature is accepted only when:
   1366x768. The Product panel is not accepted if `scrollHeight` or `scrollWidth`
   exceeds the panel client size because of hidden clipped content or decorative
   overflow.
+- Product summary transform acceptance requires a source-backed Product panel to
+  switch into a concise summary state through click/tap and keyboard activation,
+  use a futuristic shift/morph style rather than a 180-degree flip, provide a
+  visible return to Product details, and avoid invented VitaFlow facts, diagnosis,
+  product recommendations, stock, price, promotion, or shelf information.
 - Shelf Navigation responsive acceptance requires browser bounding-box evidence
   that the route summary, Aisle/Shelf/Level facts, current-position marker, and
   target marker remain fully inside the Shelf Navigation panel at 1024x768, a

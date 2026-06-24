@@ -178,6 +178,25 @@ describe("typed input layout CSS contract", () => {
     );
   });
 
+  it("uses top-level futuristic overlays and transform-only motion for shelf map enlargement", () => {
+    expect(normalizedStyles).toMatch(/\.shelf-map-viewer-backdrop\s*\{[^}]*position: fixed;[^}]*z-index: 880;/);
+    expect(normalizedStyles).toMatch(/\.shelf-map-viewer-backdrop\s*\{[^}]*place-items: center;/);
+    expect(normalizedStyles).toMatch(/\.shelf-map-viewer-stage\s*\{[^}]*transform-origin: center;[^}]*animation: shelf-viewer-rise/);
+    expect(normalizedStyles).toContain("@keyframes shelf-viewer-rise");
+    expect(normalizedStyles).toMatch(/\.shelf-map-viewer-stage \.shelf-map-canvas\s*\{[^}]*min-height: clamp\(360px, 58dvh, 620px\);/);
+    expect(normalizedStyles).not.toContain(".shelf-map-modal");
+  });
+
+  it("uses a holographic product transform instead of a cheap 180-degree flip", () => {
+    expect(normalizedStyles).toMatch(/\.product-panel\s*\{[^}]*cursor: pointer;/);
+    expect(normalizedStyles).toMatch(/\.product-transform-shell\s*\{[^}]*transform-style: preserve-3d;/);
+    expect(normalizedStyles).toMatch(/\.product-panel\[data-product-mode="summary"\] \.product-transform-shell\s*\{[^}]*transform:/);
+    expect(normalizedStyles).toContain(".product-summary-grid");
+    expect(normalizedStyles).toContain(".product-summary-field");
+    expect(normalizedStyles).toContain(".product-summary-back");
+    expect(normalizedStyles).not.toContain("rotateY(180deg)");
+  });
+
   it("keeps collapsed promotion leaflets fully contained while allowing side-by-side cards when there is room", () => {
     expect(normalizedStyles).toMatch(/\.promotion-panel\s*\{[\s\S]*container-type: size;/);
     expect(normalizedStyles).toMatch(/\.leaflet-display-grid\s*\{[\s\S]*display: grid;/);

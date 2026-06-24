@@ -47,6 +47,8 @@ AI assistant, primary Tap to Speak voice control plus Start/New Customer reset, 
 - Shelf navigation is rendered as an indoor map with aisle and shelf blocks, not as a plain progress stepper.
 - The map shows a labelled current position, target shelf marker, route line, Aisle, Shelf, Level, and a readable route summary.
 - The route uses only VitaFlow-provided shelf location data; unavailable locations are never inferred.
+- Tapping/clicking anywhere on the Shelf Navigation card opens a larger top-level holographic map viewer for customers who need a clearer route. The enlarged viewer must sit above the kiosk UI, keep the active route fully readable, close on outside click or Escape, and keep inside clicks from closing it.
+- The enlarged Shelf Navigation viewer must use the same VitaFlow/mock shelf location data as the normal map; it must not generate a new route, infer missing shelf data, or hide the normal pharmacist escalation/safety behavior.
 - Shelf navigation reserves normal-flow rows for header, map, Aisle/Shelf/Level facts, and the `Route` summary. The route summary, fact cards, current-position marker, and target marker must remain fully visible at supported landscape widths; fixed-height clipping, negative margins, and whole-app transform/zoom fixes are not accepted.
 - Shelf navigation has a protected visual minimum size for its map viewport and route row; the typed input rail must not steal the map height or compress the route into an unreadable miniature panel.
 - A compact typed accessibility input rail appears below Shelf navigation for customers who cannot or prefer not to speak.
@@ -70,6 +72,8 @@ AI assistant, primary Tap to Speak voice control plus Start/New Customer reset, 
 - Product, poster, pharmacist, and leaflet icon/artwork containers must use stable square/icon-safe sizing with centered content, safe padding, non-shrinking containers, and `object-fit: contain` for image assets so logos and leaflet artwork are not clipped.
 - Product card fact rows and inner text must remain inside the Product panel bounds at the supported landscape QA viewports.
 - The Product panel must grow or compact its own internals instead of clipping stock, branch, shelf, or source facts; at narrower landscape widths the fact row may wrap into a compact grid, but `scrollHeight`/`scrollWidth` clipping and whole-app transform/zoom fixes are not accepted.
+- The Product panel may transform into a concise product summary state when the product section is tapped/clicked or activated by keyboard. This interaction must feel like a futuristic holographic shift/morph, not a cheap 180-degree flip, and must keep the Product header/source badge in normal safe layout.
+- Product summary content must remain safe demo information and must not invent VitaFlow facts, medical advice, diagnosis, stock, price, promotion, or shelf data. The summary state may show Ingredient, Use, Best for, Size, and Description for the currently displayed mock product, with a clear way to return to the source-backed Product details.
 - Enlarged leaflet previews must render as a top-level fixed overlay/portal above the entire kiosk UI, not as a big dark modal container, not as a modal box containing another carousel box, and not as a layer visually inserted into the avatar/product/shelf/background panels. The active leaflet image is the hero object and touch/mouse/trackpad swipe or drag on the whole floating stage changes the active leaflet.
 - Enlarged leaflet previews must reflow metadata beside the leaflet only when width/height is sufficient. In squeezed or short viewports, metadata moves below the hero leaflet or otherwise stays outside the leaflet artwork so no description, validity, branch, or source text overlaps important leaflet content. The enlarged layout must never clip the active leaflet image or let metadata float on top of the leaflet artwork.
 - Enlarged leaflet previews must keep the active leaflet clearly in front during swipe/drag. Neighboring leaflets, if shown, must stay within the overlay stage and remain subtle enough that they do not appear behind or inside the kiosk page background; hiding neighbor previews is acceptable when it preserves the clean top-layer floating-card effect.
@@ -88,5 +92,6 @@ AI assistant, primary Tap to Speak voice control plus Start/New Customer reset, 
 - `frontend/src/components/AiSubtitle.test.tsx`
 - `frontend/src/hooks/useSubtitlePlayback.test.ts`
 - `frontend/src/components/ShelfMap.test.tsx`
+- `frontend/src/components/ProductCard.test.tsx`
 - `frontend/src/components/avatar/VrmAvatarRenderer.test.tsx`
 - Browser screenshot evidence recorded in `reports/test-evidence.md`, including the 1024x768, 1366x768, and 1920x1080 responsive dark neon compositions plus Product and Shelf Navigation clipping checks at 1024x768, a narrower landscape width, and 1366x768.

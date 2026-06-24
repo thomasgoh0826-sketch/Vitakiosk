@@ -166,7 +166,9 @@ describe("integrated kiosk panels", () => {
 
     render(<App />);
 
-    await screen.findByLabelText(/vrm (character|fallback) ai avatar: ready/i);
+    await waitFor(() => {
+      expect(document.querySelector('[data-avatar-renderer="vrm"]')).toBeInTheDocument();
+    });
     expect(screen.queryByLabelText("Local demo runtime diagnostics")).not.toBeInTheDocument();
     expect(screen.queryByText(/Renderer:/i)).not.toBeInTheDocument();
     expect(screen.queryByText(/Model:/i)).not.toBeInTheDocument();

@@ -1,9 +1,8 @@
-import { render, screen, within } from "@testing-library/react";
+import { fireEvent, render, screen, within } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 
 import type { Product } from "../types";
 import ShelfMap from "./ShelfMap";
-
 
 const product: Product = {
   id: "MOCK-P001",
@@ -15,7 +14,6 @@ const product: Product = {
   source: "mock_vitaflow",
   unavailable_reason: null,
 };
-
 
 describe("ShelfMap", () => {
   it("renders an accessible indoor route map with source-backed location data", () => {
@@ -37,9 +35,7 @@ describe("ShelfMap", () => {
     expect(
       within(screen.getByLabelText("Target shelf details")).getByText("02"),
     ).toBeInTheDocument();
-    expect(
-      screen.getByText("Entrance → Aisle 03 → Shelf A-03"),
-    ).toBeInTheDocument();
+    expect(screen.getByText(/Entrance.*Aisle 03.*Shelf A-03/)).toBeInTheDocument();
     expect(screen.getByTestId("pharmacy-map-canvas")).toHaveClass(
       "shelf-map-canvas",
     );
@@ -60,5 +56,50 @@ describe("ShelfMap", () => {
       screen.queryByRole("img", { name: /Route from Entrance/ }),
     ).not.toBeInTheDocument();
     expect(screen.queryByText("Shelf A-03")).not.toBeInTheDocument();
+  });
+
+  it("opens an enlarged holographic map viewer from the shelf card", () => {
+    render(<ShelfMap product={product} />);
+
+    fireEvent.click(screen.getByRole("region", { name: "Shelf navigation map" }));
+
+    const dialog = screen.getByRole("dialog", { name: "Enlarged shelf navigation map" });
+    expect(dialog).toHaveClass("shelf-map-viewer-backdrop");
+    expect(within(dialog).getByText("Enlarged pharmacy route")).toBeInTheDocument();
+    expect(
+      within(dialog).getByRole("img", {
+        name: "Route from Entrance to Aisle 03, Shelf A-03",
+      }),
+    ).toBeInTheDocument();
+    expect(within(dialog).getByText(/Entrance.*Aisle 03.*Shelf A-03/)).toBeInTheDocument();
+  });
+
+  it("keeps inside clicks open but closes the enlarged map from outside click and Escape", () => {
+    render(<ShelfMap product={product} />);
+    const mapCard = screen.getByRole("region", { name: "Shelf navigation map" });
+
+    fireEvent.click(mapCard);
+    const dialog = screen.getByRole("dialog", { name: "Enlarged shelf navigation map" });
+    const stage = within(dialog).getByLabelText("Expanded pharmacy route stage");
+
+    fireEvent.mouseDown(stage);
+    expect(screen.getByRole("dialog", { name: "Enlarged shelf navigation map" })).toBeInTheDocument();
+
+    fireEvent.keyDown(document, { key: "Escape" });
+    expect(screen.queryByRole("dialog", { name: "Enlarged shelf navigation map" })).not.toBeInTheDocument();
+
+    fireEvent.click(mapCard);
+    fireEvent.mouseDown(screen.getByRole("dialog", { name: "Enlarged shelf navigation map" }));
+    expect(screen.queryByRole("dialog", { name: "Enlarged shelf navigation map" })).not.toBeInTheDocument();
+  });
+
+  it("supports keyboard opening for the shelf map card", () => {
+    render(<ShelfMap product={product} />);
+
+    fireEvent.keyDown(screen.getByRole("region", { name: "Shelf navigation map" }), {
+      key: "Enter",
+    });
+
+    expect(screen.getByRole("dialog", { name: "Enlarged shelf navigation map" })).toBeInTheDocument();
   });
 });
