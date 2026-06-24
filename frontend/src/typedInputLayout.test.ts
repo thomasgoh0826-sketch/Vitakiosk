@@ -137,14 +137,29 @@ describe("typed input layout CSS contract", () => {
     expect(normalizedStyles).toMatch(/\.leaflet-floating-stage\s*\{[^}]*display: grid;[^}]*grid-template-areas:\s*\n    "gallery copy";[^}]*overflow: visible;/);
     expect(normalizedStyles).toMatch(/\.leaflet-meta-panel\s*\{[^}]*grid-area: copy;[^}]*position: relative;/);
     expect(normalizedStyles).toMatch(
-      /@media \(max-width: 920px\), \(max-height: 680px\)\s*\{[\s\S]*\.leaflet-floating-stage\s*\{[\s\S]*grid-template-areas:\s*\n      "gallery"\s*\n      "copy";/,
+      /@media \(max-width: 1120px\), \(max-height: 740px\)\s*\{[\s\S]*\.leaflet-floating-stage\s*\{[\s\S]*grid-template-areas:\s*\n      "gallery"\s*\n      "copy";/,
     );
     expect(normalizedStyles).toMatch(
-      /@media \(max-width: 920px\), \(max-height: 680px\)\s*\{[\s\S]*\.leaflet-stage-scene\s*\{[\s\S]*min-height: min\(62dvh, 520px\);/,
+      /@media \(max-width: 1120px\), \(max-height: 740px\)\s*\{[\s\S]*\.leaflet-stage-scene\s*\{[\s\S]*overflow: hidden;/,
     );
     expect(normalizedStyles).toMatch(
-      /@media \(max-width: 920px\), \(max-height: 680px\)\s*\{[\s\S]*\.leaflet-meta-panel\s*\{[\s\S]*align-self: stretch;/,
+      /@media \(max-width: 1120px\), \(max-height: 740px\)\s*\{[\s\S]*\.leaflet-meta-panel\s*\{[\s\S]*align-self: stretch;/,
     );
+  });
+
+  it("lets the normal promotion section use responsive leaflet grids instead of one fixed tiny poster", () => {
+    expect(normalizedStyles).toMatch(/\.promotion-panel\s*\{[\s\S]*container-type: size;/);
+    expect(normalizedStyles).toMatch(/\.leaflet-display-grid\s*\{[\s\S]*display: grid;/);
+    expect(normalizedStyles).toContain("grid-template-columns: repeat(auto-fit, minmax(min(220px, 100%), 1fr));");
+    expect(normalizedStyles).toMatch(/\.leaflet-display-grid \.leaflet-poster:nth-child\(n \+ 2\)\s*\{[\s\S]*display: none;/);
+    expect(normalizedStyles).toMatch(
+      /@container \(min-width: 440px\) and \(min-height: 360px\)\s*\{[\s\S]*\.leaflet-display-grid \.leaflet-poster:nth-child\(2\)\s*\{[\s\S]*display: grid;/,
+    );
+    expect(normalizedStyles).toMatch(
+      /@container \(min-width: 680px\) and \(min-height: 420px\)\s*\{[\s\S]*\.leaflet-display-grid \.leaflet-poster:nth-child\(3\)\s*\{[\s\S]*display: grid;/,
+    );
+    expect(normalizedStyles).toMatch(/\.leaflet-display-grid\[data-single-leaflet="true"\] \.leaflet-image-stage\s*\{[\s\S]*min-height: clamp\(180px, 46cqh, 430px\);/);
+    expect(normalizedStyles).toMatch(/\.leaflet-poster\s*\{[\s\S]*grid-template-rows: auto minmax\(clamp\(150px, 34cqh, 360px\), 1fr\) auto auto;/);
   });
 
   it("prevents product, poster, and leaflet artwork from clipping inner icons", () => {

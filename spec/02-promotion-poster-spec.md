@@ -25,9 +25,11 @@ The backend may return structured `ui_actions` to request a leaflet, gallery, en
 - `MOCK-POSTER001` is the only eligible idle poster for `SG-001`.
 - Product promotion leaflets appear automatically only when they are active, current, and branch-valid.
 - Product with no specific promotion or no matched product defaults the panel to an active branch-valid campaign leaflet when one exists, while still allowing touch-friendly promotion/campaign browsing.
+- The normal promotion panel uses a responsive leaflet grid driven by the panel container. Narrow or short panels show one primary leaflet that fills the available frame; wider/taller panels may reveal additional active branch-valid promotion/campaign leaflets without shrinking them into tiny cards.
+- Leaflet ordering is deterministic and source-of-truth based: product-linked active promotion first, then related campaign when available, then other active branch-valid leaflets. If no product-specific promotion exists or the product is not found, an active campaign leaflet is first.
 - General promotion/campaign questions show active branch-valid leaflets in a horizontal carousel/gallery with direct leaflet card touch targets.
 - The normal promotion panel must not show a visible `Enlarge Leaflet` button; the leaflet artwork/card itself is the touch target that opens the enlarged viewer.
-- The enlarged leaflet viewer is a clean floating holographic card over the existing kiosk UI. It supports swipe/drag/trackpad browsing and keyboard arrows as accessibility fallback, moves metadata below the leaflet when space is tight, and omits visible X, Previous/Next buttons, dots, page counters, and large modal title/header copy.
+- The enlarged leaflet viewer is a clean floating holographic card over the existing kiosk UI. It supports swipe/drag/trackpad browsing and keyboard arrows as accessibility fallback, moves metadata below the leaflet when space is tight, clips only transformed stage overflow that would otherwise cross into the metadata area, and omits visible X, Previous/Next buttons, dots, page counters, and large modal title/header copy.
 - Unknown frontend action types are ignored and never executed.
 - The UI labels promotion data as fictional mock data.
 

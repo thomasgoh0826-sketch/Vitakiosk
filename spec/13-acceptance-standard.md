@@ -50,6 +50,12 @@ A feature is accepted only when:
   not accepted. Product-linked active promotions appear first when available;
   product-without-promotion and product-not-found flows default to an active
   branch-valid campaign leaflet when one exists.
+- Promotion panel responsive acceptance requires browser-measured evidence that
+  the normal promotion region uses its available container space without a tiny
+  fixed-size leaflet stranded in a large panel. Narrow/short panels show one
+  readable primary leaflet; wider/taller panels may reveal multiple active
+  branch-valid leaflets via container-driven grid rules; no leaflet artwork or
+  metadata may be cropped by the panel.
 - Red-flag safety acceptance requires no promotion/campaign leaflet or modal to
   appear before pharmacist escalation.
 - Voice-flow acceptance requires `Tap to Speak` as the main control, manual
@@ -180,6 +186,9 @@ A feature is accepted only when:
   leaflet artwork at 1024x768 and squeezed/narrow/short viewports. When side
   space is insufficient, branch/source/validity/description metadata must move
   below the hero leaflet or otherwise reflow without covering the leaflet image.
+  In stacked layouts, transformed leaflet-stage overflow must be contained in
+  the swipe scene so side previews or the hero card cannot visually cover the
+  metadata panel.
 - Leaflet modal acceptance requires no visible X close button, no Previous/Next
   buttons, no visible dots, no visible `1 / 3` style page indicator, no top
   title/header above the leaflet, no `Holographic Leaflet Gallery`/stage wording,

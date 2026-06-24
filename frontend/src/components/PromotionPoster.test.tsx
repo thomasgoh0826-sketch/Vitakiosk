@@ -96,6 +96,10 @@ function renderPromotionPoster(
 }
 
 describe("PromotionPoster leaflet display", () => {
+  function leafletButtons() {
+    return screen.getAllByRole("button", { name: /open .* leaflet/i });
+  }
+
   it("opens the enlarged viewer from the leaflet card itself without a separate Enlarge button", () => {
     const { onOpenLeaflet } = renderPromotionPoster();
 
@@ -111,15 +115,32 @@ describe("PromotionPoster leaflet display", () => {
     expect(onOpenLeaflet).toHaveBeenCalledWith(leaflets[0]);
   });
 
-  it("defaults product-without-promotion mode to a related campaign leaflet first", () => {
+  it("orders product-linked promotion first, then other active leaflets for responsive display", () => {
+    renderPromotionPoster();
+
+    const buttons = leafletButtons();
+    expect(buttons).toHaveLength(3);
+    expect(buttons[0]).toHaveAccessibleName(/open Relief Balm Demo Leaflet/i);
+    expect(buttons[1]).toHaveAccessibleName(/open Supplement Savings Demo/i);
+    expect(buttons[2]).toHaveAccessibleName(/open Hydration Health Campaign/i);
+  });
+
+  it("defaults product-without-promotion mode to a related campaign leaflet first while keeping more leaflets available", () => {
     const { onOpenLeaflet } = renderPromotionPoster({
       mode: "product_options",
       product: productWithoutPromotion,
     });
 
     const panel = screen.getByRole("region", { name: "Promotion" });
-    expect(within(panel).getByText("Hydration Health Campaign")).toBeInTheDocument();
-    expect(within(panel).queryByText("Supplement Savings Demo")).not.toBeInTheDocument();
+    const buttons = within(panel).getAllByRole("button", { name: /open .* leaflet/i });
+    expect(buttons).toHaveLength(3);
+    expect(buttons[0]).toHaveAccessibleName(/open Hydration Health Campaign/i);
+    expect(buttons.map((button) => button.getAttribute("aria-label"))).toEqual(
+      expect.arrayContaining([
+        "Open Relief Balm Demo Leaflet leaflet",
+        "Open Supplement Savings Demo leaflet",
+      ]),
+    );
 
     fireEvent.click(within(panel).getByRole("button", {
       name: /open Hydration Health Campaign/i,
@@ -128,15 +149,17 @@ describe("PromotionPoster leaflet display", () => {
     expect(onOpenLeaflet).toHaveBeenCalledWith(leaflets[2]);
   });
 
-  it("shows a campaign leaflet first for product-not-found or no-product states", () => {
+  it("shows a campaign leaflet first for product-not-found or no-product states and keeps browsing candidates", () => {
     renderPromotionPoster({
       mode: "idle",
       product: null,
     });
 
     const panel = screen.getByRole("region", { name: "Promotion" });
-    expect(within(panel).getByText("Hydration Health Campaign")).toBeInTheDocument();
-    expect(within(panel).queryByText("Supplement Savings Demo")).not.toBeInTheDocument();
+    const buttons = within(panel).getAllByRole("button", { name: /open .* leaflet/i });
+    expect(buttons).toHaveLength(3);
+    expect(buttons[0]).toHaveAccessibleName(/open Hydration Health Campaign/i);
+    expect(buttons[1]).toHaveAccessibleName(/open Relief Balm Demo Leaflet/i);
   });
 
   it("renders gallery leaflets as direct touch targets without nested view buttons", () => {

@@ -44,6 +44,68 @@ function firstProductLinked(
   return leaflets.find((leaflet) => isProductLinked(leaflet, product)) ?? null;
 }
 
+function uniqueLeaflets(leaflets: Array<Leaflet | null | undefined>) {
+  const seen = new Set<string>();
+  return leaflets.filter((leaflet): leaflet is Leaflet => {
+    if (!leaflet || seen.has(leaflet.id)) {
+      return false;
+    }
+
+    seen.add(leaflet.id);
+    return true;
+  });
+}
+
+function orderedDisplayLeaflets({
+  mode,
+  leaflets,
+  promotionLeaflets,
+  campaignLeaflets,
+  productPromotionLeaflet,
+  productCampaignLeaflet,
+  selectedLeafletFromAction,
+}: {
+  mode: PromotionPanelMode;
+  leaflets: Leaflet[];
+  promotionLeaflets: Leaflet[];
+  campaignLeaflets: Leaflet[];
+  productPromotionLeaflet: Leaflet | null;
+  productCampaignLeaflet: Leaflet | null;
+  selectedLeafletFromAction: Leaflet | null;
+}) {
+  if (mode === "promotion_gallery") {
+    return promotionLeaflets;
+  }
+
+  if (mode === "campaign_gallery") {
+    return campaignLeaflets;
+  }
+
+  const hasProductPromotion = Boolean(productPromotionLeaflet);
+  const defaultCampaign = productCampaignLeaflet ?? campaignLeaflets[0] ?? null;
+  const primaryLeaflets =
+    hasProductPromotion
+      ? [
+          selectedLeafletFromAction,
+          mode === "product_campaign" ? productCampaignLeaflet : null,
+          productPromotionLeaflet,
+          productCampaignLeaflet,
+          ...promotionLeaflets,
+          ...campaignLeaflets,
+        ]
+      : [
+          selectedLeafletFromAction,
+          defaultCampaign,
+          ...campaignLeaflets,
+          ...promotionLeaflets,
+        ];
+
+  return uniqueLeaflets([
+    ...primaryLeaflets,
+    ...leaflets,
+  ]);
+}
+
 function PromotionPoster({
   mode,
   leaflets,
@@ -61,16 +123,15 @@ function PromotionPoster({
   const productCampaignLeaflet = firstProductLinked(campaignLeaflets, product);
   const selectedLeafletFromAction =
     leaflets.find((leaflet) => leaflet.id === selectedLeafletId) ?? null;
-  const selectedLeaflet =
-    selectedLeafletFromAction
-    ?? (mode === "product_promotion" ? productPromotionLeaflet : null)
-    ?? (mode === "product_campaign" ? productCampaignLeaflet : null)
-    ?? (mode === "product_options" ? productCampaignLeaflet ?? campaignLeaflets[0] : null)
-    ?? productPromotionLeaflet
-    ?? productCampaignLeaflet
-    ?? campaignLeaflets[0]
-    ?? promotionLeaflets[0]
-    ?? null;
+  const displayLeaflets = orderedDisplayLeaflets({
+    mode,
+    leaflets,
+    promotionLeaflets,
+    campaignLeaflets,
+    productPromotionLeaflet,
+    productCampaignLeaflet,
+    selectedLeafletFromAction,
+  });
 
   if (safetyOverride) {
     return (
@@ -90,12 +151,12 @@ function PromotionPoster({
   if (mode === "product_options") {
     return (
       <section className="panel promotion-panel" aria-label={labels.promotion}>
-        {selectedLeaflet ? (
-          <LeafletPoster
-            leaflet={selectedLeaflet}
+        {displayLeaflets.length ? (
+          <LeafletDisplayGrid
+            leaflets={displayLeaflets}
             labels={labels}
-            onOpen={() => onOpenLeaflet(selectedLeaflet)}
-            contextCopy="Default active campaign"
+            onOpenLeaflet={onOpenLeaflet}
+            contextCopyForFirst="Default active campaign"
           />
         ) : (
           <div className="poster-frame leaflet-empty-frame">
@@ -148,11 +209,11 @@ function PromotionPoster({
 
   return (
     <section className="panel promotion-panel" aria-label={labels.promotion}>
-      {selectedLeaflet ? (
-        <LeafletPoster
-          leaflet={selectedLeaflet}
+      {displayLeaflets.length ? (
+        <LeafletDisplayGrid
+          leaflets={displayLeaflets}
           labels={labels}
-          onOpen={() => onOpenLeaflet(selectedLeaflet)}
+          onOpenLeaflet={onOpenLeaflet}
         />
       ) : (
         <div className="poster-frame leaflet-empty-frame">
@@ -165,16 +226,50 @@ function PromotionPoster({
   );
 }
 
+function LeafletDisplayGrid({
+  leaflets,
+  labels,
+  onOpenLeaflet,
+  contextCopyForFirst,
+}: {
+  leaflets: Leaflet[];
+  labels: KioskTranslations;
+  onOpenLeaflet: (leaflet: Leaflet) => void;
+  contextCopyForFirst?: string;
+}) {
+  return (
+    <div
+      className="leaflet-display-grid"
+      aria-label="Active promotion and campaign leaflets"
+      data-leaflet-count={Math.min(leaflets.length, 4)}
+      data-single-leaflet={String(leaflets.length === 1)}
+    >
+      {leaflets.map((leaflet, index) => (
+        <LeafletPoster
+          key={leaflet.id}
+          leaflet={leaflet}
+          labels={labels}
+          onOpen={() => onOpenLeaflet(leaflet)}
+          contextCopy={index === 0 ? contextCopyForFirst : undefined}
+          priority={index + 1}
+        />
+      ))}
+    </div>
+  );
+}
+
 function LeafletPoster({
   leaflet,
   labels,
   onOpen,
   contextCopy,
+  priority,
 }: {
   leaflet: Leaflet;
   labels: KioskTranslations;
   onOpen: () => void;
   contextCopy?: string;
+  priority?: number;
 }) {
   return (
     <button
@@ -182,6 +277,7 @@ function LeafletPoster({
       type="button"
       onClick={onOpen}
       aria-label={`Open ${leaflet.title} leaflet`}
+      data-leaflet-priority={priority}
     >
       <div className="poster-grid" aria-hidden="true" />
       <div className="poster-topline">
