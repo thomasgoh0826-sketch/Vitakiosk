@@ -3601,7 +3601,7 @@ body {
 }
 
 .leaflet-image-stage,
-.leaflet-modal-art,
+.floating-leaflet-panel,
 .leaflet-card {
   position: relative;
   overflow: visible;
@@ -3622,7 +3622,7 @@ body {
 
 .leaflet-image-stage img,
 .leaflet-card img,
-.leaflet-modal-art img {
+.floating-leaflet-panel img {
   max-width: 100%;
   max-height: 100%;
   width: auto;
@@ -3785,27 +3785,29 @@ body {
   display: grid;
   place-items: center;
   padding: clamp(14px, 3dvw, 44px);
-  background: rgba(0, 3, 10, 0.26);
+  background: rgba(0, 3, 10, 0.22);
   backdrop-filter: none;
 }
 
 .leaflet-modal {
   position: relative;
-  width: min(1120px, 94dvw);
-  max-height: min(720px, 90dvh);
+  width: min(1180px, 95dvw);
+  min-height: min(700px, 88dvh);
+  max-height: min(760px, 92dvh);
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(260px, 0.34fr);
+  grid-template-columns: minmax(0, 1fr) minmax(248px, 0.28fr);
   grid-template-areas:
     "header header"
-    "gallery copy";
-  grid-template-rows: auto minmax(0, 1fr);
+    "gallery copy"
+    "hint copy";
+  grid-template-rows: auto minmax(0, 1fr) auto;
   gap: clamp(12px, 1.45dvw, 20px);
-  padding: clamp(22px, 2.2dvw, 34px);
+  padding: clamp(20px, 2dvw, 32px);
   border: 1px solid rgba(66, 245, 255, 0.42);
   border-radius: clamp(22px, 2.2dvw, 32px);
   color: var(--text-primary);
   background:
-    linear-gradient(145deg, rgba(8, 20, 43, 0.94), rgba(16, 7, 39, 0.92)),
+    linear-gradient(145deg, rgba(8, 20, 43, 0.91), rgba(16, 7, 39, 0.89)),
     var(--panel-glass);
   box-shadow:
     inset 0 0 24px rgba(66, 245, 255, 0.055),
@@ -3819,22 +3821,30 @@ body {
   cursor: grabbing;
 }
 
-.leaflet-modal-art {
-  grid-area: art;
-  min-height: 420px;
-  display: grid;
-  place-items: center;
-  padding: clamp(10px, 1.2dvw, 18px);
-  border: 1px solid rgba(155, 108, 255, 0.36);
-  border-radius: 16px;
-  background: rgba(5, 12, 28, 0.72);
+.leaflet-stage-surface {
+  isolation: isolate;
+  touch-action: pan-y;
 }
 
-.leaflet-modal-art img {
-  width: 100%;
-  height: 100%;
-  min-height: 0;
-  object-fit: contain;
+.leaflet-stage-surface::before {
+  position: absolute;
+  inset: clamp(8px, 1dvw, 14px);
+  z-index: 0;
+  content: "";
+  border: 1px solid rgba(66, 245, 255, 0.13);
+  border-radius: calc(clamp(22px, 2.2dvw, 32px) - 8px);
+  pointer-events: none;
+}
+
+.leaflet-stage-surface::after {
+  position: absolute;
+  inset: auto 12% clamp(16px, 2dvh, 30px);
+  z-index: 0;
+  height: 1px;
+  content: "";
+  background: linear-gradient(90deg, transparent, rgba(66, 245, 255, 0.52), rgba(155, 108, 255, 0.42), transparent);
+  box-shadow: 0 0 18px rgba(66, 245, 255, 0.18);
+  pointer-events: none;
 }
 
 .leaflet-modal-copy {
@@ -3866,11 +3876,13 @@ body {
   display: flex;
   flex-direction: column;
   justify-content: center;
+  align-self: center;
+  max-height: 100%;
   padding: clamp(14px, 1.5dvw, 22px);
   border: 1px solid rgba(66, 245, 255, 0.22);
   border-radius: 18px;
   background:
-    linear-gradient(180deg, rgba(4, 13, 30, 0.78), rgba(10, 7, 28, 0.72));
+    linear-gradient(180deg, rgba(4, 13, 30, 0.68), rgba(10, 7, 28, 0.62));
   box-shadow:
     inset 0 0 28px rgba(66, 245, 255, 0.055),
     0 0 30px rgba(155, 108, 255, 0.08);
@@ -3921,83 +3933,72 @@ body {
   font-weight: 800;
 }
 
-.leaflet-gallery-shell {
+.leaflet-stage-scene {
   position: relative;
-  z-index: 2;
+  z-index: 1;
   grid-area: gallery;
-  min-width: 0;
-  min-height: 0;
-  display: grid;
-  grid-template-rows: minmax(0, 1fr) auto auto;
-  gap: clamp(9px, 1dvh, 14px);
-}
-
-.leaflet-gallery-viewport {
-  position: relative;
   min-height: clamp(330px, 56dvh, 520px);
+  min-width: 0;
   overflow: hidden;
-  border: 1px solid rgba(66, 245, 255, 0.3);
   border-radius: clamp(18px, 1.8dvw, 28px);
-  background:
-    linear-gradient(180deg, rgba(3, 13, 31, 0.86), rgba(3, 5, 15, 0.92));
-  box-shadow:
-    inset 0 0 26px rgba(66, 245, 255, 0.055),
-    0 0 20px rgba(66, 245, 255, 0.1);
+  background: linear-gradient(180deg, rgba(3, 13, 31, 0.24), rgba(3, 5, 15, 0.12));
+  perspective: 1200px;
   touch-action: pan-y;
   cursor: grab;
   user-select: none;
 }
 
-.leaflet-gallery-viewport:focus-visible {
+.leaflet-stage-scene:focus-visible {
   outline: 2px solid var(--neon-cyan);
   outline-offset: 4px;
 }
 
-.leaflet-gallery-viewport.is-dragging {
+.leaflet-stage-scene.is-dragging {
   cursor: grabbing;
 }
 
-.leaflet-gallery-viewport[data-carousel-mode="single"] {
+.leaflet-stage-scene[data-carousel-mode="single"] {
   cursor: default;
 }
 
-.leaflet-gallery-track {
+.leaflet-depth-track {
   position: absolute;
-  inset: clamp(16px, 2dvw, 26px) 0;
+  inset: clamp(10px, 1.2dvw, 18px) 0;
   display: flex;
   align-items: center;
-  gap: 18px;
+  gap: 24px;
   transform: translate3d(var(--leaflet-track-offset), 0, 0);
   transition: transform 360ms cubic-bezier(0.2, 0.88, 0.25, 1);
   will-change: transform;
 }
 
-.leaflet-gallery-viewport.is-dragging .leaflet-gallery-track {
+.leaflet-stage-scene.is-dragging .leaflet-depth-track,
+.leaflet-stage-surface.is-dragging .leaflet-depth-track {
   transition: none;
 }
 
-.leaflet-gallery-viewport[data-carousel-mode="single"] .leaflet-gallery-track {
+.leaflet-stage-scene[data-carousel-mode="single"] .leaflet-depth-track {
   inset-inline: 0;
   justify-content: center;
   transform: translate3d(0, 0, 0);
 }
 
-.leaflet-holo-card {
+.floating-leaflet-panel {
   position: relative;
-  flex: 0 0 74%;
+  flex: 0 0 64%;
   height: 100%;
   display: grid;
   place-items: center;
-  padding: clamp(12px, 1.3dvw, 20px);
+  padding: clamp(10px, 1.2dvw, 18px);
   border: 1px solid rgba(143, 165, 189, 0.18);
   border-radius: clamp(18px, 1.7dvw, 26px);
   background:
-    linear-gradient(145deg, rgba(6, 16, 38, 0.9), rgba(11, 7, 31, 0.86));
+    linear-gradient(145deg, rgba(6, 16, 38, 0.86), rgba(11, 7, 31, 0.82));
   box-shadow:
     inset 0 0 24px rgba(66, 245, 255, 0.035),
     0 12px 36px rgba(0, 0, 0, 0.34);
-  opacity: 0.48;
-  transform: perspective(900px) rotateY(12deg) scale(0.88);
+  opacity: 0.32;
+  transform: perspective(900px) rotateY(16deg) translateZ(-90px) scale(0.8);
   transition:
     border-color 280ms ease,
     box-shadow 280ms ease,
@@ -4005,15 +4006,15 @@ body {
     transform 360ms cubic-bezier(0.2, 0.88, 0.25, 1);
 }
 
-.leaflet-holo-card[data-position="previous"] {
-  transform: perspective(900px) rotateY(-13deg) scale(0.86);
+.floating-leaflet-panel[data-position="previous"] {
+  transform: perspective(900px) rotateY(-16deg) translateZ(-90px) scale(0.8);
 }
 
-.leaflet-holo-card.is-active {
+.floating-leaflet-panel.is-active {
   z-index: 3;
   border-color: rgba(66, 245, 255, 0.78);
   opacity: 1;
-  transform: perspective(900px) rotateY(0deg) scale(1);
+  transform: perspective(900px) rotateY(0deg) translateZ(0) scale(1);
   box-shadow:
     inset 0 0 28px rgba(66, 245, 255, 0.09),
     0 0 34px rgba(66, 245, 255, 0.22),
@@ -4021,13 +4022,17 @@ body {
     0 16px 42px rgba(0, 0, 0, 0.42);
 }
 
-.leaflet-gallery-viewport[data-carousel-mode="single"] .leaflet-holo-card {
-  flex-basis: min(74%, 620px);
+.floating-leaflet-panel.is-neighbor {
+  opacity: 0.42;
+}
+
+.leaflet-stage-scene[data-carousel-mode="single"] .floating-leaflet-panel {
+  flex-basis: min(66%, 660px);
   opacity: 1;
   transform: none;
 }
 
-.leaflet-holo-card img {
+.floating-leaflet-panel img {
   width: 100%;
   height: 100%;
   max-width: 100%;
@@ -4063,18 +4068,15 @@ body {
   pointer-events: none;
 }
 
-.leaflet-holo-card.is-active .leaflet-card-glow {
+.floating-leaflet-panel.is-active .leaflet-card-glow {
   opacity: 1;
 }
 
-.leaflet-gallery-status {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 12px;
-}
-
 .leaflet-swipe-hint {
+  position: relative;
+  z-index: 2;
+  grid-area: hint;
+  justify-self: center;
   margin: 0;
   color: rgba(183, 203, 223, 0.74);
   font-size: clamp(0.66rem, 0.78dvw, 0.92rem);
@@ -4110,12 +4112,13 @@ body {
     grid-template-areas:
       "header"
       "gallery"
+      "hint"
       "copy";
     max-height: 92dvh;
     overflow-y: auto;
   }
 
-  .leaflet-gallery-viewport {
+  .leaflet-stage-scene {
     min-height: 320px;
   }
 

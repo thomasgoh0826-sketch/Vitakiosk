@@ -72,11 +72,13 @@ function renderModal(
 }
 
 describe("LeafletModal holographic gallery", () => {
-  it("renders multiple leaflets as a swipeable gallery without primary Previous/Next buttons", () => {
+  it("renders multiple leaflets as one full-stage swipe surface without nested carousel controls", () => {
     renderModal("LF-002");
 
     const dialog = screen.getByRole("dialog", { name: /leaflet preview/i });
-    expect(within(dialog).getByRole("listbox", { name: /swipeable leaflet gallery/i })).toBeInTheDocument();
+    const stage = within(dialog).getByLabelText("Full holographic leaflet swipe stage");
+    expect(stage).toHaveClass("leaflet-stage-surface");
+    expect(within(stage).getByRole("listbox", { name: /full-stage swipe leaflet viewer/i })).toBeInTheDocument();
     expect(within(dialog).getAllByRole("option")).toHaveLength(3);
     expect(within(dialog).queryByRole("button", { name: /close leaflet preview/i })).not.toBeInTheDocument();
     expect(within(dialog).queryByRole("button", { name: /previous/i })).not.toBeInTheDocument();
@@ -85,6 +87,8 @@ describe("LeafletModal holographic gallery", () => {
     expect(dialog.querySelector(".leaflet-page-indicator")).toBeNull();
     expect(dialog.querySelector(".leaflet-page-dots")).toBeNull();
     expect(dialog.querySelector(".leaflet-light-trail")).toBeNull();
+    expect(dialog.querySelector(".leaflet-gallery-shell")).toBeNull();
+    expect(dialog.querySelector(".leaflet-gallery-viewport")).toBeNull();
     expect(within(dialog).getByText("Swipe to browse")).toBeInTheDocument();
     expect(within(dialog).getByRole("option", { name: /Supplement Wellness Campaign, 2 of 3/i }))
       .toHaveAttribute("aria-current", "true");
@@ -94,9 +98,9 @@ describe("LeafletModal holographic gallery", () => {
     renderModal("LF-001", [leaflets[0]]);
 
     const dialog = screen.getByRole("dialog", { name: /leaflet preview/i });
-    const gallery = within(dialog).getByRole("listbox", { name: /swipeable leaflet gallery/i });
-    expect(within(gallery).getAllByRole("option")).toHaveLength(1);
-    expect(gallery).toHaveAttribute("data-carousel-mode", "single");
+    const stageViewer = within(dialog).getByRole("listbox", { name: /full-stage swipe leaflet viewer/i });
+    expect(within(stageViewer).getAllByRole("option")).toHaveLength(1);
+    expect(stageViewer).toHaveAttribute("data-carousel-mode", "single");
     expect(within(dialog).queryByText("1 / 1")).not.toBeInTheDocument();
     expect(within(dialog).queryByRole("button", { name: /previous/i })).not.toBeInTheDocument();
     expect(within(dialog).queryByRole("button", { name: /next/i })).not.toBeInTheDocument();
@@ -104,7 +108,7 @@ describe("LeafletModal holographic gallery", () => {
 
   it("changes the active leaflet by dragging the whole clean leaflet stage", () => {
     const { onSelect } = renderModal("LF-001");
-    const stage = screen.getByLabelText("Clean swipe leaflet stage");
+    const stage = screen.getByLabelText("Full holographic leaflet swipe stage");
 
     fireEvent.mouseDown(stage, { clientX: 420 });
     fireEvent.mouseMove(stage, { clientX: 240 });
@@ -135,15 +139,15 @@ describe("LeafletModal holographic gallery", () => {
 
   it("supports trackpad horizontal wheel navigation with boundary resistance", () => {
     const { onSelect } = renderModal("LF-001");
-    const gallery = screen.getByRole("listbox", { name: /swipeable leaflet gallery/i });
+    const stage = screen.getByLabelText("Full holographic leaflet swipe stage");
 
-    fireEvent.wheel(gallery, { deltaX: 120, deltaY: 0 });
+    fireEvent.wheel(stage, { deltaX: 120, deltaY: 0 });
     expect(onSelect).toHaveBeenCalledWith("LF-002");
 
-    fireEvent.wheel(gallery, { deltaX: -120, deltaY: 0 });
+    fireEvent.wheel(stage, { deltaX: -120, deltaY: 0 });
     expect(onSelect).toHaveBeenLastCalledWith("LF-001");
 
-    fireEvent.wheel(gallery, { deltaX: -120, deltaY: 0 });
+    fireEvent.wheel(stage, { deltaX: -120, deltaY: 0 });
     expect(onSelect).toHaveBeenCalledTimes(2);
   });
 
@@ -160,9 +164,9 @@ describe("LeafletModal holographic gallery", () => {
     }));
 
     const { onSelect } = renderModal("LF-001");
-    const gallery = screen.getByRole("listbox", { name: /swipeable leaflet gallery/i });
+    const stageViewer = screen.getByRole("listbox", { name: /full-stage swipe leaflet viewer/i });
 
-    expect(gallery).toHaveAttribute("data-reduced-motion", "true");
+    expect(stageViewer).toHaveAttribute("data-reduced-motion", "true");
     fireEvent.keyDown(screen.getByRole("dialog", { name: /leaflet preview/i }), { key: "ArrowRight" });
     expect(onSelect).toHaveBeenCalledWith("LF-002");
   });
@@ -170,7 +174,7 @@ describe("LeafletModal holographic gallery", () => {
   it("closes from outside clicks but keeps inside stage clicks open", () => {
     const { onClose } = renderModal("LF-001");
     const dialog = screen.getByRole("dialog", { name: /leaflet preview/i });
-    const stage = screen.getByLabelText("Clean swipe leaflet stage");
+    const stage = screen.getByLabelText("Full holographic leaflet swipe stage");
 
     fireEvent.mouseDown(stage, { clientX: 320 });
     expect(onClose).not.toHaveBeenCalled();

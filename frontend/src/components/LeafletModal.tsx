@@ -12,9 +12,9 @@ import {
 import type { Leaflet } from "../types";
 
 const SWIPE_THRESHOLD_PX = 68;
-const DEFAULT_VIEWPORT_WIDTH = 720;
-const CARD_WIDTH_RATIO = 0.74;
-const CARD_GAP_PX = 18;
+const DEFAULT_STAGE_WIDTH = 900;
+const CARD_WIDTH_RATIO = 0.64;
+const CARD_GAP_PX = 24;
 
 interface LeafletModalProps {
   leaflets: Leaflet[];
@@ -95,7 +95,7 @@ function LeafletModal({
   const [activeIndex, setActiveIndex] = useState(requestedIndex);
   const [dragOffset, setDragOffset] = useState(0);
   const [isDragging, setIsDragging] = useState(false);
-  const [viewportWidth, setViewportWidth] = useState(DEFAULT_VIEWPORT_WIDTH);
+  const [stageWidth, setStageWidth] = useState(DEFAULT_STAGE_WIDTH);
   const dragStartX = useRef<number | null>(null);
   const isDraggingRef = useRef(false);
   const reducedMotion = usePrefersReducedMotion();
@@ -107,8 +107,8 @@ function LeafletModal({
 
   const activeLeaflet = activeIndex >= 0 ? leaflets[activeIndex] : null;
   const hasCarousel = leaflets.length > 1;
-  const stepWidth = Math.max(viewportWidth * CARD_WIDTH_RATIO + CARD_GAP_PX, 260);
-  const startInset = Math.max((viewportWidth - viewportWidth * CARD_WIDTH_RATIO) / 2, 24);
+  const stepWidth = Math.max(stageWidth * CARD_WIDTH_RATIO + CARD_GAP_PX, 300);
+  const startInset = Math.max((stageWidth - stageWidth * CARD_WIDTH_RATIO) / 2, 36);
   const trackOffset = hasCarousel ? startInset - activeIndex * stepWidth + dragOffset : 0;
 
   if (!activeLeaflet) {
@@ -128,9 +128,9 @@ function LeafletModal({
     onSelect(nextLeaflet.id);
   };
 
-  const setViewportFromElement = (element: HTMLElement) => {
+  const setStageWidthFromElement = (element: HTMLElement) => {
     const width = element.getBoundingClientRect().width;
-    setViewportWidth(width > 0 ? width : DEFAULT_VIEWPORT_WIDTH);
+    setStageWidth(width > 0 ? width : DEFAULT_STAGE_WIDTH);
   };
 
   const handlePointerDown = (event: PointerEvent<HTMLElement>) => {
@@ -138,7 +138,7 @@ function LeafletModal({
       return;
     }
 
-    setViewportFromElement(event.currentTarget);
+    setStageWidthFromElement(event.currentTarget);
     startDrag(pointerX(event));
     event.currentTarget.setPointerCapture?.(event.pointerId);
   };
@@ -192,7 +192,7 @@ function LeafletModal({
       return;
     }
 
-    setViewportFromElement(event.currentTarget);
+    setStageWidthFromElement(event.currentTarget);
     startDrag(mouseX(event));
   };
 
@@ -256,8 +256,8 @@ function LeafletModal({
       onMouseDown={handleBackdropMouseDown}
     >
       <article
-        className={`leaflet-modal leaflet-hologram-modal${isDragging ? " is-dragging" : ""}`}
-        aria-label="Clean swipe leaflet stage"
+        className={`leaflet-modal leaflet-stage-surface${isDragging ? " is-dragging" : ""}`}
+        aria-label="Full holographic leaflet swipe stage"
         onPointerDown={handlePointerDown}
         onPointerMove={handlePointerMove}
         onPointerUp={finishDrag}
@@ -267,55 +267,51 @@ function LeafletModal({
         onMouseUp={handleMouseUp}
         onWheel={handleWheel}
       >
-        <header className="leaflet-modal-header">
+        <header className="leaflet-modal-header leaflet-stage-header">
           <div>
-            <span className="eyebrow">Holographic leaflet gallery</span>
+            <span className="eyebrow">Holographic leaflet stage</span>
             <h2>{activeLeaflet.title}</h2>
           </div>
         </header>
 
-        <section className="leaflet-gallery-shell" aria-label="Promotion leaflet enlarged viewer">
-          <div
-            className={`leaflet-gallery-viewport${isDragging ? " is-dragging" : ""}`}
-            role="listbox"
-            aria-label="Swipeable leaflet gallery"
-            aria-describedby="leaflet-gallery-instructions leaflet-gallery-active"
-            data-carousel-mode={hasCarousel ? "carousel" : "single"}
-            data-reduced-motion={String(reducedMotion)}
-          >
-            <div className="leaflet-gallery-track" style={trackStyle}>
-              {leaflets.map((leaflet, index) => {
-                const isActive = index === activeIndex;
-                const distance = Math.abs(index - activeIndex);
-                const position = index < activeIndex ? "previous" : index > activeIndex ? "next" : "active";
-                return (
-                  <article
-                    key={leaflet.id}
-                    className={`leaflet-holo-card${isActive ? " is-active" : ""}${distance === 1 ? " is-neighbor" : ""}`}
-                    role="option"
-                    aria-selected={isActive}
-                    aria-current={isActive ? "true" : undefined}
-                    aria-label={`${leaflet.title}, ${index + 1} of ${leaflets.length}`}
-                    data-position={position}
-                  >
-                    <span className="leaflet-card-kind">{kindLabel(leaflet.kind)}</span>
-                    <img src={leaflet.image_url} alt="" draggable={false} />
-                    <span className="leaflet-card-glow" aria-hidden="true" />
-                  </article>
-                );
-              })}
-            </div>
+        <section
+          className={`leaflet-stage-scene${isDragging ? " is-dragging" : ""}`}
+          role="listbox"
+          aria-label="Full-stage swipe leaflet viewer"
+          aria-describedby="leaflet-gallery-instructions leaflet-gallery-active"
+          data-carousel-mode={hasCarousel ? "carousel" : "single"}
+          data-reduced-motion={String(reducedMotion)}
+        >
+          <div className="leaflet-depth-track" style={trackStyle}>
+            {leaflets.map((leaflet, index) => {
+              const isActive = index === activeIndex;
+              const distance = Math.abs(index - activeIndex);
+              const position = index < activeIndex ? "previous" : index > activeIndex ? "next" : "active";
+              return (
+                <article
+                  key={leaflet.id}
+                  className={`floating-leaflet-panel${isActive ? " is-active" : ""}${distance === 1 ? " is-neighbor" : ""}`}
+                  role="option"
+                  aria-selected={isActive}
+                  aria-current={isActive ? "true" : undefined}
+                  aria-label={`${leaflet.title}, ${index + 1} of ${leaflets.length}`}
+                  data-position={position}
+                >
+                  <span className="leaflet-card-kind">{kindLabel(leaflet.kind)}</span>
+                  <img src={leaflet.image_url} alt="" draggable={false} />
+                  <span className="leaflet-card-glow" aria-hidden="true" />
+                </article>
+              );
+            })}
           </div>
-
-          <div className="leaflet-gallery-status">
-            <p id="leaflet-gallery-instructions" className="leaflet-swipe-hint">
-              {hasCarousel ? "Swipe to browse" : "Single active leaflet"}
-            </p>
-          </div>
-          <p id="leaflet-gallery-active" className="leaflet-screen-reader-status" aria-live="polite">
-            Active leaflet {activeIndex + 1} of {leaflets.length}: {activeLeaflet.title}.
-          </p>
         </section>
+
+        <p id="leaflet-gallery-instructions" className="leaflet-swipe-hint">
+          {hasCarousel ? "Swipe to browse" : "Single active leaflet"}
+        </p>
+        <p id="leaflet-gallery-active" className="leaflet-screen-reader-status" aria-live="polite">
+          Active leaflet {activeIndex + 1} of {leaflets.length}: {activeLeaflet.title}.
+        </p>
 
         <aside className="leaflet-modal-copy leaflet-metadata-panel" aria-label="Active leaflet metadata">
           <span className="eyebrow">

@@ -165,12 +165,19 @@ A feature is accepted only when:
 - Product, promotion, leaflet, and safety icons are not accepted if inner
   artwork, logos, glyphs, or leaflet images are clipped; image artwork must use
   safe padding and `object-fit: contain`.
-- Leaflet modal acceptance requires no visible X close button, no visible dots,
-  no visible `1 / 3` style page indicator, and no particles, fog, smoke, dust,
-  light-trail elements, or heavy blur/dim overlay. Its active leaflet, neighbor
-  previews, metadata panel, swipe hint, and screen-reader-only active position
-  text must display only existing adapter-supplied leaflet data without invented
-  discount, claim, branch, validity, or source details.
+- Leaflet modal acceptance requires one near-full-screen holographic swipe
+  stage, not a modal box containing a nested carousel box. The whole stage must
+  be draggable/swipeable, the active leaflet must be large and central, neighbor
+  leaflets may appear only as subtle depth previews, and the metadata panel must
+  remain secondary and readable.
+- Leaflet modal acceptance requires no visible X close button, no Previous/Next
+  buttons, no visible dots, no visible `1 / 3` style page indicator, and no
+  particles, fog, smoke, dust, light-trail elements, noisy atmosphere, or heavy
+  blur/dim overlay. Clicking outside closes, clicking inside the leaflet stage or
+  metadata does not close, Escape closes, keyboard arrows remain an accessibility
+  fallback, and all leaflet/metadata text must display only existing
+  adapter-supplied leaflet data without invented discount, claim, branch,
+  validity, or source details.
 - Narrow tablet or portrait fallback may scroll vertically, but it must not create horizontal overflow and must keep the avatar, shelf map, promotion poster, ERP panel, and pharmacist safety panel readable.
 - VRM/Three.js avatar canvases must resize with their assistant stage; VRM mode must not expose customer-facing technical renderer labels.
 - Optional avatar renderer work must keep Lottie as the default, gate Three.js behind `VITE_AVATAR_RENDERER=threejs`, and prove all avatar states remain accessible.

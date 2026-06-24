@@ -301,7 +301,7 @@ describe("integrated kiosk panels", () => {
 
     expect(screen.getAllByText("Relief Balm Demo Leaflet").length).toBeGreaterThan(0);
     expect(screen.getByRole("dialog", { name: /leaflet preview/i })).toBeInTheDocument();
-    expect(screen.getByLabelText("Clean swipe leaflet stage")).toBeInTheDocument();
+    expect(screen.getByLabelText("Full holographic leaflet swipe stage")).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Close leaflet preview" })).not.toBeInTheDocument();
     expect(screen.queryByText(/NAVIGATE_UNSAFE_DEBUG_PAGE/i)).not.toBeInTheDocument();
   });
