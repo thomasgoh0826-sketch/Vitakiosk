@@ -14,17 +14,17 @@ import type { Leaflet } from "../types";
 
 const SWIPE_THRESHOLD_PX = 68;
 const DEFAULT_STAGE_WIDTH = 1200;
-const ACTIVE_CARD_WIDTH_RATIO = 0.37;
-const MIN_ACTIVE_CARD_WIDTH_PX = 340;
-const MAX_ACTIVE_CARD_WIDTH_PX = 420;
-const SIDE_CARD_SLOT_GAP_PX = 48;
-const SIDE_CARD_SCALE = 0.72;
-const SIDE_CARD_OPACITY = 0.9;
-const SIDE_CARD_DEPTH_PX = 70;
-const SIDE_CARD_ROTATE_DEG = 10;
-const FAR_CARD_SCALE = 0.58;
-const FAR_CARD_DEPTH_PX = 130;
-const FAR_CARD_ROTATE_DEG = 14;
+const ACTIVE_CARD_WIDTH_RATIO = 0.5;
+const MIN_ACTIVE_CARD_WIDTH_PX = 420;
+const MAX_ACTIVE_CARD_WIDTH_PX = 620;
+const SIDE_CARD_SLOT_GAP_PX = 64;
+const SIDE_CARD_SCALE = 0.74;
+const SIDE_CARD_OPACITY = 0.88;
+const SIDE_CARD_DEPTH_PX = 120;
+const SIDE_CARD_ROTATE_DEG = 20;
+const FAR_CARD_SCALE = 0.62;
+const FAR_CARD_DEPTH_PX = 220;
+const FAR_CARD_ROTATE_DEG = 28;
 const MIN_DECK_STEP_PX = 320;
 const SIDE_CARD_SAFE_PADDING_PX = 8;
 const OPEN_ANIMATION_MS = 380;
@@ -315,7 +315,9 @@ function LeafletModal({
       return;
     }
 
-    goToIndex(activeIndex + (finalOffset < 0 ? 1 : -1));
+    const rawIndexShift = Math.round(finalOffset / stepWidth);
+    const indexShift = rawIndexShift === 0 ? (finalOffset < 0 ? -1 : 1) : rawIndexShift;
+    goToIndex(activeIndex - indexShift);
   };
 
   const handlePointerMove = (event: PointerEvent<HTMLElement>) => {
@@ -350,7 +352,8 @@ function LeafletModal({
     }
 
     event.preventDefault();
-    goToIndex(activeIndex + (event.deltaX > 0 ? 1 : -1));
+    const wheelIndexShift = Math.max(1, Math.round(Math.abs(event.deltaX) / stepWidth));
+    goToIndex(activeIndex + (event.deltaX > 0 ? wheelIndexShift : -wheelIndexShift));
   };
 
   const handleBackdropMouseDown = (event: MouseEvent<HTMLDivElement>) => {
@@ -379,6 +382,7 @@ function LeafletModal({
     if (!hasCarousel) {
       return {
         "--leaflet-deck-x": "0px",
+        "--leaflet-deck-card-width": `${Math.round(activeCardWidth)}px`,
         "--leaflet-deck-scale": "1",
         "--leaflet-deck-opacity": "1",
         "--leaflet-deck-depth": "0px",
@@ -412,6 +416,7 @@ function LeafletModal({
 
     return {
       "--leaflet-deck-x": `${Math.round(x)}px`,
+      "--leaflet-deck-card-width": `${Math.round(activeCardWidth)}px`,
       "--leaflet-deck-scale": scale === 1 ? "1" : scale.toFixed(3),
       "--leaflet-deck-opacity": opacity === 1 ? "1" : opacity === 0 ? "0" : opacity.toFixed(2),
       "--leaflet-deck-depth": `${Math.round(depth)}px`,
@@ -449,7 +454,7 @@ function LeafletModal({
           aria-label="Floating leaflet swipe surface"
           aria-describedby="leaflet-gallery-instructions leaflet-gallery-active"
           data-carousel-mode={hasCarousel ? "carousel" : "single"}
-          data-deck-pattern="shallow-cylindrical"
+          data-deck-pattern="moderate-cylindrical"
           data-reduced-motion={String(reducedMotion)}
         >
           <div className="leaflet-flat-deck-track">

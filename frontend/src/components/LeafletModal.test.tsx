@@ -72,7 +72,7 @@ function renderModal(
 }
 
 describe("LeafletModal holographic gallery", () => {
-  it("renders multiple leaflets as a shallow cylindrical floating deck without a modal header or dark container", () => {
+  it("renders multiple leaflets as a moderate cylindrical floating deck without a modal header or dark container", () => {
     renderModal("LF-002");
 
     const dialog = screen.getByRole("dialog", { name: /leaflet preview/i });
@@ -83,7 +83,7 @@ describe("LeafletModal holographic gallery", () => {
     expect(within(stage).getByRole("listbox", { name: /floating leaflet swipe surface/i })).toBeInTheDocument();
     expect(within(dialog).getAllByRole("option")).toHaveLength(3);
     expect(within(dialog).getByRole("listbox", { name: /floating leaflet swipe surface/i }))
-      .toHaveAttribute("data-deck-pattern", "shallow-cylindrical");
+      .toHaveAttribute("data-deck-pattern", "moderate-cylindrical");
     expect(dialog.querySelector(".leaflet-flat-deck-track")).toBeInTheDocument();
     expect(dialog.querySelector(".leaflet-depth-track")).toBeNull();
     expect(within(dialog).queryByRole("banner")).not.toBeInTheDocument();
@@ -106,7 +106,7 @@ describe("LeafletModal holographic gallery", () => {
       .toHaveAttribute("aria-current", "true");
   });
 
-  it("angles previous and next leaflets outward in distinct shallow cylindrical deck slots", () => {
+  it("angles previous and next leaflets outward in distinct moderate cylindrical deck slots", () => {
     renderModal("LF-002");
 
     const dialog = screen.getByRole("dialog", { name: /leaflet preview/i });
@@ -120,20 +120,23 @@ describe("LeafletModal holographic gallery", () => {
     expect(previous).toHaveClass("is-neighbor");
     expect(next).toHaveClass("is-neighbor");
     expect(previous).toHaveStyle({
-      "--leaflet-deck-opacity": "0.90",
-      "--leaflet-deck-scale": "0.720",
-      "--leaflet-deck-x": "-409px",
-      "--leaflet-deck-depth": "-70px",
-      "--leaflet-deck-rotate": "-10deg",
+      "--leaflet-deck-card-width": "600px",
+      "--leaflet-deck-opacity": "0.88",
+      "--leaflet-deck-scale": "0.740",
+      "--leaflet-deck-x": "-370px",
+      "--leaflet-deck-depth": "-120px",
+      "--leaflet-deck-rotate": "-20deg",
     });
     expect(next).toHaveStyle({
-      "--leaflet-deck-opacity": "0.90",
-      "--leaflet-deck-scale": "0.720",
-      "--leaflet-deck-x": "409px",
-      "--leaflet-deck-depth": "-70px",
-      "--leaflet-deck-rotate": "10deg",
+      "--leaflet-deck-card-width": "600px",
+      "--leaflet-deck-opacity": "0.88",
+      "--leaflet-deck-scale": "0.740",
+      "--leaflet-deck-x": "370px",
+      "--leaflet-deck-depth": "-120px",
+      "--leaflet-deck-rotate": "20deg",
     });
     expect(active).toHaveStyle({
+      "--leaflet-deck-card-width": "600px",
       "--leaflet-deck-opacity": "1",
       "--leaflet-deck-scale": "1",
       "--leaflet-deck-x": "0px",
@@ -145,10 +148,13 @@ describe("LeafletModal holographic gallery", () => {
     expect(next?.getAttribute("style")).not.toContain("rotateX");
     expect(next?.getAttribute("style")).not.toContain("rotateZ");
 
-    const activeWidth = 420;
-    const sideWidth = activeWidth * 0.72;
-    const slotOffset = 409;
-    expect(slotOffset).toBeGreaterThan((activeWidth + sideWidth) / 2);
+    const oldActiveWidth = 420;
+    const activeWidth = 600;
+    const sideWidth = activeWidth * 0.74;
+    const slotOffset = 370;
+    expect(activeWidth).toBeGreaterThan(oldActiveWidth);
+    expect(slotOffset).toBeGreaterThan(activeWidth / 2);
+    expect(sideWidth).toBeGreaterThan(oldActiveWidth);
   });
 
   it("keeps the current active leaflet at scale 1 while dragging to avoid pop-out motion", () => {
@@ -177,7 +183,7 @@ describe("LeafletModal holographic gallery", () => {
     const offscreenNeighbor = dialog.querySelector('[data-deck-position="offscreen-next"]');
 
     expect(immediateNeighbor).toHaveStyle({
-      "--leaflet-deck-opacity": "0.90",
+      "--leaflet-deck-opacity": "0.88",
     });
     expect(offscreenNeighbor).toBeInTheDocument();
     expect(offscreenNeighbor).toHaveStyle({
@@ -224,6 +230,20 @@ describe("LeafletModal holographic gallery", () => {
       .toHaveAttribute("aria-current", "true");
     expect(screen.getByRole("complementary", { name: /active leaflet metadata/i }))
       .toHaveTextContent("Supplement Wellness Campaign");
+  });
+
+  it("snaps a long drag directly across multiple leaflets instead of forcing one-by-one navigation", () => {
+    const { onSelect } = renderModal("LF-003");
+    const stage = screen.getByLabelText("Floating holographic leaflet card");
+
+    fireEvent.mouseDown(stage, { clientX: 120 });
+    fireEvent.mouseMove(stage, { clientX: 1040 });
+    fireEvent.mouseUp(stage, { clientX: 1040 });
+
+    expect(onSelect).toHaveBeenCalledTimes(1);
+    expect(onSelect).toHaveBeenCalledWith("LF-001");
+    expect(screen.getByRole("option", { name: /ProbioGut Demo Offer, 1 of 3/i }))
+      .toHaveAttribute("aria-current", "true");
   });
 
   it("supports keyboard arrows as accessible navigation fallbacks", () => {
