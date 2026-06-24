@@ -127,6 +127,11 @@ A feature is accepted only when:
 - A white/light SaaS dashboard treatment or a small secondary `Hold to Speak` fallback is not accepted.
 - Responsive kiosk acceptance evidence must include screenshot or browser-measured evidence for at least 1024x768, 1366x768, and 1920x1080.
 - The responsive layout is not accepted if any required landscape viewport has horizontal overflow, document scrolling in the normal kiosk path, overlapping product/promotion/shelf/ERP/safety panels, or a hidden/unusable primary `Tap to Speak` control.
+- AI subtitle/Product layout acceptance requires browser bounding-box evidence that
+  `productPanel.top >= subtitlePanel.bottom + 12px` at 1024x768, 1366x768,
+  and 1920x1080. Product source badges must be measured fully inside the Product
+  panel and Product header row, and product icons/fact rows must have positive
+  visible area inside their containers.
 - Typed-input responsiveness work is not accepted if it globally scales, fixed-canvas shrinks, or transform-scales the whole kiosk UI instead of constraining the typed rail internally.
 - The compact typed rail is not accepted if its keyboard icon or Send button collapses, disappears, or lets input text push controls out of view.
 - The compact typed rail is not accepted if its two-row state floats over the

@@ -22,6 +22,8 @@ AI assistant, primary Tap to Speak voice control plus Start/New Customer reset, 
 - AI subtitle copy appears as the current phrase or sentence, with a maximum 1-2 visible lines, large readable type, and no raw JSON, provider names, technical debug wording, or chat-style `YOU` bubble.
 - During thinking or audio preparation, the AI subtitle area shows safe customer-facing progress text such as `Preparing answer…`.
 - Idle, listening, error, and pharmacist escalation states use short subtitle/status copy rather than replaying a full previous AI paragraph.
+- The AI subtitle panel and Product panel must have a browser-measured visible gap of at least 12px at 1024x768, 1366x768, and 1920x1080; the Product panel must not be pulled upward with negative margins or z-index masking.
+- The Product source badge belongs inside the Product header row in normal layout flow and must remain fully inside the Product panel safe area.
 - At 1024x768 landscape, the assistant bay, conversation/product deck, promotion poster, shelf map, ERP panel, and pharmacist safety panel fit in one view without document scrolling.
 - The kiosk layout uses responsive grid/flex sizing rather than fixed pixel-only placement; target QA viewports include 1024x768, 1280x720, 1366x768, 1440x900, 1920x1080, and iPad portrait/narrow tablet fallback.
 - Landscape kiosk viewports must not create horizontal overflow and should fit the full assistant/product/promotion/shelf/ERP/safety surface in one viewport without document scrolling.
@@ -53,6 +55,7 @@ AI assistant, primary Tap to Speak voice control plus Start/New Customer reset, 
 - The typed input rail and popup keyboard remain touch-friendly and must not create horizontal overflow or awkward document scrolling in the normal 1024x768 landscape kiosk view.
 - Dev-only provider/runtime diagnostics must be placed in reserved header space or hidden; they must never use floating positioning that covers AI subtitles, promotion content, product cards, or customer-facing status labels.
 - Product, poster, pharmacist, and leaflet icon/artwork containers must use stable square/icon-safe sizing with centered content, safe padding, non-shrinking containers, and `object-fit: contain` for image assets so logos and leaflet artwork are not clipped.
+- Product card fact rows and inner text must remain inside the Product panel bounds at the supported landscape QA viewports.
 - Leaflet preview modals must reserve space for the close button and carousel controls; the close button must not overlap the leaflet image or leaflet text.
 
 ## Test evidence

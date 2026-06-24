@@ -4530,7 +4530,7 @@ body {
 
   .product-facts {
     gap: clamp(4px, 0.46dvw, 6px);
-    margin-top: 6px;
+    margin-top: 5px;
   }
 
   .product-facts div {
@@ -4544,5 +4544,76 @@ body {
   .product-facts dd {
     margin-top: 1px;
     font-size: clamp(0.54rem, 0.56dvw, 0.68rem);
+  }
+}
+
+/* Measured card-collision guard: keep subtitle and product panels separated. */
+
+.kiosk-shell {
+  --deck-card-gap: clamp(16px, 1.2dvw, 22px);
+}
+
+.clinical-deck {
+  gap: var(--deck-card-gap);
+}
+
+@media (min-width: 851px) and (orientation: landscape) {
+  .clinical-deck {
+    grid-template-rows:
+      minmax(clamp(108px, 14dvh, 158px), 0.34fr)
+      minmax(146px, 0.62fr)
+      minmax(160px, 0.88fr)
+      minmax(var(--typed-input-rail-min-height), auto);
+    gap: var(--deck-card-gap);
+  }
+}
+
+.product-panel .panel-title-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-width: 0;
+  min-height: 30px;
+  gap: clamp(8px, 0.8dvw, 14px);
+  margin: 0 0 clamp(8px, 0.8dvh, 12px);
+}
+
+.product-panel .panel-title-row h2 {
+  min-width: 0;
+  margin: 0;
+}
+
+.product-panel .source-label {
+  position: static;
+  flex: 0 0 auto;
+  align-self: center;
+  max-width: min(42%, 144px);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.product-art {
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+  isolation: isolate;
+}
+
+.product-art span,
+.product-art img {
+  max-width: 70%;
+  max-height: 70%;
+  object-fit: contain;
+}
+
+.product-facts,
+.product-facts div {
+  min-width: 0;
+}
+
+@media (max-width: 1100px) and (orientation: landscape) {
+  .clinical-deck {
+    gap: var(--deck-card-gap);
   }
 }

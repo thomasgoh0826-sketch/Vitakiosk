@@ -80,6 +80,24 @@ describe("typed input layout CSS contract", () => {
     expect(normalizedStyles).toContain("grid-template-areas: \"brand connection diagnostics\"");
   });
 
+  it("protects measured subtitle-to-product spacing in landscape kiosk mode", () => {
+    expect(normalizedStyles).toContain("--deck-card-gap: clamp(16px, 1.2dvw, 22px);");
+    expect(normalizedStyles).toContain("minmax(clamp(108px, 14dvh, 158px), 0.34fr)");
+    expect(normalizedStyles).toMatch(/\.clinical-deck\s*\{[\s\S]*gap: var\(--deck-card-gap\);/);
+    expect(normalizedStyles).toMatch(
+      /@media \(max-width: 1100px\) and \(orientation: landscape\)\s*\{[\s\S]*\.clinical-deck\s*\{[\s\S]*gap: var\(--deck-card-gap\);/,
+    );
+    expect(normalizedStyles).not.toMatch(/\.clinical-deck\s*\{[\s\S]*margin-top:\s*-/);
+    expect(normalizedStyles).not.toMatch(/\.product-panel\s*\{[\s\S]*margin-top:\s*-/);
+  });
+
+  it("keeps the product source badge inside a normal product header row", () => {
+    expect(normalizedStyles).toMatch(/\.product-panel \.panel-title-row\s*\{[\s\S]*display: flex;/);
+    expect(normalizedStyles).toMatch(/\.product-panel \.panel-title-row\s*\{[\s\S]*justify-content: space-between;/);
+    expect(normalizedStyles).toMatch(/\.product-panel \.source-label\s*\{[\s\S]*position: static;/);
+    expect(normalizedStyles).toMatch(/\.product-panel \.source-label\s*\{[\s\S]*flex: 0 0 auto;/);
+  });
+
   it("prevents product, poster, and leaflet artwork from clipping inner icons", () => {
     expect(normalizedStyles).toContain(".product-art {\n  position: relative;");
     expect(normalizedStyles).toContain("padding: 10px;");
