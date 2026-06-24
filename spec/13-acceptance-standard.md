@@ -37,8 +37,12 @@ A feature is accepted only when:
   of the customer-facing display.
 - Leaflet acceptance requires active, date-valid, branch-aware promotion and
   campaign leaflets, product/category linking from adapter data, touch-friendly
-  galleries, enlarged modal view with close/previous/next, and pharmacist
-  escalation priority over promotion browsing.
+  galleries, an enlarged swipeable holographic modal gallery, and pharmacist
+  escalation priority over promotion browsing. The enlarged modal must not rely
+  on `Previous`/`Next` as the primary interaction; it must support touch swipe,
+  mouse drag, trackpad horizontal swipe, keyboard left/right fallback, Escape to
+  close, active-leaflet metadata, page position, reduced-motion operation, and a
+  single-leaflet centered mode without fake carousel behavior.
 - Red-flag safety acceptance requires no promotion/campaign leaflet or modal to
   appear before pharmacist escalation.
 - Voice-flow acceptance requires `Tap to Speak` as the main control, manual
@@ -160,7 +164,10 @@ A feature is accepted only when:
   artwork, logos, glyphs, or leaflet images are clipped; image artwork must use
   safe padding and `object-fit: contain`.
 - Leaflet modal acceptance requires the close button to occupy reserved layout
-  space and not overlap the leaflet artwork or description.
+  space and not overlap the leaflet artwork or description. Its active leaflet,
+  neighbor previews, metadata panel, and page indicator must display only
+  existing adapter-supplied leaflet data without invented discount, claim,
+  branch, validity, or source details.
 - Narrow tablet or portrait fallback may scroll vertically, but it must not create horizontal overflow and must keep the avatar, shelf map, promotion poster, ERP panel, and pharmacist safety panel readable.
 - VRM/Three.js avatar canvases must resize with their assistant stage; VRM mode must not expose customer-facing technical renderer labels.
 - Optional avatar renderer work must keep Lottie as the default, gate Three.js behind `VITE_AVATAR_RENDERER=threejs`, and prove all avatar states remain accessible.

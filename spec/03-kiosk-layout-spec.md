@@ -36,7 +36,7 @@ AI assistant, primary Tap to Speak voice control plus Start/New Customer reset, 
 - VRM mode uses a larger full-body holographic assistant chamber without customer-facing technical renderer labels; Lottie remains the default renderer unless the runtime selects VRM or Three.js.
 - VRM orbit/halo decoration is a secondary background effect; it must frame the character without crossing the visible face, torso, arms, hands, or dress.
 - The promotion region is a poster composition rather than a small dashboard card.
-- The promotion region supports product leaflets, campaign leaflets, active branch-valid galleries, no-product-promotion choices, and enlarged leaflet modal display.
+- The promotion region supports product leaflets, campaign leaflets, active branch-valid galleries, no-product-promotion choices, and enlarged swipeable leaflet gallery display.
 - A small `Hold to Speak` fallback must not appear as the secondary assistant action in the kiosk layout.
 - Shelf navigation is rendered as an indoor map with aisle and shelf blocks, not as a plain progress stepper.
 - The map shows a labelled current position, target shelf marker, route line, Aisle, Shelf, Level, and a readable route summary.
@@ -62,7 +62,8 @@ AI assistant, primary Tap to Speak voice control plus Start/New Customer reset, 
 - Product, poster, pharmacist, and leaflet icon/artwork containers must use stable square/icon-safe sizing with centered content, safe padding, non-shrinking containers, and `object-fit: contain` for image assets so logos and leaflet artwork are not clipped.
 - Product card fact rows and inner text must remain inside the Product panel bounds at the supported landscape QA viewports.
 - The Product panel must grow or compact its own internals instead of clipping stock, branch, shelf, or source facts; at narrower landscape widths the fact row may wrap into a compact grid, but `scrollHeight`/`scrollWidth` clipping and whole-app transform/zoom fixes are not accepted.
-- Leaflet preview modals must reserve space for the close button and carousel controls; the close button must not overlap the leaflet image or leaflet text.
+- Leaflet preview modals must render as a dark neon holographic gallery: the active leaflet is centered and highlighted, neighboring leaflets are partially visible when multiple leaflets exist, touch/mouse/trackpad swipe or drag changes the active leaflet, keyboard arrows remain an accessibility fallback, Escape closes the modal, and `Previous`/`Next` buttons are not the primary customer interaction.
+- Leaflet preview modals must reserve safe layout space for the close button, swipe hint, page indicator, and active-leaflet metadata; the close button must not overlap the leaflet image or leaflet text.
 
 ## Test evidence
 
