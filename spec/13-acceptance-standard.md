@@ -203,18 +203,26 @@ A feature is accepted only when:
 - Leaflet modal acceptance requires a floating holographic leaflet card over the
   existing kiosk UI, not a big dark modal container and not a modal box
   containing a nested carousel box. The whole floating stage must be
-  draggable/swipeable, the active leaflet image must be the hero, and the
+  draggable/swipeable, the active leaflet image must be the centered hero, and the
   metadata panel must remain small, secondary, and readable. The viewer must
   render as a top-level fixed overlay/portal above the kiosk UI so the active
   leaflet never appears inserted into, behind, or mixed with the avatar,
   product, shelf, ERP, promotion, or pharmacist panels.
+- Leaflet modal deck acceptance requires the Flat Horizontal Floating Deck
+  pattern: active card centered, previous/next leaflets visible on the left and
+  right when real leaflets exist, motion limited to horizontal translation plus
+  subtle scale/opacity/glow, and no spherical, cylindrical, orbit, wheel,
+  coverflow spin, or hidden single-card replacement carousel behavior.
+- Leaflet modal animation acceptance requires a futuristic holographic
+  expansion from the clicked leaflet into the foreground overlay and a smooth
+  reverse collapse on outside click or Escape. Reduced-motion mode may simplify
+  the transition, but a basic instant/fade-only web modal open is not accepted.
 - Leaflet modal responsive acceptance requires metadata to stay outside the
   leaflet artwork at 1024x768 and squeezed/narrow/short viewports. When side
   space is insufficient, branch/source/validity/description metadata must move
   below the hero leaflet or otherwise reflow without covering the leaflet image.
-  Neighbor previews, if shown, must remain inside the overlay stage and subtle;
-  they may be hidden when needed to avoid the inserted-background/depth illusion
-  or to prevent visual coverage of the metadata panel.
+  Neighbor previews must remain inside the overlay stage as flat left/right
+  cards and must not visually pass behind or merge with the kiosk page panels.
 - Leaflet modal acceptance requires no visible X close button, no Previous/Next
   buttons, no visible dots, no visible `1 / 3` style page indicator, no top
   title/header above the leaflet, no `Holographic Leaflet Gallery`/stage wording,

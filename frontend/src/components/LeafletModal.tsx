@@ -3,6 +3,7 @@ import {
   type MouseEvent,
   type PointerEvent,
   type WheelEvent,
+  useCallback,
   useEffect,
   useRef,
   useState,
@@ -13,8 +14,12 @@ import type { Leaflet } from "../types";
 
 const SWIPE_THRESHOLD_PX = 68;
 const DEFAULT_STAGE_WIDTH = 900;
-const CARD_WIDTH_RATIO = 0.64;
-const CARD_GAP_PX = 24;
+const DECK_STEP_RATIO = 0.72;
+const MIN_DECK_STEP_PX = 260;
+const OPEN_ANIMATION_MS = 380;
+const CLOSE_ANIMATION_MS = 240;
+
+type LeafletAnimationState = "opening" | "open" | "closing";
 
 interface LeafletModalProps {
   leaflets: Leaflet[];
@@ -99,18 +104,76 @@ function LeafletModal({
   const sceneRef = useRef<HTMLElement | null>(null);
   const dragStartX = useRef<number | null>(null);
   const isDraggingRef = useRef(false);
+  const openTimerRef = useRef<number | null>(null);
+  const closeTimerRef = useRef<number | null>(null);
   const reducedMotion = usePrefersReducedMotion();
+  const [animationState, setAnimationState] = useState<LeafletAnimationState>(
+    () => reducedMotion ? "open" : "opening",
+  );
 
   useEffect(() => {
     setActiveIndex(requestedIndex);
     setDragOffset(0);
   }, [requestedIndex]);
 
+  useEffect(() => {
+    if (openTimerRef.current !== null) {
+      window.clearTimeout(openTimerRef.current);
+      openTimerRef.current = null;
+    }
+
+    if (reducedMotion) {
+      setAnimationState("open");
+      return undefined;
+    }
+
+    setAnimationState("opening");
+    openTimerRef.current = window.setTimeout(() => {
+      setAnimationState("open");
+      openTimerRef.current = null;
+    }, OPEN_ANIMATION_MS);
+
+    return () => {
+      if (openTimerRef.current !== null) {
+        window.clearTimeout(openTimerRef.current);
+        openTimerRef.current = null;
+      }
+    };
+  }, [activeLeafletId, reducedMotion]);
+
+  useEffect(() => () => {
+    if (closeTimerRef.current !== null) {
+      window.clearTimeout(closeTimerRef.current);
+      closeTimerRef.current = null;
+    }
+  }, []);
+
   const activeLeaflet = activeIndex >= 0 ? leaflets[activeIndex] : null;
   const hasCarousel = leaflets.length > 1;
-  const stepWidth = Math.max(stageWidth * CARD_WIDTH_RATIO + CARD_GAP_PX, 300);
-  const startInset = Math.max((stageWidth - stageWidth * CARD_WIDTH_RATIO) / 2, 36);
-  const trackOffset = hasCarousel ? startInset - activeIndex * stepWidth + dragOffset : 0;
+  const stepWidth = Math.max(stageWidth * DECK_STEP_RATIO, MIN_DECK_STEP_PX);
+  const dragProgress = hasCarousel ? dragOffset / stepWidth : 0;
+
+  const requestClose = useCallback(() => {
+    if (closeTimerRef.current !== null || animationState === "closing") {
+      return;
+    }
+
+    if (openTimerRef.current !== null) {
+      window.clearTimeout(openTimerRef.current);
+      openTimerRef.current = null;
+    }
+
+    if (reducedMotion) {
+      onClose();
+      return;
+    }
+
+    setAnimationState("closing");
+    closeTimerRef.current = window.setTimeout(() => {
+      closeTimerRef.current = null;
+      onClose();
+    }, CLOSE_ANIMATION_MS);
+  }, [animationState, onClose, reducedMotion]);
 
   const goToIndex = (index: number) => {
     const nextIndex = clampIndex(index, leaflets.length);
@@ -128,7 +191,7 @@ function LeafletModal({
   const handleShortcutKey = (key: string, preventDefault: () => void) => {
     if (key === "Escape") {
       preventDefault();
-      onClose();
+      requestClose();
       return true;
     }
 
@@ -251,13 +314,50 @@ function LeafletModal({
 
   const handleBackdropMouseDown = (event: MouseEvent<HTMLDivElement>) => {
     if (event.target === event.currentTarget) {
-      onClose();
+      requestClose();
     }
   };
 
-  const trackStyle = {
-    "--leaflet-track-offset": `${trackOffset}px`,
-  } as CSSProperties;
+  const deckPositionLabel = (index: number) => {
+    if (index === activeIndex) {
+      return "active";
+    }
+
+    if (index === activeIndex - 1) {
+      return "previous";
+    }
+
+    if (index === activeIndex + 1) {
+      return "next";
+    }
+
+    return index < activeIndex ? "offscreen-previous" : "offscreen-next";
+  };
+
+  const deckStyleForIndex = (index: number) => {
+    if (!hasCarousel) {
+      return {
+        "--leaflet-deck-x": "0px",
+        "--leaflet-deck-scale": "1",
+        "--leaflet-deck-opacity": "1",
+        "--leaflet-deck-z": "100",
+      } as CSSProperties;
+    }
+
+    const relativePosition = index - activeIndex + dragProgress;
+    const distance = Math.abs(relativePosition);
+    const x = relativePosition * stepWidth;
+    const scale = Math.max(0.78, 1 - Math.min(distance, 1) * 0.14 - Math.max(distance - 1, 0) * 0.06);
+    const opacity = distance <= 0.08 ? 1 : distance <= 1.18 ? 0.62 : Math.max(0, 0.28 - (distance - 1.18) * 0.18);
+    const z = Math.max(1, Math.round(100 - distance * 12));
+
+    return {
+      "--leaflet-deck-x": `${Math.round(x)}px`,
+      "--leaflet-deck-scale": scale === 1 ? "1" : scale.toFixed(3),
+      "--leaflet-deck-opacity": opacity === 1 ? "1" : opacity.toFixed(2),
+      "--leaflet-deck-z": String(z),
+    } as CSSProperties;
+  };
 
   const modal = (
     <div
@@ -266,6 +366,7 @@ function LeafletModal({
       aria-modal="true"
       aria-label="Leaflet preview"
       tabIndex={-1}
+      data-animation-state={animationState}
       onMouseDown={handleBackdropMouseDown}
     >
       <article
@@ -287,24 +388,25 @@ function LeafletModal({
           aria-label="Floating leaflet swipe surface"
           aria-describedby="leaflet-gallery-instructions leaflet-gallery-active"
           data-carousel-mode={hasCarousel ? "carousel" : "single"}
+          data-deck-pattern="flat-horizontal"
           data-reduced-motion={String(reducedMotion)}
         >
-          <div className="leaflet-depth-track" style={trackStyle}>
+          <div className="leaflet-flat-deck-track">
             {leaflets.map((leaflet, index) => {
               const isActive = index === activeIndex;
               const distance = Math.abs(index - activeIndex);
-              const position = index < activeIndex ? "previous" : index > activeIndex ? "next" : "active";
+              const position = deckPositionLabel(index);
               return (
                 <article
                   key={leaflet.id}
                   className={`floating-leaflet-panel${isActive ? " is-active" : ""}${distance === 1 ? " is-neighbor" : ""}`}
+                  style={deckStyleForIndex(index)}
                   role="option"
                   aria-selected={isActive}
                   aria-current={isActive ? "true" : undefined}
                   aria-label={`${leaflet.title}, ${index + 1} of ${leaflets.length}`}
-                  data-position={position}
+                  data-deck-position={position}
                 >
-                  <span className="leaflet-card-kind">{kindLabel(leaflet.kind)}</span>
                   <img src={leaflet.image_url} alt="" draggable={false} />
                   <span className="leaflet-card-glow" aria-hidden="true" />
                 </article>

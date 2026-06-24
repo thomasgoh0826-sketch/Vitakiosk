@@ -4059,6 +4059,77 @@ button.leaflet-card:focus-visible {
   backdrop-filter: blur(2px) saturate(1.08);
 }
 
+.leaflet-viewer-backdrop[data-animation-state="opening"] .leaflet-floating-stage {
+  animation: leaflet-deck-expand-from-source 380ms cubic-bezier(0.16, 0.92, 0.28, 1);
+}
+
+.leaflet-viewer-backdrop[data-animation-state="closing"] .leaflet-floating-stage {
+  animation: leaflet-deck-collapse-to-source 240ms cubic-bezier(0.42, 0, 0.58, 1) forwards;
+}
+
+.leaflet-viewer-backdrop[data-animation-state="opening"] {
+  animation: leaflet-backdrop-arrive 220ms ease-out;
+}
+
+.leaflet-viewer-backdrop[data-animation-state="closing"] {
+  animation: leaflet-backdrop-leave 220ms ease-in forwards;
+  pointer-events: none;
+}
+
+@keyframes leaflet-deck-expand-from-source {
+  0% {
+    opacity: 0;
+    transform: translateY(28px) scale(0.58);
+    filter: drop-shadow(0 0 0 rgba(66, 245, 255, 0));
+  }
+
+  54% {
+    opacity: 1;
+    transform: translateY(-4px) scale(1.025);
+    filter: drop-shadow(0 0 34px rgba(66, 245, 255, 0.26));
+  }
+
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    filter: drop-shadow(0 0 22px rgba(155, 108, 255, 0.12));
+  }
+}
+
+@keyframes leaflet-deck-collapse-to-source {
+  0% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    filter: drop-shadow(0 0 22px rgba(155, 108, 255, 0.12));
+  }
+
+  100% {
+    opacity: 0;
+    transform: translateY(22px) scale(0.66);
+    filter: drop-shadow(0 0 0 rgba(66, 245, 255, 0));
+  }
+}
+
+@keyframes leaflet-backdrop-arrive {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes leaflet-backdrop-leave {
+  from {
+    opacity: 1;
+  }
+
+  to {
+    opacity: 0;
+  }
+}
+
 .leaflet-floating-stage {
   position: relative;
   width: min(1080px, 93dvw);
@@ -4179,32 +4250,22 @@ button.leaflet-card:focus-visible {
   cursor: default;
 }
 
-.leaflet-depth-track {
+.leaflet-flat-deck-track {
   position: absolute;
   inset: 0;
-  display: flex;
-  align-items: center;
-  gap: 24px;
-  transform: translate3d(var(--leaflet-track-offset), 0, 0);
-  transition: transform 360ms cubic-bezier(0.2, 0.88, 0.25, 1);
-  will-change: transform;
-}
-
-.leaflet-stage-scene.is-dragging .leaflet-depth-track,
-.leaflet-floating-stage.is-dragging .leaflet-depth-track {
+  display: block;
+  transform: none;
   transition: none;
-}
-
-.leaflet-stage-scene[data-carousel-mode="single"] .leaflet-depth-track {
-  inset-inline: 0;
-  justify-content: center;
-  transform: translate3d(0, 0, 0);
+  will-change: auto;
 }
 
 .floating-leaflet-panel {
   --leaflet-panel-padding: clamp(8px, 1dvw, 14px);
-  position: relative;
-  flex: 0 0 min(72%, 720px);
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  z-index: var(--leaflet-deck-z, 1);
+  width: min(58%, 560px);
   height: 100%;
   display: grid;
   place-items: center;
@@ -4218,8 +4279,8 @@ button.leaflet-card:focus-visible {
     inset 0 0 22px rgba(66, 245, 255, 0.05),
     0 0 34px rgba(66, 245, 255, 0.16),
     0 18px 48px rgba(0, 0, 0, 0.36);
-  opacity: 0;
-  transform: scale(0.98);
+  opacity: var(--leaflet-deck-opacity, 0);
+  transform: translateX(calc(-50% + var(--leaflet-deck-x, 0px))) translateY(-50%) scale(var(--leaflet-deck-scale, 1)) rotateY(0deg);
   overflow: hidden;
   pointer-events: none;
   transition:
@@ -4229,15 +4290,15 @@ button.leaflet-card:focus-visible {
     transform 360ms cubic-bezier(0.2, 0.88, 0.25, 1);
 }
 
-.floating-leaflet-panel[data-position="previous"] {
-  transform: scale(0.98);
+.leaflet-stage-scene.is-dragging .floating-leaflet-panel,
+.leaflet-floating-stage.is-dragging .floating-leaflet-panel {
+  transition: none;
 }
 
 .floating-leaflet-panel.is-active {
-  z-index: 10;
   border-color: rgba(66, 245, 255, 0.78);
-  opacity: 1;
-  transform: scale(1);
+  opacity: var(--leaflet-deck-opacity, 1);
+  transform: translateX(calc(-50% + var(--leaflet-deck-x, 0px))) translateY(-50%) scale(var(--leaflet-deck-scale, 1)) rotateY(0deg);
   pointer-events: auto;
   box-shadow:
     inset 0 0 28px rgba(66, 245, 255, 0.09),
@@ -4247,13 +4308,13 @@ button.leaflet-card:focus-visible {
 }
 
 .floating-leaflet-panel.is-neighbor {
-  opacity: 0;
+  opacity: var(--leaflet-deck-opacity, 0.62);
 }
 
 .leaflet-stage-scene[data-carousel-mode="single"] .floating-leaflet-panel {
-  flex-basis: min(70%, 720px);
-  opacity: 1;
-  transform: none;
+  width: min(70%, 720px);
+  opacity: var(--leaflet-deck-opacity, 1);
+  transform: translateX(calc(-50% + var(--leaflet-deck-x, 0px))) translateY(-50%) scale(var(--leaflet-deck-scale, 1)) rotateY(0deg);
 }
 
 .floating-leaflet-panel img {
@@ -4267,22 +4328,6 @@ button.leaflet-card:focus-visible {
   border-radius: clamp(10px, 1.1dvw, 16px);
   filter: drop-shadow(0 0 20px rgba(66, 245, 255, 0.14));
   pointer-events: none;
-}
-
-.leaflet-card-kind {
-  position: absolute;
-  top: clamp(10px, 1dvw, 16px);
-  left: clamp(10px, 1dvw, 16px);
-  z-index: 2;
-  padding: 5px 8px;
-  border: 1px solid rgba(66, 245, 255, 0.26);
-  border-radius: 999px;
-  color: rgba(229, 249, 255, 0.9);
-  background: rgba(2, 8, 20, 0.74);
-  font-size: clamp(0.52rem, 0.6dvw, 0.72rem);
-  font-weight: 850;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
 }
 
 .leaflet-card-glow {
@@ -4368,7 +4413,7 @@ button.leaflet-card:focus-visible {
   }
 
   .floating-leaflet-panel {
-    flex-basis: min(78%, 620px);
+    width: min(74%, 620px);
   }
 
   .leaflet-meta-panel {
@@ -4384,6 +4429,19 @@ button.leaflet-card:focus-visible {
   .leaflet-meta-panel dl div {
     flex-direction: column;
     gap: 2px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .leaflet-viewer-backdrop[data-animation-state="opening"],
+  .leaflet-viewer-backdrop[data-animation-state="closing"],
+  .leaflet-viewer-backdrop[data-animation-state="opening"] .leaflet-floating-stage,
+  .leaflet-viewer-backdrop[data-animation-state="closing"] .leaflet-floating-stage {
+    animation: none;
+  }
+
+  .floating-leaflet-panel {
+    transition: none;
   }
 }
 
