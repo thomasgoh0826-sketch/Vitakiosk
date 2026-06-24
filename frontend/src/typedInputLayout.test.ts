@@ -200,7 +200,13 @@ describe("typed input layout CSS contract", () => {
     expect(normalizedStyles).toMatch(/\.product-panel\[data-product-mode="summary"\] \.product-transform-shell\s*\{[^}]*transform:/);
     expect(normalizedStyles).toContain(".product-summary-grid");
     expect(normalizedStyles).toContain(".product-summary-field");
-    expect(normalizedStyles).toContain(".product-summary-back");
+    expect(normalizedStyles).not.toContain(".product-summary-back");
+    expect(normalizedStyles).toMatch(/\.product-summary-grid\s*\{[^}]*grid-template-columns: repeat\(auto-fit, minmax\(min\(100%, 150px\), 1fr\)\);/);
+    expect(normalizedStyles).toMatch(/\.product-summary-view\s*\{[^}]*overflow: visible;/);
+    expect(normalizedStyles).toMatch(/\.product-viewer-backdrop\s*\{[^}]*position: fixed;[^}]*z-index: 890;/);
+    expect(normalizedStyles).toMatch(/\.product-viewer-stage\s*\{[^}]*animation: product-viewer-lift/);
+    expect(normalizedStyles).toContain("@keyframes product-viewer-lift");
+    expect(normalizedStyles).toMatch(/\.product-viewer-summary-grid\s*\{[^}]*grid-template-columns: repeat\(auto-fit, minmax\(min\(100%, 180px\), 1fr\)\);/);
     expect(normalizedStyles).not.toContain("rotateY(180deg)");
   });
 

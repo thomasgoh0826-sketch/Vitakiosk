@@ -6,6 +6,20 @@ export type AvatarState =
   | "error"
   | "pharmacist_escalation";
 
+export interface LocalizedProductText {
+  en: string;
+  zh?: string;
+  ms?: string;
+}
+
+export interface ProductSummary {
+  ingredient: LocalizedProductText;
+  howToUse: LocalizedProductText;
+  bestFor: LocalizedProductText;
+  size: LocalizedProductText;
+  description: LocalizedProductText;
+}
+
 export interface Product {
   id: string;
   name: string;
@@ -16,6 +30,7 @@ export interface Product {
   shelf_location: string | null;
   source: "mock_vitaflow";
   unavailable_reason: string | null;
+  productSummary?: Partial<ProductSummary>;
 }
 
 export interface Promotion {

@@ -179,10 +179,25 @@ A feature is accepted only when:
   exceeds the panel client size because of hidden clipped content or decorative
   overflow.
 - Product summary transform acceptance requires a source-backed Product panel to
-  switch into a concise summary state through click/tap and keyboard activation,
-  use a futuristic shift/morph style rather than a 180-degree flip, provide a
-  visible return to Product details, and avoid invented VitaFlow facts, diagnosis,
-  product recommendations, stock, price, promotion, or shelf information.
+  switch between details and a concise summary state through click/tap and
+  keyboard activation, use a futuristic shift/morph style rather than a
+  180-degree flip, avoid visible `Back to product details` wording, and avoid
+  invented VitaFlow facts, diagnosis, product recommendations, stock, price,
+  promotion, or shelf information.
+- Product summary language acceptance requires localized EN/中文/BM summary
+  labels and safe localized summary text when available, with field-level
+  fallback to English when a localized field is missing. Product name, SKU,
+  price, branch, shelf, stock, and `Mock VitaFlow` provenance must remain
+  unchanged except for label translation.
+- Product summary responsive acceptance requires the summary field cards to wrap
+  with an auto-fit grid into two or more readable rows when space is constrained,
+  with no clipped, overlapping, or unreadably tiny summary cards.
+- Enlarged Product sheet acceptance requires double-click/double-tap on details
+  to open an enlarged product detail sheet and double-click/double-tap on
+  summary to open an enlarged product summary sheet. The sheet must appear as a
+  top-level holographic floating layer, close on outside click or Escape, keep
+  inside clicks from closing it, avoid a visible X button, remain responsive, and
+  respect reduced-motion users.
 - Shelf Navigation responsive acceptance requires browser bounding-box evidence
   that the route summary, Aisle/Shelf/Level facts, current-position marker, and
   target marker remain fully inside the Shelf Navigation panel at 1024x768, a

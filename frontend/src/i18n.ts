@@ -22,6 +22,14 @@ export interface KioskTranslations {
   noCustomerData: string;
   product: string;
   productVerified: string;
+  productSummary: string;
+  enlargedProductDetails: string;
+  enlargedProductSummary: string;
+  ingredient: string;
+  howToUse: string;
+  bestFor: string;
+  size: string;
+  description: string;
   stock: string;
   branch: string;
   shelf: string;
@@ -106,6 +114,14 @@ export const translations: Record<KioskLanguage, KioskTranslations> = {
     noCustomerData: "No customer data",
     product: "Product",
     productVerified: "Product Verified",
+    productSummary: "Product summary",
+    enlargedProductDetails: "Enlarged product details",
+    enlargedProductSummary: "Enlarged product summary",
+    ingredient: "Ingredient",
+    howToUse: "How to use",
+    bestFor: "Best for",
+    size: "Size",
+    description: "Description",
     stock: "Stock",
     branch: "Branch",
     shelf: "Shelf",
@@ -188,6 +204,14 @@ export const translations: Record<KioskLanguage, KioskTranslations> = {
     noCustomerData: "无顾客资料",
     product: "产品",
     productVerified: "产品已确认",
+    productSummary: "产品简介",
+    enlargedProductDetails: "放大产品详情",
+    enlargedProductSummary: "放大产品简介",
+    ingredient: "成分",
+    howToUse: "使用方法",
+    bestFor: "适合",
+    size: "规格",
+    description: "简介",
     stock: "库存",
     branch: "分店",
     shelf: "货架",
@@ -270,6 +294,14 @@ export const translations: Record<KioskLanguage, KioskTranslations> = {
     noCustomerData: "Tiada data pelanggan",
     product: "Produk",
     productVerified: "Produk disahkan",
+    productSummary: "Ringkasan produk",
+    enlargedProductDetails: "Butiran produk dibesarkan",
+    enlargedProductSummary: "Ringkasan produk dibesarkan",
+    ingredient: "Bahan",
+    howToUse: "Cara guna",
+    bestFor: "Sesuai untuk",
+    size: "Saiz",
+    description: "Penerangan",
     stock: "Stok",
     branch: "Cawangan",
     shelf: "Rak",

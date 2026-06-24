@@ -397,7 +397,12 @@ function App() {
             error={voice.error}
             labels={t}
           />
-          <ProductCard product={product} purchasingQueryId={voice.purchasingQueryId} labels={t} />
+          <ProductCard
+            product={product}
+            purchasingQueryId={voice.purchasingQueryId}
+            labels={t}
+            language={language}
+          />
           <ShelfMap product={product} labels={t} />
           <TypedInputPanel
             value={typedQuestion}
