@@ -132,6 +132,12 @@ A feature is accepted only when:
   and 1920x1080. Product source badges must be measured fully inside the Product
   panel and Product header row, and product icons/fact rows must have positive
   visible area inside their containers.
+- Product panel responsive acceptance requires browser bounding-box evidence that
+  each stock, branch, shelf, and source fact card plus its visible text remains
+  fully inside the Product panel at 1024x768, a narrower landscape width, and
+  1366x768. The Product panel is not accepted if `scrollHeight` or `scrollWidth`
+  exceeds the panel client size because of hidden clipped content or decorative
+  overflow.
 - Typed-input responsiveness work is not accepted if it globally scales, fixed-canvas shrinks, or transform-scales the whole kiosk UI instead of constraining the typed rail internally.
 - The compact typed rail is not accepted if its keyboard icon or Send button collapses, disappears, or lets input text push controls out of view.
 - The compact typed rail is not accepted if its two-row state floats over the

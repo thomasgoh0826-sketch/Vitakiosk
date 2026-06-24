@@ -98,6 +98,16 @@ describe("typed input layout CSS contract", () => {
     expect(normalizedStyles).toMatch(/\.product-panel \.source-label\s*\{[\s\S]*flex: 0 0 auto;/);
   });
 
+  it("lets the Product panel grow instead of clipping fact cards", () => {
+    expect(normalizedStyles).toContain("--product-panel-min-height: clamp(220px, 28dvh, 300px);");
+    expect(normalizedStyles).toContain("minmax(var(--product-panel-min-height), 0.66fr)");
+    expect(normalizedStyles).toMatch(/\.product-panel\s*\{[^}]*height: auto;[^}]*overflow: visible;/);
+    expect(normalizedStyles).not.toMatch(/\.product-panel\s*\{[^}]*overflow: hidden;/);
+    expect(normalizedStyles).toMatch(/\.product-panel::after\s*\{[^}]*bottom: auto;[^}]*width: min\(24%, 160px\);/);
+    expect(normalizedStyles).toMatch(/\.product-facts\s*\{[^}]*grid-template-columns: repeat\(auto-fit,/);
+    expect(normalizedStyles).toContain("@container (max-width: 380px)");
+  });
+
   it("prevents product, poster, and leaflet artwork from clipping inner icons", () => {
     expect(normalizedStyles).toContain(".product-art {\n  position: relative;");
     expect(normalizedStyles).toContain("padding: 10px;");

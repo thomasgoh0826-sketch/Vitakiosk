@@ -56,6 +56,7 @@ AI assistant, primary Tap to Speak voice control plus Start/New Customer reset, 
 - Dev-only provider/runtime diagnostics must be placed in reserved header space or hidden; they must never use floating positioning that covers AI subtitles, promotion content, product cards, or customer-facing status labels.
 - Product, poster, pharmacist, and leaflet icon/artwork containers must use stable square/icon-safe sizing with centered content, safe padding, non-shrinking containers, and `object-fit: contain` for image assets so logos and leaflet artwork are not clipped.
 - Product card fact rows and inner text must remain inside the Product panel bounds at the supported landscape QA viewports.
+- The Product panel must grow or compact its own internals instead of clipping stock, branch, shelf, or source facts; at narrower landscape widths the fact row may wrap into a compact grid, but `scrollHeight`/`scrollWidth` clipping and whole-app transform/zoom fixes are not accepted.
 - Leaflet preview modals must reserve space for the close button and carousel controls; the close button must not overlap the leaflet image or leaflet text.
 
 ## Test evidence
@@ -69,4 +70,4 @@ AI assistant, primary Tap to Speak voice control plus Start/New Customer reset, 
 - `frontend/src/hooks/useSubtitlePlayback.test.ts`
 - `frontend/src/components/ShelfMap.test.tsx`
 - `frontend/src/components/avatar/VrmAvatarRenderer.test.tsx`
-- Browser screenshot evidence recorded in `reports/test-evidence.md`, including the 1024x768, 1366x768, and 1920x1080 responsive dark neon compositions.
+- Browser screenshot evidence recorded in `reports/test-evidence.md`, including the 1024x768, 1366x768, and 1920x1080 responsive dark neon compositions plus Product panel clipping checks at 1024x768, a narrower landscape width, and 1366x768.
