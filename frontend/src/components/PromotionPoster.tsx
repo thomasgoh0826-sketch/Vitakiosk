@@ -208,23 +208,26 @@ function LeafletDisplayGrid({
   leaflets: Leaflet[];
   onOpenLeaflet: (leaflet: Leaflet) => void;
 }) {
-  const primaryLeaflet = leaflets[0] ?? null;
+  const displayLeaflets = leaflets.slice(0, 3);
 
-  if (!primaryLeaflet) {
+  if (!displayLeaflets.length) {
     return null;
   }
 
   return (
     <div
       className="leaflet-display-grid"
-      aria-label="Active leaflet hero"
+      aria-label="Active leaflet display"
       data-leaflet-count={leaflets.length}
-      data-visible-leaflets="1"
+      data-visible-leaflets="responsive"
     >
-      <LeafletPoster
-        leaflet={primaryLeaflet}
-        onOpen={() => onOpenLeaflet(primaryLeaflet)}
-      />
+      {displayLeaflets.map((leaflet) => (
+        <LeafletPoster
+          key={leaflet.id}
+          leaflet={leaflet}
+          onOpen={() => onOpenLeaflet(leaflet)}
+        />
+      ))}
     </div>
   );
 }

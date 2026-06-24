@@ -152,11 +152,21 @@ describe("typed input layout CSS contract", () => {
     expect(normalizedStyles).toContain("@container (max-width: 380px) {\n  .typed-input-form");
   });
 
-  it("lets the enlarged leaflet viewer move metadata below the hero card when space is tight", () => {
+  it("keeps the enlarged leaflet viewer as a foreground overlay with metadata outside the hero card", () => {
+    expect(normalizedStyles).toMatch(/\.leaflet-viewer-backdrop\s*\{[^}]*position: fixed;[^}]*z-index: 900;/);
+    expect(normalizedStyles).toMatch(/\.leaflet-viewer-backdrop\s*\{[^}]*isolation: isolate;/);
     expect(normalizedStyles).toMatch(/\.leaflet-floating-stage\s*\{[^}]*display: grid;[^}]*grid-template-areas:\s*\n    "gallery copy";[^}]*overflow: visible;/);
     expect(normalizedStyles).toMatch(/\.leaflet-meta-panel\s*\{[^}]*grid-area: copy;[^}]*position: relative;/);
     expect(normalizedStyles).toMatch(/\.floating-leaflet-panel\s*\{[^}]*--leaflet-panel-padding: clamp\(8px, 1dvw, 14px\);[^}]*overflow: hidden;/);
     expect(normalizedStyles).toMatch(/\.floating-leaflet-panel img\s*\{[^}]*position: absolute;[^}]*inset: var\(--leaflet-panel-padding\);[^}]*object-fit: contain;/);
+    expect(normalizedStyles).toMatch(/\.leaflet-stage-scene\s*\{[^}]*perspective: none;/);
+    expect(normalizedStyles).not.toMatch(/\.floating-leaflet-panel\s*\{[^}]*perspective\(/);
+    expect(normalizedStyles).not.toMatch(/\.floating-leaflet-panel\s*\{[^}]*translateZ/);
+    expect(normalizedStyles).not.toMatch(/\.floating-leaflet-panel\s*\{[^}]*rotateY/);
+    expect(normalizedStyles).not.toMatch(/\.floating-leaflet-panel\.is-active\s*\{[^}]*perspective\(/);
+    expect(normalizedStyles).not.toMatch(/\.floating-leaflet-panel\.is-active\s*\{[^}]*translateZ/);
+    expect(normalizedStyles).not.toMatch(/\.floating-leaflet-panel\.is-active\s*\{[^}]*rotateY/);
+    expect(normalizedStyles).toMatch(/\.floating-leaflet-panel\.is-neighbor\s*\{[^}]*opacity: 0;/);
     expect(normalizedStyles).toMatch(
       /@media \(max-width: 1120px\), \(max-height: 740px\)\s*\{[\s\S]*\.leaflet-floating-stage\s*\{[\s\S]*grid-template-areas:\s*\n      "gallery"\s*\n      "copy";/,
     );
@@ -168,15 +178,18 @@ describe("typed input layout CSS contract", () => {
     );
   });
 
-  it("keeps the normal promotion section as one responsive hero leaflet only", () => {
+  it("keeps collapsed promotion leaflets fully contained while allowing side-by-side cards when there is room", () => {
     expect(normalizedStyles).toMatch(/\.promotion-panel\s*\{[\s\S]*container-type: size;/);
     expect(normalizedStyles).toMatch(/\.leaflet-display-grid\s*\{[\s\S]*display: grid;/);
     expect(normalizedStyles).toContain("grid-template-columns: minmax(0, 1fr);");
+    expect(normalizedStyles).toMatch(/\.leaflet-display-grid \.leaflet-poster:nth-child\(n \+ 2\)\s*\{[\s\S]*display: none;/);
+    expect(normalizedStyles).toMatch(/@container \(min-width: 400px\) and \(min-height: 310px\)\s*\{[\s\S]*\.leaflet-display-grid\s*\{[\s\S]*grid-template-columns: repeat\(2, minmax\(0, 1fr\)\);/);
+    expect(normalizedStyles).toMatch(/@container \(min-width: 720px\) and \(min-height: 340px\)\s*\{[\s\S]*\.leaflet-display-grid\s*\{[\s\S]*grid-template-columns: repeat\(3, minmax\(0, 1fr\)\);/);
+    expect(normalizedStyles).toMatch(/@container \(min-width: 400px\) and \(min-height: 310px\)\s*\{[\s\S]*\.leaflet-display-grid \.leaflet-poster:nth-child\(2\)\s*\{[\s\S]*display: grid;/);
+    expect(normalizedStyles).toMatch(/@container \(min-width: 720px\) and \(min-height: 340px\)\s*\{[\s\S]*\.leaflet-display-grid \.leaflet-poster:nth-child\(3\)\s*\{[\s\S]*display: grid;/);
     expect(normalizedStyles).toMatch(/\.leaflet-display-grid \.leaflet-poster\s*\{[\s\S]*display: grid;/);
-    expect(normalizedStyles).not.toMatch(/\.leaflet-display-grid \.leaflet-poster:nth-child\(2\)\s*\{[\s\S]*display: grid;/);
-    expect(normalizedStyles).not.toMatch(/\.leaflet-display-grid \.leaflet-poster:nth-child\(3\)\s*\{[\s\S]*display: grid;/);
     expect(normalizedStyles).not.toMatch(/\.leaflet-display-grid \.leaflet-poster:nth-child\(4\)\s*\{[\s\S]*display: grid;/);
-    expect(normalizedStyles).toMatch(/\.leaflet-display-grid \.leaflet-image-stage\s*\{[\s\S]*--leaflet-stage-padding: clamp\(10px, 1\.1cqw, 18px\);[\s\S]*min-height: clamp\(180px, 46cqh, 520px\);[\s\S]*overflow: hidden;/);
+    expect(normalizedStyles).toMatch(/\.leaflet-display-grid \.leaflet-image-stage\s*\{[\s\S]*--leaflet-stage-padding: clamp\(8px, 1cqw, 14px\);[\s\S]*aspect-ratio: 3 \/ 4;[\s\S]*overflow: hidden;/);
     expect(normalizedStyles).toMatch(/\.leaflet-display-grid \.leaflet-image-stage img\s*\{[\s\S]*position: absolute;[\s\S]*inset: var\(--leaflet-stage-padding\);[\s\S]*object-fit: contain;/);
     expect(normalizedStyles).toMatch(/\.leaflet-poster\s*\{[\s\S]*grid-template-rows: minmax\(0, 1fr\);/);
     expect(normalizedStyles).toMatch(/\.leaflet-poster \.poster-copy,\s*\.leaflet-poster \.poster-meta,\s*\.leaflet-poster \.poster-topline\s*\{[\s\S]*display: none;/);

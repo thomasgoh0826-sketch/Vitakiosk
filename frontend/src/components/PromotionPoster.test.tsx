@@ -115,22 +115,26 @@ describe("PromotionPoster leaflet display", () => {
     expect(onOpenLeaflet).toHaveBeenCalledWith(leaflets[0]);
   });
 
-  it("shows exactly one clean hero leaflet in the collapsed promotion panel", () => {
+  it("renders clean side-by-side-capable leaflet cards without collapsed metadata", () => {
     renderPromotionPoster();
 
     const buttons = leafletButtons();
-    expect(buttons).toHaveLength(1);
+    expect(buttons).toHaveLength(3);
     expect(buttons[0]).toHaveAccessibleName(/open Relief Balm Demo Leaflet/i);
+    expect(buttons[1]).toHaveAccessibleName(/open Supplement Savings Demo/i);
+    expect(buttons[2]).toHaveAccessibleName(/open Hydration Health Campaign/i);
 
     const panel = screen.getByRole("region", { name: "Promotion" });
     expect(panel).not.toHaveTextContent("Relief Balm Demo Leaflet");
+    expect(panel).not.toHaveTextContent("Supplement Savings Demo");
+    expect(panel).not.toHaveTextContent("Hydration Health Campaign");
     expect(panel).not.toHaveTextContent("Active branch promotion for Relief Balm.");
     expect(panel).not.toHaveTextContent("Mock VitaFlow");
     expect(panel).not.toHaveTextContent("Branch");
     expect(panel).not.toHaveTextContent("Valid");
   });
 
-  it("defaults product-without-promotion mode to a single related campaign hero leaflet", () => {
+  it("defaults product-without-promotion mode to a related campaign first while preserving responsive leaflet options", () => {
     const { onOpenLeaflet } = renderPromotionPoster({
       mode: "product_options",
       product: productWithoutPromotion,
@@ -138,7 +142,7 @@ describe("PromotionPoster leaflet display", () => {
 
     const panel = screen.getByRole("region", { name: "Promotion" });
     const buttons = within(panel).getAllByRole("button", { name: /open .* leaflet/i });
-    expect(buttons).toHaveLength(1);
+    expect(buttons).toHaveLength(3);
     expect(buttons[0]).toHaveAccessibleName(/open Hydration Health Campaign/i);
 
     fireEvent.click(within(panel).getByRole("button", {
@@ -148,7 +152,7 @@ describe("PromotionPoster leaflet display", () => {
     expect(onOpenLeaflet).toHaveBeenCalledWith(leaflets[2]);
   });
 
-  it("shows one campaign hero first for product-not-found or no-product states", () => {
+  it("shows a campaign leaflet first for product-not-found or no-product states without hiding other active leaflets", () => {
     renderPromotionPoster({
       mode: "idle",
       product: null,
@@ -156,25 +160,25 @@ describe("PromotionPoster leaflet display", () => {
 
     const panel = screen.getByRole("region", { name: "Promotion" });
     const buttons = within(panel).getAllByRole("button", { name: /open .* leaflet/i });
-    expect(buttons).toHaveLength(1);
+    expect(buttons).toHaveLength(3);
     expect(buttons[0]).toHaveAccessibleName(/open Hydration Health Campaign/i);
   });
 
-  it("renders gallery mode as one main hero leaflet instead of split stacked cards", () => {
+  it("renders promotion gallery as multiple clean leaflet artwork buttons when available", () => {
     const { onOpenLeaflet } = renderPromotionPoster({
-      mode: "campaign_gallery",
+      mode: "promotion_gallery",
       product: null,
     });
 
     const campaignButton = screen.getByRole("button", {
-      name: /open Hydration Health Campaign/i,
+      name: /open Relief Balm Demo Leaflet/i,
     });
     expect(campaignButton).toHaveClass("leaflet-poster");
     expect(screen.queryByLabelText(/campaign gallery/i)).not.toBeInTheDocument();
-    expect(screen.getAllByRole("button", { name: /open .* leaflet/i })).toHaveLength(1);
+    expect(screen.getAllByRole("button", { name: /open .* leaflet/i })).toHaveLength(2);
     expect(within(campaignButton).queryByRole("button")).not.toBeInTheDocument();
 
     fireEvent.click(campaignButton);
-    expect(onOpenLeaflet).toHaveBeenCalledWith(leaflets[2]);
+    expect(onOpenLeaflet).toHaveBeenCalledWith(leaflets[0]);
   });
 });

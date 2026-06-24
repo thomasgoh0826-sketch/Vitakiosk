@@ -7,6 +7,7 @@ import {
   useRef,
   useState,
 } from "react";
+import { createPortal } from "react-dom";
 
 import type { Leaflet } from "../types";
 
@@ -258,7 +259,7 @@ function LeafletModal({
     "--leaflet-track-offset": `${trackOffset}px`,
   } as CSSProperties;
 
-  return (
+  const modal = (
     <div
       className="leaflet-viewer-backdrop"
       role="dialog"
@@ -345,6 +346,12 @@ function LeafletModal({
       </article>
     </div>
   );
+
+  if (typeof document === "undefined") {
+    return modal;
+  }
+
+  return createPortal(modal, document.body);
 }
 
 export default LeafletModal;

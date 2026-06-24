@@ -53,17 +53,18 @@ A feature is accepted only when:
 - Promotion panel responsive acceptance requires browser-measured evidence that
   the normal promotion region uses its available container space without a tiny
   fixed-size leaflet stranded in a large panel. The normal/collapsed promotion
-  panel must show exactly one readable primary leaflet hero at a time at all
-  supported viewport/container sizes; multiple active branch-valid leaflets are
-  browseable through the enlarged swipeable viewer rather than visible as
-  multiple right-rail cards.
+  panel may show multiple active branch-valid leaflet artworks side by side
+  when its container is wide and tall enough, but it must reduce to fewer cards
+  when space is insufficient. Fully visible leaflet artwork is preferred over
+  showing more cards.
 - Promotion panel collapsed-content acceptance requires the normal right-rail
-  leaflet to show artwork only. Title blocks, descriptions, branch/source/
-  validity metadata blocks, and extra details are accepted only in the enlarged
-  leaflet viewer.
+  leaflet cards to show artwork only. Title blocks, descriptions, branch/source/
+  validity metadata blocks, metadata overlays, and extra details are accepted
+  only in the enlarged leaflet viewer.
 - Promotion panel responsive acceptance is not met if the normal panel clips
-  leaflet artwork, stacks/splits two visible leaflets, or shows more than one
-  `.leaflet-poster` card in the collapsed/default promotion region.
+  leaflet artwork, distorts leaflet artwork, hides the top/bottom/title/logo/
+  footer of a visible leaflet, overlays collapsed metadata on the artwork, or
+  keeps too many visible cards when the panel cannot contain them.
 - Red-flag safety acceptance requires no promotion/campaign leaflet or modal to
   appear before pharmacist escalation.
 - Voice-flow acceptance requires `Tap to Speak` as the main control, manual
@@ -192,16 +193,18 @@ A feature is accepted only when:
 - Leaflet modal acceptance requires a floating holographic leaflet card over the
   existing kiosk UI, not a big dark modal container and not a modal box
   containing a nested carousel box. The whole floating stage must be
-  draggable/swipeable, the active leaflet image must be the hero, neighbor
-  leaflets may appear only as subtle depth previews, and the metadata panel must
-  remain small, secondary, and readable.
+  draggable/swipeable, the active leaflet image must be the hero, and the
+  metadata panel must remain small, secondary, and readable. The viewer must
+  render as a top-level fixed overlay/portal above the kiosk UI so the active
+  leaflet never appears inserted into, behind, or mixed with the avatar,
+  product, shelf, ERP, promotion, or pharmacist panels.
 - Leaflet modal responsive acceptance requires metadata to stay outside the
   leaflet artwork at 1024x768 and squeezed/narrow/short viewports. When side
   space is insufficient, branch/source/validity/description metadata must move
   below the hero leaflet or otherwise reflow without covering the leaflet image.
-  In stacked layouts, transformed leaflet-stage overflow must be contained in
-  the swipe scene so side previews or the hero card cannot visually cover the
-  metadata panel.
+  Neighbor previews, if shown, must remain inside the overlay stage and subtle;
+  they may be hidden when needed to avoid the inserted-background/depth illusion
+  or to prevent visual coverage of the metadata panel.
 - Leaflet modal acceptance requires no visible X close button, no Previous/Next
   buttons, no visible dots, no visible `1 / 3` style page indicator, no top
   title/header above the leaflet, no `Holographic Leaflet Gallery`/stage wording,
