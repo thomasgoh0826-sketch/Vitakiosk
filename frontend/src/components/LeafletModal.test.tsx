@@ -78,9 +78,13 @@ describe("LeafletModal holographic gallery", () => {
     const dialog = screen.getByRole("dialog", { name: /leaflet preview/i });
     expect(within(dialog).getByRole("listbox", { name: /swipeable leaflet gallery/i })).toBeInTheDocument();
     expect(within(dialog).getAllByRole("option")).toHaveLength(3);
+    expect(within(dialog).queryByRole("button", { name: /close leaflet preview/i })).not.toBeInTheDocument();
     expect(within(dialog).queryByRole("button", { name: /previous/i })).not.toBeInTheDocument();
     expect(within(dialog).queryByRole("button", { name: /next/i })).not.toBeInTheDocument();
-    expect(within(dialog).getByText("2 / 3")).toBeInTheDocument();
+    expect(within(dialog).queryByText("2 / 3")).not.toBeInTheDocument();
+    expect(dialog.querySelector(".leaflet-page-indicator")).toBeNull();
+    expect(dialog.querySelector(".leaflet-page-dots")).toBeNull();
+    expect(dialog.querySelector(".leaflet-light-trail")).toBeNull();
     expect(within(dialog).getByText("Swipe to browse")).toBeInTheDocument();
     expect(within(dialog).getByRole("option", { name: /Supplement Wellness Campaign, 2 of 3/i }))
       .toHaveAttribute("aria-current", "true");
@@ -93,18 +97,18 @@ describe("LeafletModal holographic gallery", () => {
     const gallery = within(dialog).getByRole("listbox", { name: /swipeable leaflet gallery/i });
     expect(within(gallery).getAllByRole("option")).toHaveLength(1);
     expect(gallery).toHaveAttribute("data-carousel-mode", "single");
-    expect(within(dialog).getByText("1 / 1")).toBeInTheDocument();
+    expect(within(dialog).queryByText("1 / 1")).not.toBeInTheDocument();
     expect(within(dialog).queryByRole("button", { name: /previous/i })).not.toBeInTheDocument();
     expect(within(dialog).queryByRole("button", { name: /next/i })).not.toBeInTheDocument();
   });
 
-  it("changes the active leaflet with mouse drag and updates metadata", () => {
+  it("changes the active leaflet by dragging the whole clean leaflet stage", () => {
     const { onSelect } = renderModal("LF-001");
-    const gallery = screen.getByRole("listbox", { name: /swipeable leaflet gallery/i });
+    const stage = screen.getByLabelText("Clean swipe leaflet stage");
 
-    fireEvent.mouseDown(gallery, { clientX: 420 });
-    fireEvent.mouseMove(gallery, { clientX: 240 });
-    fireEvent.mouseUp(gallery, { clientX: 240 });
+    fireEvent.mouseDown(stage, { clientX: 420 });
+    fireEvent.mouseMove(stage, { clientX: 240 });
+    fireEvent.mouseUp(stage, { clientX: 240 });
 
     expect(onSelect).toHaveBeenCalledWith("LF-002");
     expect(screen.getByRole("option", { name: /Supplement Wellness Campaign, 2 of 3/i }))
@@ -161,5 +165,17 @@ describe("LeafletModal holographic gallery", () => {
     expect(gallery).toHaveAttribute("data-reduced-motion", "true");
     fireEvent.keyDown(screen.getByRole("dialog", { name: /leaflet preview/i }), { key: "ArrowRight" });
     expect(onSelect).toHaveBeenCalledWith("LF-002");
+  });
+
+  it("closes from outside clicks but keeps inside stage clicks open", () => {
+    const { onClose } = renderModal("LF-001");
+    const dialog = screen.getByRole("dialog", { name: /leaflet preview/i });
+    const stage = screen.getByLabelText("Clean swipe leaflet stage");
+
+    fireEvent.mouseDown(stage, { clientX: 320 });
+    expect(onClose).not.toHaveBeenCalled();
+
+    fireEvent.mouseDown(dialog, { clientX: 8 });
+    expect(onClose).toHaveBeenCalledTimes(1);
   });
 });

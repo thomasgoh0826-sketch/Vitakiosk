@@ -129,6 +129,7 @@ describe("typed input layout CSS contract", () => {
     expect(normalizedStyles).toContain("object-fit: contain;");
     expect(normalizedStyles).toContain(".leaflet-modal {\n  position: relative;");
     expect(normalizedStyles).toContain("padding: clamp(22px, 2.2dvw, 34px);");
-    expect(normalizedStyles).toMatch(/\.leaflet-modal-close\s*\{[\s\S]*position: static;/);
+    expect(normalizedStyles).toContain(".leaflet-gallery-viewport {\n  position: relative;");
+    expect(normalizedStyles).not.toContain(".leaflet-modal-close {");
   });
 });

@@ -5,7 +5,6 @@ import {
   type PointerEvent,
   type WheelEvent,
   useEffect,
-  useMemo,
   useRef,
   useState,
 } from "react";
@@ -73,11 +72,11 @@ function clampIndex(index: number, leafletsLength: number) {
   return Math.min(Math.max(index, 0), Math.max(leafletsLength - 1, 0));
 }
 
-function pointerX(event: PointerEvent<HTMLDivElement>) {
+function pointerX(event: PointerEvent<HTMLElement>) {
   return event.clientX || event.pageX || 0;
 }
 
-function mouseX(event: MouseEvent<HTMLDivElement>) {
+function mouseX(event: MouseEvent<HTMLElement>) {
   return event.clientX || event.pageX || 0;
 }
 
@@ -112,11 +111,6 @@ function LeafletModal({
   const startInset = Math.max((viewportWidth - viewportWidth * CARD_WIDTH_RATIO) / 2, 24);
   const trackOffset = hasCarousel ? startInset - activeIndex * stepWidth + dragOffset : 0;
 
-  const pageLabel = useMemo(
-    () => (activeLeaflet ? `${activeIndex + 1} / ${leaflets.length}` : ""),
-    [activeIndex, activeLeaflet, leaflets.length],
-  );
-
   if (!activeLeaflet) {
     return null;
   }
@@ -139,7 +133,7 @@ function LeafletModal({
     setViewportWidth(width > 0 ? width : DEFAULT_VIEWPORT_WIDTH);
   };
 
-  const handlePointerDown = (event: PointerEvent<HTMLDivElement>) => {
+  const handlePointerDown = (event: PointerEvent<HTMLElement>) => {
     if (!hasCarousel) {
       return;
     }
@@ -184,16 +178,16 @@ function LeafletModal({
     goToIndex(activeIndex + (finalOffset < 0 ? 1 : -1));
   };
 
-  const handlePointerMove = (event: PointerEvent<HTMLDivElement>) => {
+  const handlePointerMove = (event: PointerEvent<HTMLElement>) => {
     updateDrag(pointerX(event));
   };
 
-  const finishDrag = (event: PointerEvent<HTMLDivElement>) => {
+  const finishDrag = (event: PointerEvent<HTMLElement>) => {
     event.currentTarget.releasePointerCapture?.(event.pointerId);
     completeDrag(pointerX(event));
   };
 
-  const handleMouseDown = (event: MouseEvent<HTMLDivElement>) => {
+  const handleMouseDown = (event: MouseEvent<HTMLElement>) => {
     if (!hasCarousel) {
       return;
     }
@@ -202,15 +196,15 @@ function LeafletModal({
     startDrag(mouseX(event));
   };
 
-  const handleMouseMove = (event: MouseEvent<HTMLDivElement>) => {
+  const handleMouseMove = (event: MouseEvent<HTMLElement>) => {
     updateDrag(mouseX(event));
   };
 
-  const handleMouseUp = (event: MouseEvent<HTMLDivElement>) => {
+  const handleMouseUp = (event: MouseEvent<HTMLElement>) => {
     completeDrag(mouseX(event));
   };
 
-  const handleWheel = (event: WheelEvent<HTMLDivElement>) => {
+  const handleWheel = (event: WheelEvent<HTMLElement>) => {
     if (!hasCarousel || Math.abs(event.deltaX) <= Math.abs(event.deltaY) || Math.abs(event.deltaX) < 45) {
       return;
     }
@@ -241,6 +235,12 @@ function LeafletModal({
     }
   };
 
+  const handleBackdropMouseDown = (event: MouseEvent<HTMLDivElement>) => {
+    if (event.target === event.currentTarget) {
+      onClose();
+    }
+  };
+
   const trackStyle = {
     "--leaflet-track-offset": `${trackOffset}px`,
   } as CSSProperties;
@@ -253,21 +253,25 @@ function LeafletModal({
       aria-label="Leaflet preview"
       tabIndex={-1}
       onKeyDown={handleKeyDown}
+      onMouseDown={handleBackdropMouseDown}
     >
-      <article className="leaflet-modal leaflet-hologram-modal">
+      <article
+        className={`leaflet-modal leaflet-hologram-modal${isDragging ? " is-dragging" : ""}`}
+        aria-label="Clean swipe leaflet stage"
+        onPointerDown={handlePointerDown}
+        onPointerMove={handlePointerMove}
+        onPointerUp={finishDrag}
+        onPointerCancel={finishDrag}
+        onMouseDown={handleMouseDown}
+        onMouseMove={handleMouseMove}
+        onMouseUp={handleMouseUp}
+        onWheel={handleWheel}
+      >
         <header className="leaflet-modal-header">
           <div>
             <span className="eyebrow">Holographic leaflet gallery</span>
             <h2>{activeLeaflet.title}</h2>
           </div>
-          <button
-            className="leaflet-modal-close"
-            type="button"
-            aria-label="Close leaflet preview"
-            onClick={onClose}
-          >
-            ×
-          </button>
         </header>
 
         <section className="leaflet-gallery-shell" aria-label="Promotion leaflet enlarged viewer">
@@ -278,16 +282,7 @@ function LeafletModal({
             aria-describedby="leaflet-gallery-instructions leaflet-gallery-active"
             data-carousel-mode={hasCarousel ? "carousel" : "single"}
             data-reduced-motion={String(reducedMotion)}
-            onPointerDown={handlePointerDown}
-            onPointerMove={handlePointerMove}
-            onPointerUp={finishDrag}
-            onPointerCancel={finishDrag}
-            onMouseDown={handleMouseDown}
-            onMouseMove={handleMouseMove}
-            onMouseUp={handleMouseUp}
-            onWheel={handleWheel}
           >
-            <div className="leaflet-light-trail" aria-hidden="true" />
             <div className="leaflet-gallery-track" style={trackStyle}>
               {leaflets.map((leaflet, index) => {
                 const isActive = index === activeIndex;
@@ -316,14 +311,6 @@ function LeafletModal({
             <p id="leaflet-gallery-instructions" className="leaflet-swipe-hint">
               {hasCarousel ? "Swipe to browse" : "Single active leaflet"}
             </p>
-            <div className="leaflet-page-indicator" aria-label={`Leaflet ${activeIndex + 1} of ${leaflets.length}`}>
-              <span>{pageLabel}</span>
-              <span className="leaflet-page-dots" aria-hidden="true">
-                {leaflets.map((leaflet, index) => (
-                  <i key={leaflet.id} className={index === activeIndex ? "is-active" : ""} />
-                ))}
-              </span>
-            </div>
           </div>
           <p id="leaflet-gallery-active" className="leaflet-screen-reader-status" aria-live="polite">
             Active leaflet {activeIndex + 1} of {leaflets.length}: {activeLeaflet.title}.
