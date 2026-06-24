@@ -4262,7 +4262,7 @@ button.leaflet-card:focus-visible {
   top: 50%;
   left: 50%;
   z-index: var(--leaflet-deck-z, 1);
-  width: min(56%, 760px, 52dvw);
+  width: min(44%, 660px, 44dvw);
   height: min(100%, 78dvh);
   display: grid;
   place-items: center;
@@ -4317,7 +4317,7 @@ button.leaflet-card:focus-visible {
 }
 
 .floating-leaflet-panel.is-neighbor {
-  opacity: var(--leaflet-deck-opacity, 0.72);
+  opacity: var(--leaflet-deck-opacity, 0.86);
 }
 
 .leaflet-stage-scene[data-carousel-mode="single"] .floating-leaflet-panel {
@@ -4428,7 +4428,7 @@ button.leaflet-card:focus-visible {
   }
 
   .floating-leaflet-panel {
-    width: min(58%, 620px);
+    width: min(44%, 620px);
     height: min(100%, 74dvh);
   }
 

@@ -120,18 +120,18 @@ describe("LeafletModal holographic gallery", () => {
     expect(previous).toHaveClass("is-neighbor");
     expect(next).toHaveClass("is-neighbor");
     expect(previous).toHaveStyle({
-      "--leaflet-deck-opacity": "0.72",
-      "--leaflet-deck-scale": "0.820",
-      "--leaflet-deck-x": "-308px",
-      "--leaflet-deck-depth": "-60px",
-      "--leaflet-deck-rotate": "10deg",
+      "--leaflet-deck-opacity": "0.86",
+      "--leaflet-deck-scale": "0.780",
+      "--leaflet-deck-x": "-386px",
+      "--leaflet-deck-depth": "-90px",
+      "--leaflet-deck-rotate": "16deg",
     });
     expect(next).toHaveStyle({
-      "--leaflet-deck-opacity": "0.72",
-      "--leaflet-deck-scale": "0.820",
-      "--leaflet-deck-x": "308px",
-      "--leaflet-deck-depth": "-60px",
-      "--leaflet-deck-rotate": "-10deg",
+      "--leaflet-deck-opacity": "0.86",
+      "--leaflet-deck-scale": "0.780",
+      "--leaflet-deck-x": "386px",
+      "--leaflet-deck-depth": "-90px",
+      "--leaflet-deck-rotate": "-16deg",
     });
     expect(active).toHaveStyle({
       "--leaflet-deck-opacity": "1",
@@ -172,7 +172,7 @@ describe("LeafletModal holographic gallery", () => {
     const offscreenNeighbor = dialog.querySelector('[data-deck-position="offscreen-next"]');
 
     expect(immediateNeighbor).toHaveStyle({
-      "--leaflet-deck-opacity": "0.72",
+      "--leaflet-deck-opacity": "0.86",
     });
     expect(offscreenNeighbor).toBeInTheDocument();
     expect(offscreenNeighbor).toHaveStyle({

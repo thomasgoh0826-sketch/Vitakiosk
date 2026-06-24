@@ -170,7 +170,7 @@ describe("typed input layout CSS contract", () => {
     expect(normalizedStyles).toMatch(/\.leaflet-flat-deck-track\s*\{[^}]*position: absolute;[^}]*inset: 0;[^}]*transform-style: preserve-3d;/);
     expect(normalizedStyles).not.toContain(".leaflet-depth-track");
     expect(normalizedStyles).toMatch(/\.leaflet-floating-stage\s*\{[^}]*width: min\(1560px, 96dvw\);[^}]*height: min\(760px, 88dvh\);/);
-    expect(normalizedStyles).toMatch(/\.floating-leaflet-panel\s*\{[^}]*width: min\(56%, 760px, 52dvw\);[^}]*height: min\(100%, 78dvh\);/);
+    expect(normalizedStyles).toMatch(/\.floating-leaflet-panel\s*\{[^}]*width: min\(44%, 660px, 44dvw\);[^}]*height: min\(100%, 78dvh\);/);
     expect(normalizedStyles).toMatch(/\.floating-leaflet-panel\s*\{[^}]*transform 320ms cubic-bezier\(0\.22, 0\.76, 0\.28, 1\);/);
     expect(normalizedStyles).not.toContain("scale(1.025)");
     expect(normalizedStyles).not.toContain("translateY(-4px)");
@@ -182,12 +182,15 @@ describe("typed input layout CSS contract", () => {
     expect(normalizedStyles).toMatch(/\.floating-leaflet-panel\.is-active\s*\{[^}]*rotateY\(var\(--leaflet-deck-rotate, 0deg\)\)/);
     expect(normalizedStyles).not.toMatch(/\.floating-leaflet-panel\s*\{[^}]*rotateX\(/);
     expect(normalizedStyles).not.toMatch(/\.floating-leaflet-panel\s*\{[^}]*rotateZ\(/);
-    expect(normalizedStyles).toMatch(/\.floating-leaflet-panel\.is-neighbor\s*\{[^}]*opacity: var\(--leaflet-deck-opacity, 0\.72\);/);
+    expect(normalizedStyles).toMatch(/\.floating-leaflet-panel\.is-neighbor\s*\{[^}]*opacity: var\(--leaflet-deck-opacity, 0\.86\);/);
     expect(normalizedStyles).toMatch(
       /@media \(max-width: 1120px\), \(max-height: 740px\)\s*\{[\s\S]*\.leaflet-floating-stage\s*\{[\s\S]*grid-template-areas:\s*\n      "gallery"\s*\n      "copy";/,
     );
     expect(normalizedStyles).toMatch(
       /@media \(max-width: 1120px\), \(max-height: 740px\)\s*\{[\s\S]*\.leaflet-stage-scene\s*\{[\s\S]*overflow: visible;/,
+    );
+    expect(normalizedStyles).toMatch(
+      /@media \(max-width: 1120px\), \(max-height: 740px\)\s*\{[\s\S]*\.floating-leaflet-panel\s*\{[\s\S]*width: min\(44%, 620px\);[\s\S]*height: min\(100%, 74dvh\);/,
     );
     expect(normalizedStyles).toMatch(
       /@media \(max-width: 1120px\), \(max-height: 740px\)\s*\{[\s\S]*\.leaflet-meta-panel\s*\{[\s\S]*align-self: stretch;[\s\S]*overflow: visible;/,

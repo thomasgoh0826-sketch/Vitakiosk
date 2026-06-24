@@ -230,13 +230,14 @@ A feature is accepted only when:
   Curve floating deck pattern: active card centered and facing the user,
   previous/next leaflets visible on the left and right when real leaflets
   exist, side cards gently angled backward with shallow `translateZ` depth and
-  about `rotateY(±10deg)`, and no spherical, circular, orbit, wheel, full 3D
+  about `rotateY(±16deg)`, and no spherical, circular, orbit, wheel, full 3D
   carousel, coverflow spin, or hidden single-card replacement carousel
   behavior.
 - Leaflet modal deck sizing acceptance requires the active leaflet to read as
-  the hero object, occupy materially more of the available overlay stage than
-  before, remain fully visible with contained artwork, and keep side leaflets
-  visible at roughly 70-80% of active scale when neighboring leaflets exist.
+  the hero object, remain fully visible with contained artwork, and keep side
+  leaflets clearly visible at roughly 78% of active scale when neighboring
+  leaflets exist. The deck must reserve enough safe horizontal stage space for
+  visible neighbors instead of letting them look buried behind the center card.
 - Leaflet modal swipe-animation acceptance requires a smooth mostly-horizontal
   snap with gentle depth interpolation and no bounce, overshoot, pop-forward,
   elastic spring, aggressive active-card scale-up, sudden translateZ jump, or
