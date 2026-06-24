@@ -45,12 +45,7 @@ jobs:
           node scripts/check-staged-files.mjs --tracked
 
       - name: Reject committed secret values
-        shell: bash
-        run: |
-          if git grep -IlE '((OPENAI|ELEVENLABS)_API_KEY|VITAFLOW_API_BASE_URL)=[^[:space:]]+' -- ':!.env.example'; then
-            echo "Potential non-empty provider secret found in a tracked file."
-            exit 1
-          fi
+        run: node scripts/check-provider-secrets.mjs
 
       - name: Test backend
         run: python -m pytest backend/tests -v -W error
