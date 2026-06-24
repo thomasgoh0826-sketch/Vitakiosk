@@ -126,10 +126,10 @@ npm.cmd run dev:vrm --prefix frontend
 To start both local demo terminals from one PowerShell prompt, use:
 
 ```powershell
-.\scripts\start-local-ai-demo.ps1
+.\scripts\start-local-vrm-demo.ps1
 ```
 
-This helper checks that root `.env` exists, reminds you about `frontend/.env.local`, checks fixed ports 8001 and 5175, starts the backend and frontend in separate terminals, and does not modify or print secret values.
+This helper checks that root `.env` and `frontend/.env.local` exist, verifies the local VRM frontend values, checks fixed ports 8001 and 5175, starts the backend and frontend in separate terminals, and does not modify or print secret values. See `docs/local-vrm-startup.md` for the PC-restart playbook.
 
 Open [http://127.0.0.1:5175](http://127.0.0.1:5175).
 

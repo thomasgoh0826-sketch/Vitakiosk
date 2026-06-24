@@ -5,6 +5,7 @@ const localVrmEnv = {
   VITE_VRM_MODEL: "vita-new",
   VITE_API_BASE_URL: "http://127.0.0.1:8001",
   VITE_WS_BASE_URL: "ws://127.0.0.1:8001",
+  VITE_TEXT_INPUT_MODE: "native",
 };
 
 for (const [key, value] of Object.entries(localVrmEnv)) {
@@ -12,10 +13,13 @@ for (const [key, value] of Object.entries(localVrmEnv)) {
 }
 
 console.log("Starting VitaKiosk frontend local VRM demo.");
+console.log("Frontend URL: http://127.0.0.1:5175");
+console.log("Backend URL: http://127.0.0.1:8001");
 console.log(`Avatar renderer: ${process.env.VITE_AVATAR_RENDERER}`);
 console.log(`VRM model: ${process.env.VITE_VRM_MODEL}`);
 console.log(`API base: ${process.env.VITE_API_BASE_URL}`);
 console.log(`WebSocket base: ${process.env.VITE_WS_BASE_URL}`);
+console.log(`Text input mode: ${process.env.VITE_TEXT_INPUT_MODE}`);
 
 let server;
 

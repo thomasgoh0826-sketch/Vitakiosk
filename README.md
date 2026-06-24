@@ -122,7 +122,7 @@ Expected behavior: matching-language safe wording when Ollama is available, no i
 
 ### Local Ollama + VRM demo profile
 
-Use `docs/local-demo-env.md` when you want the local backend to run faster-whisper + Ollama and the frontend to run the self-hosted VRM avatar at the same time. Backend provider values belong in local `.env`; frontend avatar/API values belong in `frontend/.env.local`.
+Use `docs/local-vrm-startup.md` when you want one repeatable command after a PC restart. Use `docs/local-demo-env.md` for the longer provider profile notes. Backend provider values belong in local `.env`; frontend avatar/API values belong in `frontend/.env.local`.
 
 ```powershell
 # Backend
@@ -145,10 +145,10 @@ The dev-only runtime badge should show `AI: ollama`, `STT: faster_whisper`, `Ava
 You can also start both local demo processes from one PowerShell prompt:
 
 ```powershell
-.\scripts\start-local-ai-demo.ps1
+.\scripts\start-local-vrm-demo.ps1
 ```
 
-The helper checks fixed ports 8001 and 5175, reminds you to create root `.env` and `frontend/.env.local`, starts the backend and frontend in separate terminals, and does not modify or print secrets.
+The helper checks fixed ports 8001 and 5175, verifies the frontend VRM env values, starts the backend and frontend in separate terminals, and does not modify or print secrets.
 
 ## Install
 
