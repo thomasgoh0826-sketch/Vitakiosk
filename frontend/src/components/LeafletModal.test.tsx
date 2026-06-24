@@ -106,7 +106,7 @@ describe("LeafletModal holographic gallery", () => {
       .toHaveAttribute("aria-current", "true");
   });
 
-  it("angles previous and next leaflets outward in distinct moderate cylindrical deck slots", () => {
+  it("places previous and next leaflets beside the active card instead of underneath it", () => {
     renderModal("LF-002");
 
     const dialog = screen.getByRole("dialog", { name: /leaflet preview/i });
@@ -120,23 +120,23 @@ describe("LeafletModal holographic gallery", () => {
     expect(previous).toHaveClass("is-neighbor");
     expect(next).toHaveClass("is-neighbor");
     expect(previous).toHaveStyle({
-      "--leaflet-deck-card-width": "600px",
+      "--leaflet-deck-card-width": "500px",
       "--leaflet-deck-opacity": "0.88",
-      "--leaflet-deck-scale": "0.740",
-      "--leaflet-deck-x": "-370px",
-      "--leaflet-deck-depth": "-120px",
-      "--leaflet-deck-rotate": "-20deg",
+      "--leaflet-deck-scale": "0.620",
+      "--leaflet-deck-x": "-437px",
+      "--leaflet-deck-depth": "-80px",
+      "--leaflet-deck-rotate": "-14deg",
     });
     expect(next).toHaveStyle({
-      "--leaflet-deck-card-width": "600px",
+      "--leaflet-deck-card-width": "500px",
       "--leaflet-deck-opacity": "0.88",
-      "--leaflet-deck-scale": "0.740",
-      "--leaflet-deck-x": "370px",
-      "--leaflet-deck-depth": "-120px",
-      "--leaflet-deck-rotate": "20deg",
+      "--leaflet-deck-scale": "0.620",
+      "--leaflet-deck-x": "437px",
+      "--leaflet-deck-depth": "-80px",
+      "--leaflet-deck-rotate": "14deg",
     });
     expect(active).toHaveStyle({
-      "--leaflet-deck-card-width": "600px",
+      "--leaflet-deck-card-width": "500px",
       "--leaflet-deck-opacity": "1",
       "--leaflet-deck-scale": "1",
       "--leaflet-deck-x": "0px",
@@ -149,12 +149,17 @@ describe("LeafletModal holographic gallery", () => {
     expect(next?.getAttribute("style")).not.toContain("rotateZ");
 
     const oldActiveWidth = 420;
-    const activeWidth = 600;
-    const sideWidth = activeWidth * 0.74;
-    const slotOffset = 370;
+    const activeWidth = 500;
+    const sideWidth = activeWidth * 0.62;
+    const slotOffset = 437;
+    const minimumVisualGap = 24;
+    const activeLeftEdge = -activeWidth / 2;
+    const activeRightEdge = activeWidth / 2;
+    const previousRightEdge = -slotOffset + sideWidth / 2;
+    const nextLeftEdge = slotOffset - sideWidth / 2;
     expect(activeWidth).toBeGreaterThan(oldActiveWidth);
-    expect(slotOffset).toBeGreaterThan(activeWidth / 2);
-    expect(sideWidth).toBeGreaterThan(oldActiveWidth);
+    expect(previousRightEdge).toBeLessThanOrEqual(activeLeftEdge - minimumVisualGap);
+    expect(nextLeftEdge).toBeGreaterThanOrEqual(activeRightEdge + minimumVisualGap);
   });
 
   it("keeps the current active leaflet at scale 1 while dragging to avoid pop-out motion", () => {

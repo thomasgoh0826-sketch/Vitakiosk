@@ -229,16 +229,20 @@ A feature is accepted only when:
 - Leaflet modal deck acceptance requires the Moderately Cylindrical floating
   deck pattern: active card centered and facing the user,
   previous/next leaflets visible on the left and right when real leaflets
-  exist, side cards clearly angled backward with moderate `translateZ(-120px)`
-  style depth and about `rotateY(±20deg)`, and no spherical, circular, orbit,
+  exist, side cards clearly angled backward with moderate `translateZ(-80px)`
+  style depth and about `rotateY(±14deg)`, and no spherical, circular, orbit,
   wheel, full 3D carousel, coverflow spin, or hidden single-card replacement carousel
   behavior.
 - Leaflet modal deck sizing acceptance requires the active leaflet to read as
   the hero object, remain fully visible with contained artwork, and keep side
-  leaflets clearly visible at roughly 74% of active scale when neighboring
+  leaflets clearly visible at roughly 62% of active scale when neighboring
   leaflets exist. The deck must use distinct left/center/right visual slots,
   reserve enough safe horizontal stage space for visible neighbors, and avoid
   letting the center card cover, bury, or visually stack over the side cards.
+- Leaflet modal side-slot acceptance requires the visible side-card inner edges
+  to sit outside the active-card footprint with a measurable gap at 1024x768
+  and 1366x768. The implementation must physically separate the card slots
+  instead of relying on active-card z-index to hide overlap.
 - Leaflet modal side-orientation acceptance requires side cards to open away
   from the center card instead of leaning inward. The previous/left leaflet
   uses the outward-left orientation, the next/right leaflet uses the

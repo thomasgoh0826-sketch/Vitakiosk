@@ -15,16 +15,16 @@ import type { Leaflet } from "../types";
 const SWIPE_THRESHOLD_PX = 68;
 const DEFAULT_STAGE_WIDTH = 1200;
 const ACTIVE_CARD_WIDTH_RATIO = 0.5;
-const MIN_ACTIVE_CARD_WIDTH_PX = 420;
+const MIN_ACTIVE_CARD_WIDTH_PX = 360;
 const MAX_ACTIVE_CARD_WIDTH_PX = 620;
-const SIDE_CARD_SLOT_GAP_PX = 64;
-const SIDE_CARD_SCALE = 0.74;
+const SIDE_CARD_SLOT_GAP_PX = 32;
+const SIDE_CARD_SCALE = 0.62;
 const SIDE_CARD_OPACITY = 0.88;
-const SIDE_CARD_DEPTH_PX = 120;
-const SIDE_CARD_ROTATE_DEG = 20;
-const FAR_CARD_SCALE = 0.62;
-const FAR_CARD_DEPTH_PX = 220;
-const FAR_CARD_ROTATE_DEG = 28;
+const SIDE_CARD_DEPTH_PX = 80;
+const SIDE_CARD_ROTATE_DEG = 14;
+const FAR_CARD_SCALE = 0.5;
+const FAR_CARD_DEPTH_PX = 160;
+const FAR_CARD_ROTATE_DEG = 20;
 const MIN_DECK_STEP_PX = 320;
 const SIDE_CARD_SAFE_PADDING_PX = 8;
 const OPEN_ANIMATION_MS = 380;
@@ -115,12 +115,53 @@ function LeafletModal({
   const sceneRef = useRef<HTMLElement | null>(null);
   const dragStartX = useRef<number | null>(null);
   const isDraggingRef = useRef(false);
+  const stageMeasureFrameRef = useRef<number | null>(null);
   const openTimerRef = useRef<number | null>(null);
   const closeTimerRef = useRef<number | null>(null);
   const reducedMotion = usePrefersReducedMotion();
   const [animationState, setAnimationState] = useState<LeafletAnimationState>(
     () => reducedMotion ? "open" : "opening",
   );
+  const measureStageWidth = useCallback((element: HTMLElement) => {
+    const measuredWidth = element.getBoundingClientRect().width;
+    if (measuredWidth > 0) {
+      const viewportWidth = typeof window !== "undefined" ? window.innerWidth : 0;
+      const viewportHeight = typeof window !== "undefined" ? window.innerHeight : 0;
+      const viewportLayoutWidth = viewportWidth > 0
+        ? Math.min(
+          viewportWidth * (viewportWidth <= 1120 || viewportHeight <= 740 ? 0.96 : 0.72),
+          DEFAULT_STAGE_WIDTH,
+        )
+        : 0;
+      setStageWidth(Math.max(measuredWidth, viewportLayoutWidth));
+    }
+  }, []);
+  const scheduleStageWidthMeasure = useCallback((element: HTMLElement) => {
+    measureStageWidth(element);
+
+    if (typeof window === "undefined" || typeof window.requestAnimationFrame !== "function") {
+      return;
+    }
+
+    if (stageMeasureFrameRef.current !== null) {
+      window.cancelAnimationFrame(stageMeasureFrameRef.current);
+      stageMeasureFrameRef.current = null;
+    }
+
+    stageMeasureFrameRef.current = window.requestAnimationFrame(() => {
+      measureStageWidth(element);
+      stageMeasureFrameRef.current = window.requestAnimationFrame(() => {
+        measureStageWidth(element);
+        stageMeasureFrameRef.current = null;
+      });
+    });
+  }, [measureStageWidth]);
+  const setSceneElement = useCallback((element: HTMLElement | null) => {
+    sceneRef.current = element;
+    if (element) {
+      scheduleStageWidthMeasure(element);
+    }
+  }, [scheduleStageWidthMeasure]);
 
   useEffect(() => {
     setActiveIndex(requestedIndex);
@@ -153,6 +194,11 @@ function LeafletModal({
   }, [activeLeafletId, reducedMotion]);
 
   useEffect(() => () => {
+    if (stageMeasureFrameRef.current !== null) {
+      window.cancelAnimationFrame(stageMeasureFrameRef.current);
+      stageMeasureFrameRef.current = null;
+    }
+
     if (closeTimerRef.current !== null) {
       window.clearTimeout(closeTimerRef.current);
       closeTimerRef.current = null;
@@ -161,10 +207,18 @@ function LeafletModal({
 
   const activeLeaflet = activeIndex >= 0 ? leaflets[activeIndex] : null;
   const hasCarousel = leaflets.length > 1;
-  const activeCardWidth = Math.min(
+  const nominalActiveCardWidth = Math.min(
     Math.max(stageWidth * ACTIVE_CARD_WIDTH_RATIO, MIN_ACTIVE_CARD_WIDTH_PX),
     MAX_ACTIVE_CARD_WIDTH_PX,
   );
+  const separatedDeckWidth = Math.max(
+    1,
+    stageWidth - SIDE_CARD_SAFE_PADDING_PX * 2 - SIDE_CARD_SLOT_GAP_PX * 2,
+  );
+  const maxSeparatedActiveCardWidth = separatedDeckWidth / (1 + SIDE_CARD_SCALE * 2);
+  const activeCardWidth = hasCarousel
+    ? Math.min(nominalActiveCardWidth, maxSeparatedActiveCardWidth)
+    : nominalActiveCardWidth;
   const sideCardWidth = activeCardWidth * SIDE_CARD_SCALE;
   const targetStepWidth = Math.max(
     activeCardWidth / 2 + sideCardWidth / 2 + SIDE_CARD_SLOT_GAP_PX,
@@ -180,19 +234,14 @@ function LeafletModal({
       return undefined;
     }
 
-    const updateStageWidth = () => {
-      const width = element.getBoundingClientRect().width;
-      if (width > 0) {
-        setStageWidth(width);
-      }
-    };
+    const updateStageWidth = () => measureStageWidth(element);
     updateStageWidth();
 
     const observer = new ResizeObserver(updateStageWidth);
     observer.observe(element);
 
     return () => observer.disconnect();
-  }, []);
+  }, [measureStageWidth]);
 
   const requestClose = useCallback(() => {
     if (closeTimerRef.current !== null || animationState === "closing") {
@@ -448,7 +497,7 @@ function LeafletModal({
         onWheel={handleWheel}
       >
         <section
-          ref={sceneRef}
+          ref={setSceneElement}
           className={`leaflet-stage-scene${isDragging ? " is-dragging" : ""}`}
           role="listbox"
           aria-label="Floating leaflet swipe surface"
