@@ -18,13 +18,14 @@ const ACTIVE_CARD_WIDTH_RATIO = 0.5;
 const MIN_ACTIVE_CARD_WIDTH_PX = 360;
 const MAX_ACTIVE_CARD_WIDTH_PX = 620;
 const SIDE_CARD_SLOT_GAP_PX = 32;
-const SIDE_CARD_SCALE = 0.62;
+const SIDE_CARD_SCALE = 0.72;
 const SIDE_CARD_OPACITY = 0.88;
-const SIDE_CARD_DEPTH_PX = 80;
-const SIDE_CARD_ROTATE_DEG = 14;
-const FAR_CARD_SCALE = 0.5;
-const FAR_CARD_DEPTH_PX = 160;
-const FAR_CARD_ROTATE_DEG = 20;
+const SIDE_CARD_DEPTH_PX = 90;
+const SIDE_CARD_ROTATE_DEG = 22;
+const FAR_CARD_SCALE = 0.52;
+const FAR_CARD_DEPTH_PX = 170;
+const FAR_CARD_ROTATE_DEG = 30;
+const CYLINDER_SLOT_ANGLE_RAD = 40 * Math.PI / 180;
 const MIN_DECK_STEP_PX = 320;
 const SIDE_CARD_SAFE_PADDING_PX = 8;
 const OPEN_ANIMATION_MS = 380;
@@ -442,25 +443,26 @@ function LeafletModal({
 
     const relativePosition = index - activeIndex + dragProgress;
     const distance = Math.abs(relativePosition);
-    const x = relativePosition * stepWidth;
     const signedDirection = relativePosition === 0 ? 0 : Math.sign(relativePosition);
     const sideCurveProgress = Math.min(distance, 1);
     const farCurveProgress = Math.min(Math.max(distance - 1, 0), 1);
-    const scale = index === activeIndex
-      ? 1
-      : distance <= 1
-        ? 1 - sideCurveProgress * (1 - SIDE_CARD_SCALE)
-        : Math.max(FAR_CARD_SCALE, SIDE_CARD_SCALE - farCurveProgress * (SIDE_CARD_SCALE - FAR_CARD_SCALE));
+    const cylinderRatio = signedDirection === 0
+      ? 0
+      : Math.sin(sideCurveProgress * CYLINDER_SLOT_ANGLE_RAD) / Math.sin(CYLINDER_SLOT_ANGLE_RAD);
+    const x = signedDirection * (cylinderRatio * stepWidth + farCurveProgress * stepWidth * 0.78);
+    const cylinderDepthRatio = sideCurveProgress === 0
+      ? 0
+      : (1 - Math.cos(sideCurveProgress * CYLINDER_SLOT_ANGLE_RAD))
+        / (1 - Math.cos(CYLINDER_SLOT_ANGLE_RAD));
+    const scale = distance <= 1
+      ? 1 - sideCurveProgress * (1 - SIDE_CARD_SCALE)
+      : Math.max(FAR_CARD_SCALE, SIDE_CARD_SCALE - farCurveProgress * (SIDE_CARD_SCALE - FAR_CARD_SCALE));
     const opacity = distance <= 0.08 ? 1 : distance <= 1.18 ? SIDE_CARD_OPACITY : 0;
-    const depth = index === activeIndex
-      ? 0
-      : -(SIDE_CARD_DEPTH_PX * sideCurveProgress + (FAR_CARD_DEPTH_PX - SIDE_CARD_DEPTH_PX) * farCurveProgress);
-    const rotate = index === activeIndex
-      ? 0
-      : signedDirection * (
-        SIDE_CARD_ROTATE_DEG * sideCurveProgress
-        + (FAR_CARD_ROTATE_DEG - SIDE_CARD_ROTATE_DEG) * farCurveProgress
-      );
+    const depth = -(SIDE_CARD_DEPTH_PX * cylinderDepthRatio + (FAR_CARD_DEPTH_PX - SIDE_CARD_DEPTH_PX) * farCurveProgress);
+    const rotate = -signedDirection * (
+      SIDE_CARD_ROTATE_DEG * sideCurveProgress
+      + (FAR_CARD_ROTATE_DEG - SIDE_CARD_ROTATE_DEG) * farCurveProgress
+    );
     const z = Math.max(1, Math.round(100 - distance * 12));
 
     return {

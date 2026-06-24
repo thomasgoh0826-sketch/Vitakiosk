@@ -120,23 +120,23 @@ describe("LeafletModal holographic gallery", () => {
     expect(previous).toHaveClass("is-neighbor");
     expect(next).toHaveClass("is-neighbor");
     expect(previous).toHaveStyle({
-      "--leaflet-deck-card-width": "500px",
+      "--leaflet-deck-card-width": "459px",
       "--leaflet-deck-opacity": "0.88",
-      "--leaflet-deck-scale": "0.620",
-      "--leaflet-deck-x": "-437px",
-      "--leaflet-deck-depth": "-80px",
-      "--leaflet-deck-rotate": "-14deg",
+      "--leaflet-deck-scale": "0.720",
+      "--leaflet-deck-x": "-427px",
+      "--leaflet-deck-depth": "-90px",
+      "--leaflet-deck-rotate": "22deg",
     });
     expect(next).toHaveStyle({
-      "--leaflet-deck-card-width": "500px",
+      "--leaflet-deck-card-width": "459px",
       "--leaflet-deck-opacity": "0.88",
-      "--leaflet-deck-scale": "0.620",
-      "--leaflet-deck-x": "437px",
-      "--leaflet-deck-depth": "-80px",
-      "--leaflet-deck-rotate": "14deg",
+      "--leaflet-deck-scale": "0.720",
+      "--leaflet-deck-x": "427px",
+      "--leaflet-deck-depth": "-90px",
+      "--leaflet-deck-rotate": "-22deg",
     });
     expect(active).toHaveStyle({
-      "--leaflet-deck-card-width": "500px",
+      "--leaflet-deck-card-width": "459px",
       "--leaflet-deck-opacity": "1",
       "--leaflet-deck-scale": "1",
       "--leaflet-deck-x": "0px",
@@ -149,9 +149,9 @@ describe("LeafletModal holographic gallery", () => {
     expect(next?.getAttribute("style")).not.toContain("rotateZ");
 
     const oldActiveWidth = 420;
-    const activeWidth = 500;
-    const sideWidth = activeWidth * 0.62;
-    const slotOffset = 437;
+    const activeWidth = 459;
+    const sideWidth = activeWidth * 0.72;
+    const slotOffset = 427;
     const minimumVisualGap = 24;
     const activeLeftEdge = -activeWidth / 2;
     const activeRightEdge = activeWidth / 2;
@@ -162,22 +162,41 @@ describe("LeafletModal holographic gallery", () => {
     expect(nextLeftEdge).toBeGreaterThanOrEqual(activeRightEdge + minimumVisualGap);
   });
 
-  it("keeps the current active leaflet at scale 1 while dragging to avoid pop-out motion", () => {
+  it("moves outgoing and incoming leaflets along the same cylindrical path while dragging", () => {
     renderModal("LF-002");
 
     const stage = screen.getByLabelText("Floating holographic leaflet card");
-    const active = screen.getByRole("option", { name: /Supplement Wellness Campaign, 2 of 3/i });
+    const outgoing = screen.getByRole("option", { name: /Supplement Wellness Campaign, 2 of 3/i });
+    const incoming = screen.getByRole("option", { name: /Vitamin C Demo Promo, 3 of 3/i });
 
-    fireEvent.mouseDown(stage, { clientX: 420 });
-    fireEvent.mouseMove(stage, { clientX: 300 });
+    fireEvent.mouseDown(stage, { clientX: 500 });
+    fireEvent.mouseMove(stage, { clientX: 286 });
 
-    expect(active).toHaveStyle({
-      "--leaflet-deck-scale": "1",
-      "--leaflet-deck-depth": "0px",
-      "--leaflet-deck-rotate": "0deg",
+    expect(outgoing).toHaveStyle({
+      "--leaflet-deck-scale": "0.860",
+      "--leaflet-deck-depth": "-23px",
+      "--leaflet-deck-rotate": "11deg",
+      "--leaflet-deck-x": "-228px",
     });
-    expect(active.getAttribute("style")).not.toContain("1.0");
-    expect(active.getAttribute("style")).not.toContain("translateZ");
+    expect(incoming).toHaveStyle({
+      "--leaflet-deck-scale": "0.860",
+      "--leaflet-deck-depth": "-23px",
+      "--leaflet-deck-rotate": "-11deg",
+      "--leaflet-deck-x": "226px",
+    });
+
+    const activeWidth = 459;
+    const outgoingScale = 0.86;
+    const incomingScale = 0.86;
+    const outgoingX = -228;
+    const incomingX = 226;
+    const minimumVisualGap = 24;
+    const outgoingRightEdge = outgoingX + activeWidth * outgoingScale / 2;
+    const incomingLeftEdge = incomingX - activeWidth * incomingScale / 2;
+
+    expect(outgoingScale).toBeLessThanOrEqual(1);
+    expect(incomingScale).toBeLessThanOrEqual(1);
+    expect(incomingLeftEdge).toBeGreaterThanOrEqual(outgoingRightEdge + minimumVisualGap);
   });
 
   it("hides non-neighbor leaflets so offscreen cards are not clipped at overlay edges", () => {
