@@ -125,12 +125,26 @@ describe("typed input layout CSS contract", () => {
   });
 
   it("lets the Shelf Navigation panel reserve route-row space instead of clipping it", () => {
-    expect(normalizedStyles).toContain("--shelf-panel-min-height: clamp(244px, 31dvh, 340px);");
+    expect(normalizedStyles).toContain("--shelf-panel-min-height: clamp(292px, 36dvh, 420px);");
     expect(normalizedStyles).toContain("minmax(var(--shelf-panel-min-height), 0.88fr)");
-    expect(normalizedStyles).toMatch(/\.shelf-map-panel\s*\{[^}]*display: grid;[^}]*grid-template-rows: auto minmax\(112px, 1fr\) auto auto;[^}]*overflow: visible;/);
-    expect(normalizedStyles).toMatch(/\.shelf-map-canvas\s*\{[^}]*height: auto;[^}]*min-height: 112px;/);
-    expect(normalizedStyles).toMatch(/\.map-route-summary\s*\{[^}]*min-height: 18px;[^}]*line-height: 1\.35;/);
+    expect(normalizedStyles).toMatch(/\.shelf-map-panel\s*\{[^}]*display: grid;[^}]*grid-template-rows: auto minmax\(168px, 1fr\) auto auto;[^}]*overflow: visible;/);
+    expect(normalizedStyles).toMatch(/\.shelf-map-canvas\s*\{[^}]*height: auto;[^}]*min-height: 168px;/);
+    expect(normalizedStyles).toMatch(/\.map-route-summary\s*\{[^}]*min-height: 24px;[^}]*line-height: 1\.45;/);
     expect(normalizedStyles).toContain("@container (max-width: 380px) {\n  .typed-input-form");
+  });
+
+  it("lets the enlarged leaflet viewer move metadata below the hero card when space is tight", () => {
+    expect(normalizedStyles).toMatch(/\.leaflet-floating-stage\s*\{[^}]*display: grid;[^}]*grid-template-areas:\s*\n    "gallery copy";[^}]*overflow: visible;/);
+    expect(normalizedStyles).toMatch(/\.leaflet-meta-panel\s*\{[^}]*grid-area: copy;[^}]*position: relative;/);
+    expect(normalizedStyles).toMatch(
+      /@media \(max-width: 920px\), \(max-height: 680px\)\s*\{[\s\S]*\.leaflet-floating-stage\s*\{[\s\S]*grid-template-areas:\s*\n      "gallery"\s*\n      "copy";/,
+    );
+    expect(normalizedStyles).toMatch(
+      /@media \(max-width: 920px\), \(max-height: 680px\)\s*\{[\s\S]*\.leaflet-stage-scene\s*\{[\s\S]*min-height: min\(62dvh, 520px\);/,
+    );
+    expect(normalizedStyles).toMatch(
+      /@media \(max-width: 920px\), \(max-height: 680px\)\s*\{[\s\S]*\.leaflet-meta-panel\s*\{[\s\S]*align-self: stretch;/,
+    );
   });
 
   it("prevents product, poster, and leaflet artwork from clipping inner icons", () => {

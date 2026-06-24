@@ -37,6 +37,13 @@ function kindLabel(kind: Leaflet["kind"], labels: KioskTranslations) {
   return kind === "promotion" ? labels.promotion : labels.campaign;
 }
 
+function firstProductLinked(
+  leaflets: Leaflet[],
+  product: Product | null | undefined,
+) {
+  return leaflets.find((leaflet) => isProductLinked(leaflet, product)) ?? null;
+}
+
 function PromotionPoster({
   mode,
   leaflets,
@@ -50,13 +57,19 @@ function PromotionPoster({
 }: PromotionPosterProps) {
   const promotionLeaflets = leaflets.filter((leaflet) => leaflet.kind === "promotion");
   const campaignLeaflets = leaflets.filter((leaflet) => leaflet.kind === "campaign");
+  const productPromotionLeaflet = firstProductLinked(promotionLeaflets, product);
+  const productCampaignLeaflet = firstProductLinked(campaignLeaflets, product);
+  const selectedLeafletFromAction =
+    leaflets.find((leaflet) => leaflet.id === selectedLeafletId) ?? null;
   const selectedLeaflet =
-    leaflets.find((leaflet) => leaflet.id === selectedLeafletId)
-    ?? (mode === "product_campaign"
-      ? campaignLeaflets.find((leaflet) => isProductLinked(leaflet, product))
-      : promotionLeaflets.find((leaflet) => isProductLinked(leaflet, product)))
-    ?? promotionLeaflets[0]
+    selectedLeafletFromAction
+    ?? (mode === "product_promotion" ? productPromotionLeaflet : null)
+    ?? (mode === "product_campaign" ? productCampaignLeaflet : null)
+    ?? (mode === "product_options" ? productCampaignLeaflet ?? campaignLeaflets[0] : null)
+    ?? productPromotionLeaflet
+    ?? productCampaignLeaflet
     ?? campaignLeaflets[0]
+    ?? promotionLeaflets[0]
     ?? null;
 
   if (safetyOverride) {
@@ -77,21 +90,27 @@ function PromotionPoster({
   if (mode === "product_options") {
     return (
       <section className="panel promotion-panel" aria-label={labels.promotion}>
-        <div className="poster-frame leaflet-choice-frame">
-          <span className="eyebrow">No product-specific promotion</span>
-          <h2>{product?.name ?? "Selected product"}</h2>
-          <p>
-            This product does not have a specific promotion now. You can browse
-            other active branch promotions or health campaigns.
-          </p>
-          <div className="leaflet-choice-buttons">
-            <button type="button" onClick={onShowPromotions}>
-              {labels.promotion}
-            </button>
-            <button type="button" onClick={onShowCampaigns}>
-              {labels.campaign}
-            </button>
+        {selectedLeaflet ? (
+          <LeafletPoster
+            leaflet={selectedLeaflet}
+            labels={labels}
+            onOpen={() => onOpenLeaflet(selectedLeaflet)}
+            contextCopy="Default active campaign"
+          />
+        ) : (
+          <div className="poster-frame leaflet-empty-frame">
+            <span className="eyebrow">Branch-aware display</span>
+            <h2>No active leaflet</h2>
+            <p>No active branch-valid promotion or campaign leaflet is available.</p>
           </div>
+        )}
+        <div className="leaflet-choice-buttons leaflet-choice-buttons-inline" aria-label="Browse active leaflet categories">
+          <button type="button" onClick={onShowPromotions}>
+            {labels.promotion}
+          </button>
+          <button type="button" onClick={onShowCampaigns}>
+            {labels.campaign}
+          </button>
         </div>
       </section>
     );
@@ -150,16 +169,23 @@ function LeafletPoster({
   leaflet,
   labels,
   onOpen,
+  contextCopy,
 }: {
   leaflet: Leaflet;
   labels: KioskTranslations;
   onOpen: () => void;
+  contextCopy?: string;
 }) {
   return (
-    <article className={`poster-frame leaflet-poster leaflet-${leaflet.kind}`}>
+    <button
+      className={`poster-frame leaflet-poster leaflet-${leaflet.kind}`}
+      type="button"
+      onClick={onOpen}
+      aria-label={`Open ${leaflet.title} leaflet`}
+    >
       <div className="poster-grid" aria-hidden="true" />
       <div className="poster-topline">
-        <span>{leaflet.kind === "promotion" ? labels.promotionLeaflet : `${labels.campaign} Leaflet`}</span>
+        <span>{contextCopy ?? (leaflet.kind === "promotion" ? labels.promotionLeaflet : `${labels.campaign} Leaflet`)}</span>
         <strong>LIVE</strong>
       </div>
       <div className="leaflet-image-stage">
@@ -180,10 +206,7 @@ function LeafletPoster({
           <dd>{formatDate(leaflet.valid_from)} - {formatDate(leaflet.valid_to)}</dd>
         </div>
       </dl>
-      <button className="leaflet-open-button" type="button" onClick={onOpen}>
-        {labels.enlargeLeaflet}
-      </button>
-    </article>
+    </button>
   );
 }
 
@@ -197,15 +220,17 @@ function LeafletCard({
   onOpen: () => void;
 }) {
   return (
-    <article className="leaflet-card">
+    <button
+      className="leaflet-card"
+      type="button"
+      onClick={onOpen}
+      aria-label={`Open ${leaflet.title} leaflet`}
+    >
       <img src={leaflet.image_url} alt="" />
       <span>{kindLabel(leaflet.kind, labels)}</span>
       <h3>{leaflet.title}</h3>
       <p>{leaflet.description}</p>
-      <button type="button" onClick={onOpen}>
-        View leaflet
-      </button>
-    </article>
+    </button>
   );
 }
 

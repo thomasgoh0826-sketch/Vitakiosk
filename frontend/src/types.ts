@@ -50,11 +50,14 @@ export interface Leaflet {
 export type UiAction =
   | { type: "SHOW_PRODUCT"; productId: string }
   | { type: "SHOW_PROMOTION_LEAFLET"; promotionId: string }
+  | { type: "OPEN_PROMOTION_LEAFLET"; promotionId: string }
   | { type: "OPEN_PROMOTION_MODAL"; promotionId: string }
   | { type: "SHOW_CAMPAIGN_LEAFLET"; campaignId: string }
+  | { type: "OPEN_CAMPAIGN_LEAFLET"; campaignId: string }
   | { type: "OPEN_CAMPAIGN_MODAL"; campaignId: string }
   | { type: "SHOW_PROMOTION_GALLERY" }
   | { type: "SHOW_CAMPAIGN_GALLERY" }
+  | { type: "SHOW_LEAFLET_GALLERY" }
   | { type: "ASK_PHARMACIST_CONFIRMATION" }
   | { type: "REQUEST_PHARMACIST_ASSISTANCE" }
   | { type: "RESET_KIOSK" };

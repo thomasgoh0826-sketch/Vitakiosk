@@ -306,6 +306,23 @@ describe("integrated kiosk panels", () => {
     expect(screen.queryByText(/NAVIGATE_UNSAFE_DEBUG_PAGE/i)).not.toBeInTheDocument();
   });
 
+  it("executes explicit leaflet open aliases while ignoring arbitrary action names", () => {
+    hookMocks.voice.mockReturnValue({
+      ...hookMocks.voice(),
+      uiActions: [
+        { type: "OPEN_PROMOTION_LEAFLET", promotionId: "MOCK-LF-PROMO-001" },
+        { type: "SHOW_LEAFLET_GALLERY" },
+        { type: "CLICK_RANDOM_BUTTON", selector: ".danger" },
+      ],
+    });
+
+    render(<App />);
+
+    expect(screen.getByRole("dialog", { name: /leaflet preview/i })).toBeInTheDocument();
+    expect(screen.getByLabelText("Floating holographic leaflet card")).toBeInTheDocument();
+    expect(screen.queryByText(/CLICK_RANDOM_BUTTON/i)).not.toBeInTheDocument();
+  });
+
   it("shows promotion and campaign choices when a product has no specific promotion", () => {
     hookMocks.voice.mockReturnValue({
       ...hookMocks.voice(),

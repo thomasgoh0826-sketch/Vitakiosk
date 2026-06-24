@@ -45,6 +45,11 @@ A feature is accepted only when:
   active-leaflet metadata, screen-reader active position text,
   reduced-motion operation, and a single-leaflet centered mode without fake
   carousel behavior.
+- Promotion panel leaflet acceptance requires the leaflet artwork/card to be
+  the primary touch target. A visible normal-panel `Enlarge Leaflet` button is
+  not accepted. Product-linked active promotions appear first when available;
+  product-without-promotion and product-not-found flows default to an active
+  branch-valid campaign leaflet when one exists.
 - Red-flag safety acceptance requires no promotion/campaign leaflet or modal to
   appear before pharmacist escalation.
 - Voice-flow acceptance requires `Tap to Speak` as the main control, manual
@@ -171,6 +176,10 @@ A feature is accepted only when:
   draggable/swipeable, the active leaflet image must be the hero, neighbor
   leaflets may appear only as subtle depth previews, and the metadata panel must
   remain small, secondary, and readable.
+- Leaflet modal responsive acceptance requires metadata to stay outside the
+  leaflet artwork at 1024x768 and squeezed/narrow/short viewports. When side
+  space is insufficient, branch/source/validity/description metadata must move
+  below the hero leaflet or otherwise reflow without covering the leaflet image.
 - Leaflet modal acceptance requires no visible X close button, no Previous/Next
   buttons, no visible dots, no visible `1 / 3` style page indicator, no top
   title/header above the leaflet, no `Holographic Leaflet Gallery`/stage wording,

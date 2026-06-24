@@ -241,6 +241,16 @@ function App() {
           }
           break;
         }
+        case "OPEN_PROMOTION_LEAFLET": {
+          const leaflet = findLeaflet(leaflets, action);
+          if (leaflet) {
+            setSelectedLeafletId(leaflet.id);
+            setPromotionPanelMode("product_promotion");
+            setModalLeafletId(leaflet.id);
+            panelWasControlled = true;
+          }
+          break;
+        }
         case "SHOW_CAMPAIGN_LEAFLET": {
           const leaflet = findLeaflet(leaflets, action);
           if (leaflet) {
@@ -260,12 +270,27 @@ function App() {
           }
           break;
         }
+        case "OPEN_CAMPAIGN_LEAFLET": {
+          const leaflet = findLeaflet(leaflets, action);
+          if (leaflet) {
+            setSelectedLeafletId(leaflet.id);
+            setPromotionPanelMode("product_campaign");
+            setModalLeafletId(leaflet.id);
+            panelWasControlled = true;
+          }
+          break;
+        }
         case "SHOW_PROMOTION_GALLERY":
           showPromotionGallery();
           panelWasControlled = true;
           break;
         case "SHOW_CAMPAIGN_GALLERY":
           showCampaignGallery();
+          panelWasControlled = true;
+          break;
+        case "SHOW_LEAFLET_GALLERY":
+          setPromotionPanelMode("campaign_gallery");
+          setSelectedLeafletId(null);
           panelWasControlled = true;
           break;
         case "ASK_PHARMACIST_CONFIRMATION":

@@ -19,6 +19,7 @@ AI assistant, primary Tap to Speak voice control plus Start/New Customer reset, 
 - Customer-facing UI must not show renderer/model/provider diagnostics such as `Renderer`, `Model`, `Avatar`, `AI`, or `STT` unless `VITE_SHOW_DEBUG_STATUS=true` is set for local development.
 - When debug diagnostics are enabled, they remain in reserved header space and must not overlap subtitles, product details, promotion content, or safety labels.
 - The primary landscape view uses a dark navy/black cinematic foundation, glass panels, cyan and purple neon accents, and no plain white dashboard background.
+- The kiosk background may include lightweight CSS-only grid drift, scanlines, circuit-line motion, and slow cyan/purple glow sweeps so the screen feels alive. These effects must remain behind content, preserve readability, avoid particles/fog/smoke/dust/noisy game-like effects, and respect `prefers-reduced-motion`.
 - The primary voice interaction reads `Tap to Speak` when ready and `Tap to Stop` while listening.
 - The secondary assistant action reads `Start` or `Start New Customer` and resets the kiosk for a fresh customer session without a browser refresh.
 - The top center conversation area is a cinematic AI subtitle panel; the customer transcript is hidden from the normal customer-facing kiosk UI and may appear only behind an explicit debug/dev flag.
@@ -37,11 +38,14 @@ AI assistant, primary Tap to Speak voice control plus Start/New Customer reset, 
 - VRM orbit/halo decoration is a secondary background effect; it must frame the character without crossing the visible face, torso, arms, hands, or dress.
 - The promotion region is a poster composition rather than a small dashboard card.
 - The promotion region supports product leaflets, campaign leaflets, active branch-valid galleries, no-product-promotion choices, and enlarged swipeable leaflet gallery display.
+- The promotion region shows leaflet artwork/cards directly. A visible `Enlarge Leaflet` button is not accepted; tapping/clicking the leaflet card itself opens the enlarged floating leaflet viewer.
+- When the current product has no product-specific promotion or the product is not found, the primary visible leaflet defaults to an active branch-valid campaign leaflet when one exists. Product-linked active promotion leaflets still take priority when available.
 - A small `Hold to Speak` fallback must not appear as the secondary assistant action in the kiosk layout.
 - Shelf navigation is rendered as an indoor map with aisle and shelf blocks, not as a plain progress stepper.
 - The map shows a labelled current position, target shelf marker, route line, Aisle, Shelf, Level, and a readable route summary.
 - The route uses only VitaFlow-provided shelf location data; unavailable locations are never inferred.
 - Shelf navigation reserves normal-flow rows for header, map, Aisle/Shelf/Level facts, and the `Route` summary. The route summary, fact cards, current-position marker, and target marker must remain fully visible at supported landscape widths; fixed-height clipping, negative margins, and whole-app transform/zoom fixes are not accepted.
+- Shelf navigation has a protected visual minimum size for its map viewport and route row; the typed input rail must not steal the map height or compress the route into an unreadable miniature panel.
 - A compact typed accessibility input rail appears below Shelf navigation for customers who cannot or prefer not to speak.
 - Shelf navigation has layout priority: the typed input rail must stay in normal document flow below the map and must not overlap, intersect, cover, or make the map incomplete at 1024x768 landscape.
 - The typed input rail has a clear accessible `Type your question` label, visible placeholder, small keyboard icon action, conditional clear action, send action, and no raw debug/customer data.
@@ -63,6 +67,7 @@ AI assistant, primary Tap to Speak voice control plus Start/New Customer reset, 
 - Product card fact rows and inner text must remain inside the Product panel bounds at the supported landscape QA viewports.
 - The Product panel must grow or compact its own internals instead of clipping stock, branch, shelf, or source facts; at narrower landscape widths the fact row may wrap into a compact grid, but `scrollHeight`/`scrollWidth` clipping and whole-app transform/zoom fixes are not accepted.
 - Enlarged leaflet previews must render as a floating holographic card over the existing kiosk UI, not as a big dark modal container or a modal box containing another carousel box. The leaflet image is the hero object, neighboring leaflets are subtle depth previews when multiple leaflets exist, and touch/mouse/trackpad swipe or drag on the whole floating stage changes the active leaflet.
+- Enlarged leaflet previews must reflow metadata beside the leaflet only when width/height is sufficient. In squeezed or short viewports, metadata moves below the hero leaflet or otherwise stays outside the leaflet artwork so no description, validity, branch, or source text overlaps important leaflet content.
 - Enlarged leaflet previews must keep keyboard arrows as an accessibility fallback, Escape closes the viewer, clicking outside the floating leaflet/card area closes it, clicking inside the leaflet stage or metadata does not close it, and `Previous`/`Next` buttons are not shown as the customer interaction.
 - Enlarged leaflet previews must not show a visible top header/title, `Holographic Leaflet Gallery`/stage wording, visible `Swipe to browse` copy, visible X close button, visible dots, visible `1 / 3` style page indicators, particles, fog, smoke, dust, light-trail elements, noisy atmosphere, or heavy blur/dim overlays. Minimal branch/source/validity metadata may appear only in a small floating glass panel and must display existing adapter-supplied leaflet data.
 
