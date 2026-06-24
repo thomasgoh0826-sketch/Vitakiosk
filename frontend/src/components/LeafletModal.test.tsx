@@ -106,7 +106,7 @@ describe("LeafletModal holographic gallery", () => {
       .toHaveAttribute("aria-current", "true");
   });
 
-  it("curves previous and next leaflets as a shallow cylindrical holographic deck", () => {
+  it("spaces previous and next leaflets into distinct shallow cylindrical deck slots", () => {
     renderModal("LF-002");
 
     const dialog = screen.getByRole("dialog", { name: /leaflet preview/i });
@@ -120,18 +120,18 @@ describe("LeafletModal holographic gallery", () => {
     expect(previous).toHaveClass("is-neighbor");
     expect(next).toHaveClass("is-neighbor");
     expect(previous).toHaveStyle({
-      "--leaflet-deck-opacity": "0.86",
-      "--leaflet-deck-scale": "0.780",
-      "--leaflet-deck-x": "-386px",
-      "--leaflet-deck-depth": "-90px",
-      "--leaflet-deck-rotate": "16deg",
+      "--leaflet-deck-opacity": "0.90",
+      "--leaflet-deck-scale": "0.720",
+      "--leaflet-deck-x": "-409px",
+      "--leaflet-deck-depth": "-70px",
+      "--leaflet-deck-rotate": "10deg",
     });
     expect(next).toHaveStyle({
-      "--leaflet-deck-opacity": "0.86",
-      "--leaflet-deck-scale": "0.780",
-      "--leaflet-deck-x": "386px",
-      "--leaflet-deck-depth": "-90px",
-      "--leaflet-deck-rotate": "-16deg",
+      "--leaflet-deck-opacity": "0.90",
+      "--leaflet-deck-scale": "0.720",
+      "--leaflet-deck-x": "409px",
+      "--leaflet-deck-depth": "-70px",
+      "--leaflet-deck-rotate": "-10deg",
     });
     expect(active).toHaveStyle({
       "--leaflet-deck-opacity": "1",
@@ -144,6 +144,11 @@ describe("LeafletModal holographic gallery", () => {
     expect(previous?.getAttribute("style")).not.toContain("rotateZ");
     expect(next?.getAttribute("style")).not.toContain("rotateX");
     expect(next?.getAttribute("style")).not.toContain("rotateZ");
+
+    const activeWidth = 420;
+    const sideWidth = activeWidth * 0.72;
+    const slotOffset = 409;
+    expect(slotOffset).toBeGreaterThan((activeWidth + sideWidth) / 2);
   });
 
   it("keeps the current active leaflet at scale 1 while dragging to avoid pop-out motion", () => {
@@ -172,7 +177,7 @@ describe("LeafletModal holographic gallery", () => {
     const offscreenNeighbor = dialog.querySelector('[data-deck-position="offscreen-next"]');
 
     expect(immediateNeighbor).toHaveStyle({
-      "--leaflet-deck-opacity": "0.86",
+      "--leaflet-deck-opacity": "0.90",
     });
     expect(offscreenNeighbor).toBeInTheDocument();
     expect(offscreenNeighbor).toHaveStyle({

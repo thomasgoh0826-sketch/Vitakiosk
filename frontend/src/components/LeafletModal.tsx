@@ -14,17 +14,18 @@ import type { Leaflet } from "../types";
 
 const SWIPE_THRESHOLD_PX = 68;
 const DEFAULT_STAGE_WIDTH = 1200;
-const ACTIVE_CARD_WIDTH_RATIO = 0.44;
-const SIDE_CARD_OFFSET_RATIO = 1.12;
-const SIDE_CARD_SCALE = 0.78;
-const SIDE_CARD_OPACITY = 0.86;
-const SIDE_CARD_DEPTH_PX = 90;
-const SIDE_CARD_ROTATE_DEG = 16;
-const FAR_CARD_SCALE = 0.64;
-const FAR_CARD_DEPTH_PX = 150;
-const FAR_CARD_ROTATE_DEG = 20;
-const MIN_DECK_STEP_PX = 300;
-const MAX_ACTIVE_CARD_WIDTH_PX = 660;
+const ACTIVE_CARD_WIDTH_RATIO = 0.37;
+const MIN_ACTIVE_CARD_WIDTH_PX = 340;
+const MAX_ACTIVE_CARD_WIDTH_PX = 420;
+const SIDE_CARD_SLOT_GAP_PX = 48;
+const SIDE_CARD_SCALE = 0.72;
+const SIDE_CARD_OPACITY = 0.9;
+const SIDE_CARD_DEPTH_PX = 70;
+const SIDE_CARD_ROTATE_DEG = 10;
+const FAR_CARD_SCALE = 0.58;
+const FAR_CARD_DEPTH_PX = 130;
+const FAR_CARD_ROTATE_DEG = 14;
+const MIN_DECK_STEP_PX = 320;
 const SIDE_CARD_SAFE_PADDING_PX = 8;
 const OPEN_ANIMATION_MS = 380;
 const CLOSE_ANIMATION_MS = 240;
@@ -160,9 +161,15 @@ function LeafletModal({
 
   const activeLeaflet = activeIndex >= 0 ? leaflets[activeIndex] : null;
   const hasCarousel = leaflets.length > 1;
-  const activeCardWidth = Math.min(stageWidth * ACTIVE_CARD_WIDTH_RATIO, MAX_ACTIVE_CARD_WIDTH_PX);
+  const activeCardWidth = Math.min(
+    Math.max(stageWidth * ACTIVE_CARD_WIDTH_RATIO, MIN_ACTIVE_CARD_WIDTH_PX),
+    MAX_ACTIVE_CARD_WIDTH_PX,
+  );
   const sideCardWidth = activeCardWidth * SIDE_CARD_SCALE;
-  const targetStepWidth = Math.max(activeCardWidth * SIDE_CARD_OFFSET_RATIO, MIN_DECK_STEP_PX);
+  const targetStepWidth = Math.max(
+    activeCardWidth / 2 + sideCardWidth / 2 + SIDE_CARD_SLOT_GAP_PX,
+    MIN_DECK_STEP_PX,
+  );
   const maxSafeStepWidth = Math.max(1, (stageWidth - sideCardWidth) / 2 - SIDE_CARD_SAFE_PADDING_PX);
   const stepWidth = Math.min(targetStepWidth, maxSafeStepWidth);
   const dragProgress = hasCarousel ? dragOffset / stepWidth : 0;
