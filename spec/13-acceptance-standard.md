@@ -165,17 +165,20 @@ A feature is accepted only when:
 - Product, promotion, leaflet, and safety icons are not accepted if inner
   artwork, logos, glyphs, or leaflet images are clipped; image artwork must use
   safe padding and `object-fit: contain`.
-- Leaflet modal acceptance requires one near-full-screen holographic swipe
-  stage, not a modal box containing a nested carousel box. The whole stage must
-  be draggable/swipeable, the active leaflet must be large and central, neighbor
+- Leaflet modal acceptance requires a floating holographic leaflet card over the
+  existing kiosk UI, not a big dark modal container and not a modal box
+  containing a nested carousel box. The whole floating stage must be
+  draggable/swipeable, the active leaflet image must be the hero, neighbor
   leaflets may appear only as subtle depth previews, and the metadata panel must
-  remain secondary and readable.
+  remain small, secondary, and readable.
 - Leaflet modal acceptance requires no visible X close button, no Previous/Next
-  buttons, no visible dots, no visible `1 / 3` style page indicator, and no
-  particles, fog, smoke, dust, light-trail elements, noisy atmosphere, or heavy
-  blur/dim overlay. Clicking outside closes, clicking inside the leaflet stage or
-  metadata does not close, Escape closes, keyboard arrows remain an accessibility
-  fallback, and all leaflet/metadata text must display only existing
+  buttons, no visible dots, no visible `1 / 3` style page indicator, no top
+  title/header above the leaflet, no `Holographic Leaflet Gallery`/stage wording,
+  no visible `Swipe to browse` copy, and no particles, fog, smoke, dust,
+  light-trail elements, noisy atmosphere, or heavy blur/dim overlay. Clicking
+  outside closes, clicking inside the leaflet stage or metadata does not close,
+  Escape closes, keyboard arrows remain an accessibility fallback, and all
+  leaflet/metadata text must display only existing
   adapter-supplied leaflet data without invented discount, claim, branch,
   validity, or source details.
 - Narrow tablet or portrait fallback may scroll vertically, but it must not create horizontal overflow and must keep the avatar, shelf map, promotion poster, ERP panel, and pharmacist safety panel readable.

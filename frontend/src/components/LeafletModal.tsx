@@ -1,6 +1,5 @@
 import {
   type CSSProperties,
-  type KeyboardEvent,
   type MouseEvent,
   type PointerEvent,
   type WheelEvent,
@@ -96,6 +95,7 @@ function LeafletModal({
   const [dragOffset, setDragOffset] = useState(0);
   const [isDragging, setIsDragging] = useState(false);
   const [stageWidth, setStageWidth] = useState(DEFAULT_STAGE_WIDTH);
+  const sceneRef = useRef<HTMLElement | null>(null);
   const dragStartX = useRef<number | null>(null);
   const isDraggingRef = useRef(false);
   const reducedMotion = usePrefersReducedMotion();
@@ -111,10 +111,6 @@ function LeafletModal({
   const startInset = Math.max((stageWidth - stageWidth * CARD_WIDTH_RATIO) / 2, 36);
   const trackOffset = hasCarousel ? startInset - activeIndex * stepWidth + dragOffset : 0;
 
-  if (!activeLeaflet) {
-    return null;
-  }
-
   const goToIndex = (index: number) => {
     const nextIndex = clampIndex(index, leaflets.length);
     const nextLeaflet = leaflets[nextIndex];
@@ -128,8 +124,47 @@ function LeafletModal({
     onSelect(nextLeaflet.id);
   };
 
+  const handleShortcutKey = (key: string, preventDefault: () => void) => {
+    if (key === "Escape") {
+      preventDefault();
+      onClose();
+      return true;
+    }
+
+    if (!hasCarousel) {
+      return false;
+    }
+
+    if (key === "ArrowRight") {
+      preventDefault();
+      goToIndex(activeIndex + 1);
+      return true;
+    }
+
+    if (key === "ArrowLeft") {
+      preventDefault();
+      goToIndex(activeIndex - 1);
+      return true;
+    }
+
+    return false;
+  };
+
+  useEffect(() => {
+    const handleDocumentKeyDown = (event: globalThis.KeyboardEvent) => {
+      handleShortcutKey(event.key, () => event.preventDefault());
+    };
+
+    document.addEventListener("keydown", handleDocumentKeyDown);
+    return () => document.removeEventListener("keydown", handleDocumentKeyDown);
+  });
+
+  if (!activeLeaflet) {
+    return null;
+  }
+
   const setStageWidthFromElement = (element: HTMLElement) => {
-    const width = element.getBoundingClientRect().width;
+    const width = (sceneRef.current ?? element).getBoundingClientRect().width;
     setStageWidth(width > 0 ? width : DEFAULT_STAGE_WIDTH);
   };
 
@@ -213,28 +248,6 @@ function LeafletModal({
     goToIndex(activeIndex + (event.deltaX > 0 ? 1 : -1));
   };
 
-  const handleKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
-    if (event.key === "Escape") {
-      event.preventDefault();
-      onClose();
-      return;
-    }
-
-    if (!hasCarousel) {
-      return;
-    }
-
-    if (event.key === "ArrowRight") {
-      event.preventDefault();
-      goToIndex(activeIndex + 1);
-    }
-
-    if (event.key === "ArrowLeft") {
-      event.preventDefault();
-      goToIndex(activeIndex - 1);
-    }
-  };
-
   const handleBackdropMouseDown = (event: MouseEvent<HTMLDivElement>) => {
     if (event.target === event.currentTarget) {
       onClose();
@@ -247,17 +260,16 @@ function LeafletModal({
 
   return (
     <div
-      className="leaflet-modal-backdrop"
+      className="leaflet-viewer-backdrop"
       role="dialog"
       aria-modal="true"
       aria-label="Leaflet preview"
       tabIndex={-1}
-      onKeyDown={handleKeyDown}
       onMouseDown={handleBackdropMouseDown}
     >
       <article
-        className={`leaflet-modal leaflet-stage-surface${isDragging ? " is-dragging" : ""}`}
-        aria-label="Full holographic leaflet swipe stage"
+        className={`leaflet-floating-stage${isDragging ? " is-dragging" : ""}`}
+        aria-label="Floating holographic leaflet card"
         onPointerDown={handlePointerDown}
         onPointerMove={handlePointerMove}
         onPointerUp={finishDrag}
@@ -267,17 +279,11 @@ function LeafletModal({
         onMouseUp={handleMouseUp}
         onWheel={handleWheel}
       >
-        <header className="leaflet-modal-header leaflet-stage-header">
-          <div>
-            <span className="eyebrow">Holographic leaflet stage</span>
-            <h2>{activeLeaflet.title}</h2>
-          </div>
-        </header>
-
         <section
+          ref={sceneRef}
           className={`leaflet-stage-scene${isDragging ? " is-dragging" : ""}`}
           role="listbox"
-          aria-label="Full-stage swipe leaflet viewer"
+          aria-label="Floating leaflet swipe surface"
           aria-describedby="leaflet-gallery-instructions leaflet-gallery-active"
           data-carousel-mode={hasCarousel ? "carousel" : "single"}
           data-reduced-motion={String(reducedMotion)}
@@ -306,19 +312,21 @@ function LeafletModal({
           </div>
         </section>
 
-        <p id="leaflet-gallery-instructions" className="leaflet-swipe-hint">
-          {hasCarousel ? "Swipe to browse" : "Single active leaflet"}
+        <p id="leaflet-gallery-instructions" className="leaflet-screen-reader-status">
+          {hasCarousel
+            ? "Swipe, drag, use a horizontal trackpad gesture, or use arrow keys to browse leaflets."
+            : "Single active leaflet preview."}
         </p>
         <p id="leaflet-gallery-active" className="leaflet-screen-reader-status" aria-live="polite">
           Active leaflet {activeIndex + 1} of {leaflets.length}: {activeLeaflet.title}.
         </p>
 
-        <aside className="leaflet-modal-copy leaflet-metadata-panel" aria-label="Active leaflet metadata">
+        <aside className="leaflet-meta-panel" aria-label="Active leaflet metadata">
           <span className="eyebrow">
             {kindLabel(activeLeaflet.kind)}
           </span>
-          <h3>{activeLeaflet.title}</h3>
-          <p>{activeLeaflet.description}</p>
+          <strong className="leaflet-meta-title">{activeLeaflet.title}</strong>
+          <p className="leaflet-meta-description">{activeLeaflet.description}</p>
           <dl>
             <div>
               <dt>Branch</dt>

@@ -127,9 +127,12 @@ describe("typed input layout CSS contract", () => {
     expect(normalizedStyles).toContain(".poster-product-orb {\n  align-self: center;");
     expect(normalizedStyles).toContain(".leaflet-image-stage img,\n.leaflet-card img,\n.floating-leaflet-panel img {\n  max-width: 100%;");
     expect(normalizedStyles).toContain("object-fit: contain;");
-    expect(normalizedStyles).toContain(".leaflet-modal {\n  position: relative;");
-    expect(normalizedStyles).toContain("padding: clamp(20px, 2dvw, 32px);");
-    expect(normalizedStyles).toContain(".leaflet-stage-surface {\n  isolation: isolate;");
+    expect(normalizedStyles).toContain(".leaflet-floating-stage {\n  position: relative;");
+    expect(normalizedStyles).toContain("background: transparent;");
+    expect(normalizedStyles).toContain("box-shadow: none;");
+    expect(normalizedStyles).not.toContain(".leaflet-modal {\n");
+    expect(normalizedStyles).not.toContain(".leaflet-modal-header");
+    expect(normalizedStyles).not.toContain(".leaflet-stage-header");
     expect(normalizedStyles).toContain(".leaflet-stage-scene {\n  position: relative;");
     expect(normalizedStyles).not.toContain(".leaflet-gallery-viewport {");
     expect(normalizedStyles).not.toContain(".leaflet-gallery-shell {");
