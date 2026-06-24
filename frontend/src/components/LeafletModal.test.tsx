@@ -122,12 +122,12 @@ describe("LeafletModal holographic gallery", () => {
     expect(previous).toHaveStyle({
       "--leaflet-deck-opacity": "0.72",
       "--leaflet-deck-scale": "0.780",
-      "--leaflet-deck-x": "-393px",
+      "--leaflet-deck-x": "-237px",
     });
     expect(next).toHaveStyle({
       "--leaflet-deck-opacity": "0.72",
       "--leaflet-deck-scale": "0.780",
-      "--leaflet-deck-x": "393px",
+      "--leaflet-deck-x": "237px",
     });
     expect(active).toHaveStyle({
       "--leaflet-deck-opacity": "1",
@@ -136,6 +136,38 @@ describe("LeafletModal holographic gallery", () => {
     });
     expect(previous?.getAttribute("style")).not.toContain("rotate");
     expect(next?.getAttribute("style")).not.toContain("rotate");
+  });
+
+  it("keeps the current active leaflet at scale 1 while dragging to avoid pop-out motion", () => {
+    renderModal("LF-002");
+
+    const stage = screen.getByLabelText("Floating holographic leaflet card");
+    const active = screen.getByRole("option", { name: /Supplement Wellness Campaign, 2 of 3/i });
+
+    fireEvent.mouseDown(stage, { clientX: 420 });
+    fireEvent.mouseMove(stage, { clientX: 300 });
+
+    expect(active).toHaveStyle({
+      "--leaflet-deck-scale": "1",
+    });
+    expect(active.getAttribute("style")).not.toContain("1.0");
+    expect(active.getAttribute("style")).not.toContain("translateZ");
+  });
+
+  it("hides non-neighbor leaflets so offscreen cards are not clipped at overlay edges", () => {
+    renderModal("LF-001");
+
+    const dialog = screen.getByRole("dialog", { name: /leaflet preview/i });
+    const immediateNeighbor = dialog.querySelector('[data-deck-position="next"]');
+    const offscreenNeighbor = dialog.querySelector('[data-deck-position="offscreen-next"]');
+
+    expect(immediateNeighbor).toHaveStyle({
+      "--leaflet-deck-opacity": "0.72",
+    });
+    expect(offscreenNeighbor).toBeInTheDocument();
+    expect(offscreenNeighbor).toHaveStyle({
+      "--leaflet-deck-opacity": "0",
+    });
   });
 
   it("keeps the existing metadata panel separate from the flat leaflet deck", () => {

@@ -19,6 +19,8 @@ const SIDE_CARD_OFFSET_RATIO = 0.78;
 const SIDE_CARD_SCALE = 0.78;
 const SIDE_CARD_OPACITY = 0.72;
 const MIN_DECK_STEP_PX = 300;
+const MAX_ACTIVE_CARD_WIDTH_PX = 760;
+const SIDE_CARD_SAFE_PADDING_PX = 16;
 const OPEN_ANIMATION_MS = 380;
 const CLOSE_ANIMATION_MS = 240;
 
@@ -153,7 +155,11 @@ function LeafletModal({
 
   const activeLeaflet = activeIndex >= 0 ? leaflets[activeIndex] : null;
   const hasCarousel = leaflets.length > 1;
-  const stepWidth = Math.max(stageWidth * ACTIVE_CARD_WIDTH_RATIO * SIDE_CARD_OFFSET_RATIO, MIN_DECK_STEP_PX);
+  const activeCardWidth = Math.min(stageWidth * ACTIVE_CARD_WIDTH_RATIO, MAX_ACTIVE_CARD_WIDTH_PX);
+  const sideCardWidth = activeCardWidth * SIDE_CARD_SCALE;
+  const targetStepWidth = Math.max(activeCardWidth * SIDE_CARD_OFFSET_RATIO, MIN_DECK_STEP_PX);
+  const maxSafeStepWidth = Math.max(1, (stageWidth - sideCardWidth) / 2 - SIDE_CARD_SAFE_PADDING_PX);
+  const stepWidth = Math.min(targetStepWidth, maxSafeStepWidth);
   const dragProgress = hasCarousel ? dragOffset / stepWidth : 0;
 
   useEffect(() => {
@@ -370,14 +376,16 @@ function LeafletModal({
     const relativePosition = index - activeIndex + dragProgress;
     const distance = Math.abs(relativePosition);
     const x = relativePosition * stepWidth;
-    const scale = Math.max(0.74, 1 - Math.min(distance, 1) * (1 - SIDE_CARD_SCALE) - Math.max(distance - 1, 0) * 0.06);
-    const opacity = distance <= 0.08 ? 1 : distance <= 1.18 ? SIDE_CARD_OPACITY : Math.max(0, 0.26 - (distance - 1.18) * 0.18);
+    const scale = index === activeIndex
+      ? 1
+      : Math.max(0.74, 1 - Math.min(distance, 1) * (1 - SIDE_CARD_SCALE) - Math.max(distance - 1, 0) * 0.06);
+    const opacity = distance <= 0.08 ? 1 : distance <= 1.18 ? SIDE_CARD_OPACITY : 0;
     const z = Math.max(1, Math.round(100 - distance * 12));
 
     return {
       "--leaflet-deck-x": `${Math.round(x)}px`,
       "--leaflet-deck-scale": scale === 1 ? "1" : scale.toFixed(3),
-      "--leaflet-deck-opacity": opacity === 1 ? "1" : opacity.toFixed(2),
+      "--leaflet-deck-opacity": opacity === 1 ? "1" : opacity === 0 ? "0" : opacity.toFixed(2),
       "--leaflet-deck-z": String(z),
     } as CSSProperties;
   };

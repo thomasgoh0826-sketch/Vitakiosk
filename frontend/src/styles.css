@@ -4222,7 +4222,7 @@ button.leaflet-card:focus-visible {
   grid-area: gallery;
   min-height: 0;
   min-width: 0;
-  overflow: hidden;
+  overflow: visible;
   border-radius: clamp(18px, 1.8dvw, 28px);
   background: transparent;
   perspective: none;
@@ -4404,7 +4404,7 @@ button.leaflet-card:focus-visible {
     height: clamp(300px, 56dvh, 520px);
     min-height: 0;
     max-height: none;
-    overflow: hidden;
+    overflow: visible;
   }
 
   .floating-leaflet-panel {

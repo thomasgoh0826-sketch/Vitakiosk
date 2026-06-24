@@ -164,6 +164,7 @@ describe("typed input layout CSS contract", () => {
     expect(normalizedStyles).toMatch(/\.floating-leaflet-panel\s*\{[^}]*--leaflet-panel-padding: clamp\(8px, 1dvw, 14px\);[^}]*overflow: hidden;/);
     expect(normalizedStyles).toMatch(/\.floating-leaflet-panel img\s*\{[^}]*position: absolute;[^}]*inset: var\(--leaflet-panel-padding\);[^}]*object-fit: contain;/);
     expect(normalizedStyles).toMatch(/\.leaflet-stage-scene\s*\{[^}]*perspective: none;/);
+    expect(normalizedStyles).toMatch(/\.leaflet-stage-scene\s*\{[^}]*overflow: visible;/);
     expect(normalizedStyles).toMatch(/\.leaflet-flat-deck-track\s*\{[^}]*position: absolute;[^}]*inset: 0;/);
     expect(normalizedStyles).not.toContain(".leaflet-depth-track");
     expect(normalizedStyles).toMatch(/\.leaflet-floating-stage\s*\{[^}]*width: min\(1560px, 96dvw\);[^}]*height: min\(760px, 88dvh\);/);
@@ -182,7 +183,7 @@ describe("typed input layout CSS contract", () => {
       /@media \(max-width: 1120px\), \(max-height: 740px\)\s*\{[\s\S]*\.leaflet-floating-stage\s*\{[\s\S]*grid-template-areas:\s*\n      "gallery"\s*\n      "copy";/,
     );
     expect(normalizedStyles).toMatch(
-      /@media \(max-width: 1120px\), \(max-height: 740px\)\s*\{[\s\S]*\.leaflet-stage-scene\s*\{[\s\S]*overflow: hidden;/,
+      /@media \(max-width: 1120px\), \(max-height: 740px\)\s*\{[\s\S]*\.leaflet-stage-scene\s*\{[\s\S]*overflow: visible;/,
     );
     expect(normalizedStyles).toMatch(
       /@media \(max-width: 1120px\), \(max-height: 740px\)\s*\{[\s\S]*\.leaflet-meta-panel\s*\{[\s\S]*align-self: stretch;[\s\S]*overflow: visible;/,

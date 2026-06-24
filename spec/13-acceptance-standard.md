@@ -236,6 +236,13 @@ A feature is accepted only when:
   with no bounce, overshoot, pop-forward, elastic spring, aggressive active-card
   scale-up, translateZ jump, or card bumping toward the user as it becomes
   active. A controlled tween/ease or zero-bounce spring is acceptable.
+- Leaflet modal side-card acceptance requires every visible previous/next
+  leaflet to remain fully inside the overlay viewport and above the kiosk UI.
+  Offscreen non-neighbor cards must not remain partially visible at low opacity
+  if they would be clipped at the overlay edge; hide them instead.
+- Leaflet modal drag acceptance requires the currently active card to keep
+  `scale(1)` while dragging. The active card must not pulse outward, scale above
+  one, or visually jump depth during horizontal swipe.
 - Leaflet modal deck-only corrections are accepted only if the existing
   metadata panel remains separate from the deck and is not redesigned, moved,
   attached to a card, removed, or animated with the leaflet cards.
