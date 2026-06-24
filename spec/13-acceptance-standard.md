@@ -228,6 +228,14 @@ A feature is accepted only when:
   right when real leaflets exist, motion limited to horizontal translation plus
   subtle scale/opacity/glow, and no spherical, cylindrical, orbit, wheel,
   coverflow spin, or hidden single-card replacement carousel behavior.
+- Leaflet modal deck sizing acceptance requires the active leaflet to read as
+  the hero object, occupy materially more of the available overlay stage than
+  before, remain fully visible with contained artwork, and keep side leaflets
+  visible at roughly 70-80% of active scale when neighboring leaflets exist.
+- Leaflet modal swipe-animation acceptance requires a smooth horizontal snap
+  with no bounce, overshoot, pop-forward, elastic spring, aggressive active-card
+  scale-up, translateZ jump, or card bumping toward the user as it becomes
+  active. A controlled tween/ease or zero-bounce spring is acceptable.
 - Leaflet modal deck-only corrections are accepted only if the existing
   metadata panel remains separate from the deck and is not redesigned, moved,
   attached to a card, removed, or animated with the leaflet cards.

@@ -166,7 +166,11 @@ describe("typed input layout CSS contract", () => {
     expect(normalizedStyles).toMatch(/\.leaflet-stage-scene\s*\{[^}]*perspective: none;/);
     expect(normalizedStyles).toMatch(/\.leaflet-flat-deck-track\s*\{[^}]*position: absolute;[^}]*inset: 0;/);
     expect(normalizedStyles).not.toContain(".leaflet-depth-track");
-    expect(normalizedStyles).toMatch(/\.floating-leaflet-panel\s*\{[^}]*width: min\(44%, 520px\);/);
+    expect(normalizedStyles).toMatch(/\.leaflet-floating-stage\s*\{[^}]*width: min\(1560px, 96dvw\);[^}]*height: min\(760px, 88dvh\);/);
+    expect(normalizedStyles).toMatch(/\.floating-leaflet-panel\s*\{[^}]*width: min\(56%, 760px, 52dvw\);[^}]*height: min\(100%, 78dvh\);/);
+    expect(normalizedStyles).toMatch(/\.floating-leaflet-panel\s*\{[^}]*transform 320ms cubic-bezier\(0\.22, 0\.76, 0\.28, 1\);/);
+    expect(normalizedStyles).not.toContain("scale(1.025)");
+    expect(normalizedStyles).not.toContain("translateY(-4px)");
     expect(normalizedStyles).not.toMatch(/\.floating-leaflet-panel\s*\{[^}]*perspective\(/);
     expect(normalizedStyles).not.toMatch(/\.floating-leaflet-panel\s*\{[^}]*translateZ/);
     expect(normalizedStyles).toMatch(/\.floating-leaflet-panel\s*\{[^}]*rotateY\(0deg\)/);

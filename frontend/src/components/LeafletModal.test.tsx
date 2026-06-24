@@ -121,13 +121,13 @@ describe("LeafletModal holographic gallery", () => {
     expect(next).toHaveClass("is-neighbor");
     expect(previous).toHaveStyle({
       "--leaflet-deck-opacity": "0.72",
-      "--leaflet-deck-scale": "0.820",
-      "--leaflet-deck-x": "-277px",
+      "--leaflet-deck-scale": "0.780",
+      "--leaflet-deck-x": "-393px",
     });
     expect(next).toHaveStyle({
       "--leaflet-deck-opacity": "0.72",
-      "--leaflet-deck-scale": "0.820",
-      "--leaflet-deck-x": "277px",
+      "--leaflet-deck-scale": "0.780",
+      "--leaflet-deck-x": "393px",
     });
     expect(active).toHaveStyle({
       "--leaflet-deck-opacity": "1",
