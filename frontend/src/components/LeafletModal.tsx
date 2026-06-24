@@ -404,7 +404,7 @@ function LeafletModal({
       : -(SIDE_CARD_DEPTH_PX * sideCurveProgress + (FAR_CARD_DEPTH_PX - SIDE_CARD_DEPTH_PX) * farCurveProgress);
     const rotate = index === activeIndex
       ? 0
-      : -signedDirection * (
+      : signedDirection * (
         SIDE_CARD_ROTATE_DEG * sideCurveProgress
         + (FAR_CARD_ROTATE_DEG - SIDE_CARD_ROTATE_DEG) * farCurveProgress
       );

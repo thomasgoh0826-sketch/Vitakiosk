@@ -106,7 +106,7 @@ describe("LeafletModal holographic gallery", () => {
       .toHaveAttribute("aria-current", "true");
   });
 
-  it("spaces previous and next leaflets into distinct shallow cylindrical deck slots", () => {
+  it("angles previous and next leaflets outward in distinct shallow cylindrical deck slots", () => {
     renderModal("LF-002");
 
     const dialog = screen.getByRole("dialog", { name: /leaflet preview/i });
@@ -124,14 +124,14 @@ describe("LeafletModal holographic gallery", () => {
       "--leaflet-deck-scale": "0.720",
       "--leaflet-deck-x": "-409px",
       "--leaflet-deck-depth": "-70px",
-      "--leaflet-deck-rotate": "10deg",
+      "--leaflet-deck-rotate": "-10deg",
     });
     expect(next).toHaveStyle({
       "--leaflet-deck-opacity": "0.90",
       "--leaflet-deck-scale": "0.720",
       "--leaflet-deck-x": "409px",
       "--leaflet-deck-depth": "-70px",
-      "--leaflet-deck-rotate": "-10deg",
+      "--leaflet-deck-rotate": "10deg",
     });
     expect(active).toHaveStyle({
       "--leaflet-deck-opacity": "1",

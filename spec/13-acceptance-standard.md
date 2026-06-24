@@ -239,6 +239,11 @@ A feature is accepted only when:
   leaflets exist. The deck must use distinct left/center/right visual slots,
   reserve enough safe horizontal stage space for visible neighbors, and avoid
   letting the center card cover, bury, or visually stack over the side cards.
+- Leaflet modal side-orientation acceptance requires side cards to open away
+  from the center card instead of leaning inward. The previous/left leaflet
+  uses the outward-left orientation, the next/right leaflet uses the
+  outward-right orientation, and browser evidence must verify that the rendered
+  side cards no longer pinch toward the center.
 - Leaflet modal swipe-animation acceptance requires a smooth mostly-horizontal
   snap with gentle depth interpolation and no bounce, overshoot, pop-forward,
   elastic spring, aggressive active-card scale-up, sudden translateZ jump, or
