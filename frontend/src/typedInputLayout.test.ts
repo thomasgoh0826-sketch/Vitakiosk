@@ -163,9 +163,11 @@ describe("typed input layout CSS contract", () => {
     expect(normalizedStyles).toMatch(/\.leaflet-meta-panel\s*\{[^}]*grid-area: copy;[^}]*position: relative;/);
     expect(normalizedStyles).toMatch(/\.floating-leaflet-panel\s*\{[^}]*--leaflet-panel-padding: clamp\(8px, 1dvw, 14px\);[^}]*overflow: hidden;/);
     expect(normalizedStyles).toMatch(/\.floating-leaflet-panel img\s*\{[^}]*position: absolute;[^}]*inset: var\(--leaflet-panel-padding\);[^}]*object-fit: contain;/);
-    expect(normalizedStyles).toMatch(/\.leaflet-stage-scene\s*\{[^}]*perspective: none;/);
+    expect(normalizedStyles).toMatch(/\.leaflet-stage-scene\s*\{[^}]*perspective: 1200px;/);
+    expect(normalizedStyles).toMatch(/\.leaflet-stage-scene\s*\{[^}]*perspective-origin: center center;/);
+    expect(normalizedStyles).toMatch(/\.leaflet-stage-scene\s*\{[^}]*transform-style: preserve-3d;/);
     expect(normalizedStyles).toMatch(/\.leaflet-stage-scene\s*\{[^}]*overflow: visible;/);
-    expect(normalizedStyles).toMatch(/\.leaflet-flat-deck-track\s*\{[^}]*position: absolute;[^}]*inset: 0;/);
+    expect(normalizedStyles).toMatch(/\.leaflet-flat-deck-track\s*\{[^}]*position: absolute;[^}]*inset: 0;[^}]*transform-style: preserve-3d;/);
     expect(normalizedStyles).not.toContain(".leaflet-depth-track");
     expect(normalizedStyles).toMatch(/\.leaflet-floating-stage\s*\{[^}]*width: min\(1560px, 96dvw\);[^}]*height: min\(760px, 88dvh\);/);
     expect(normalizedStyles).toMatch(/\.floating-leaflet-panel\s*\{[^}]*width: min\(56%, 760px, 52dvw\);[^}]*height: min\(100%, 78dvh\);/);
@@ -173,11 +175,13 @@ describe("typed input layout CSS contract", () => {
     expect(normalizedStyles).not.toContain("scale(1.025)");
     expect(normalizedStyles).not.toContain("translateY(-4px)");
     expect(normalizedStyles).not.toMatch(/\.floating-leaflet-panel\s*\{[^}]*perspective\(/);
-    expect(normalizedStyles).not.toMatch(/\.floating-leaflet-panel\s*\{[^}]*translateZ/);
-    expect(normalizedStyles).toMatch(/\.floating-leaflet-panel\s*\{[^}]*rotateY\(0deg\)/);
+    expect(normalizedStyles).toMatch(/\.floating-leaflet-panel\s*\{[^}]*translateZ\(var\(--leaflet-deck-depth, 0px\)\)/);
+    expect(normalizedStyles).toMatch(/\.floating-leaflet-panel\s*\{[^}]*rotateY\(var\(--leaflet-deck-rotate, 0deg\)\)/);
     expect(normalizedStyles).not.toMatch(/\.floating-leaflet-panel\.is-active\s*\{[^}]*perspective\(/);
-    expect(normalizedStyles).not.toMatch(/\.floating-leaflet-panel\.is-active\s*\{[^}]*translateZ/);
-    expect(normalizedStyles).not.toMatch(/\.floating-leaflet-panel\.is-active\s*\{[^}]*rotateY\((?!0deg)/);
+    expect(normalizedStyles).toMatch(/\.floating-leaflet-panel\.is-active\s*\{[^}]*translateZ\(var\(--leaflet-deck-depth, 0px\)\)/);
+    expect(normalizedStyles).toMatch(/\.floating-leaflet-panel\.is-active\s*\{[^}]*rotateY\(var\(--leaflet-deck-rotate, 0deg\)\)/);
+    expect(normalizedStyles).not.toMatch(/\.floating-leaflet-panel\s*\{[^}]*rotateX\(/);
+    expect(normalizedStyles).not.toMatch(/\.floating-leaflet-panel\s*\{[^}]*rotateZ\(/);
     expect(normalizedStyles).toMatch(/\.floating-leaflet-panel\.is-neighbor\s*\{[^}]*opacity: var\(--leaflet-deck-opacity, 0\.72\);/);
     expect(normalizedStyles).toMatch(
       /@media \(max-width: 1120px\), \(max-height: 740px\)\s*\{[\s\S]*\.leaflet-floating-stage\s*\{[\s\S]*grid-template-areas:\s*\n      "gallery"\s*\n      "copy";/,

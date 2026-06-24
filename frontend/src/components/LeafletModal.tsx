@@ -13,11 +13,16 @@ import { createPortal } from "react-dom";
 import type { Leaflet } from "../types";
 
 const SWIPE_THRESHOLD_PX = 68;
-const DEFAULT_STAGE_WIDTH = 900;
+const DEFAULT_STAGE_WIDTH = 1200;
 const ACTIVE_CARD_WIDTH_RATIO = 0.56;
-const SIDE_CARD_OFFSET_RATIO = 0.78;
-const SIDE_CARD_SCALE = 0.78;
+const SIDE_CARD_OFFSET_RATIO = 0.82;
+const SIDE_CARD_SCALE = 0.82;
 const SIDE_CARD_OPACITY = 0.72;
+const SIDE_CARD_DEPTH_PX = 60;
+const SIDE_CARD_ROTATE_DEG = 10;
+const FAR_CARD_SCALE = 0.68;
+const FAR_CARD_DEPTH_PX = 120;
+const FAR_CARD_ROTATE_DEG = 14;
 const MIN_DECK_STEP_PX = 300;
 const MAX_ACTIVE_CARD_WIDTH_PX = 760;
 const SIDE_CARD_SAFE_PADDING_PX = 16;
@@ -369,6 +374,8 @@ function LeafletModal({
         "--leaflet-deck-x": "0px",
         "--leaflet-deck-scale": "1",
         "--leaflet-deck-opacity": "1",
+        "--leaflet-deck-depth": "0px",
+        "--leaflet-deck-rotate": "0deg",
         "--leaflet-deck-z": "100",
       } as CSSProperties;
     }
@@ -376,16 +383,32 @@ function LeafletModal({
     const relativePosition = index - activeIndex + dragProgress;
     const distance = Math.abs(relativePosition);
     const x = relativePosition * stepWidth;
+    const signedDirection = relativePosition === 0 ? 0 : Math.sign(relativePosition);
+    const sideCurveProgress = Math.min(distance, 1);
+    const farCurveProgress = Math.min(Math.max(distance - 1, 0), 1);
     const scale = index === activeIndex
       ? 1
-      : Math.max(0.74, 1 - Math.min(distance, 1) * (1 - SIDE_CARD_SCALE) - Math.max(distance - 1, 0) * 0.06);
+      : distance <= 1
+        ? 1 - sideCurveProgress * (1 - SIDE_CARD_SCALE)
+        : Math.max(FAR_CARD_SCALE, SIDE_CARD_SCALE - farCurveProgress * (SIDE_CARD_SCALE - FAR_CARD_SCALE));
     const opacity = distance <= 0.08 ? 1 : distance <= 1.18 ? SIDE_CARD_OPACITY : 0;
+    const depth = index === activeIndex
+      ? 0
+      : -(SIDE_CARD_DEPTH_PX * sideCurveProgress + (FAR_CARD_DEPTH_PX - SIDE_CARD_DEPTH_PX) * farCurveProgress);
+    const rotate = index === activeIndex
+      ? 0
+      : -signedDirection * (
+        SIDE_CARD_ROTATE_DEG * sideCurveProgress
+        + (FAR_CARD_ROTATE_DEG - SIDE_CARD_ROTATE_DEG) * farCurveProgress
+      );
     const z = Math.max(1, Math.round(100 - distance * 12));
 
     return {
       "--leaflet-deck-x": `${Math.round(x)}px`,
       "--leaflet-deck-scale": scale === 1 ? "1" : scale.toFixed(3),
       "--leaflet-deck-opacity": opacity === 1 ? "1" : opacity === 0 ? "0" : opacity.toFixed(2),
+      "--leaflet-deck-depth": `${Math.round(depth)}px`,
+      "--leaflet-deck-rotate": `${Math.round(rotate)}deg`,
       "--leaflet-deck-z": String(z),
     } as CSSProperties;
   };
@@ -419,7 +442,7 @@ function LeafletModal({
           aria-label="Floating leaflet swipe surface"
           aria-describedby="leaflet-gallery-instructions leaflet-gallery-active"
           data-carousel-mode={hasCarousel ? "carousel" : "single"}
-          data-deck-pattern="flat-horizontal"
+          data-deck-pattern="shallow-cylindrical"
           data-reduced-motion={String(reducedMotion)}
         >
           <div className="leaflet-flat-deck-track">

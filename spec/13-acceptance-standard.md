@@ -223,26 +223,30 @@ A feature is accepted only when:
   render as a top-level fixed overlay/portal above the kiosk UI so the active
   leaflet never appears inserted into, behind, or mixed with the avatar,
   product, shelf, ERP, promotion, or pharmacist panels.
-- Leaflet modal deck acceptance requires the Flat Horizontal Floating Deck
-  pattern: active card centered, previous/next leaflets visible on the left and
-  right when real leaflets exist, motion limited to horizontal translation plus
-  subtle scale/opacity/glow, and no spherical, cylindrical, orbit, wheel,
-  coverflow spin, or hidden single-card replacement carousel behavior.
+- Leaflet modal deck acceptance requires the Slightly Cylindrical / Shallow
+  Curve floating deck pattern: active card centered and facing the user,
+  previous/next leaflets visible on the left and right when real leaflets
+  exist, side cards gently angled backward with shallow `translateZ` depth and
+  about `rotateY(±10deg)`, and no spherical, circular, orbit, wheel, full 3D
+  carousel, coverflow spin, or hidden single-card replacement carousel
+  behavior.
 - Leaflet modal deck sizing acceptance requires the active leaflet to read as
   the hero object, occupy materially more of the available overlay stage than
   before, remain fully visible with contained artwork, and keep side leaflets
   visible at roughly 70-80% of active scale when neighboring leaflets exist.
-- Leaflet modal swipe-animation acceptance requires a smooth horizontal snap
-  with no bounce, overshoot, pop-forward, elastic spring, aggressive active-card
-  scale-up, translateZ jump, or card bumping toward the user as it becomes
-  active. A controlled tween/ease or zero-bounce spring is acceptable.
+- Leaflet modal swipe-animation acceptance requires a smooth mostly-horizontal
+  snap with gentle depth interpolation and no bounce, overshoot, pop-forward,
+  elastic spring, aggressive active-card scale-up, sudden translateZ jump, or
+  card bumping toward the user as it becomes active. A controlled tween/ease or
+  zero-bounce spring is acceptable.
 - Leaflet modal side-card acceptance requires every visible previous/next
   leaflet to remain fully inside the overlay viewport and above the kiosk UI.
   Offscreen non-neighbor cards must not remain partially visible at low opacity
   if they would be clipped at the overlay edge; hide them instead.
 - Leaflet modal drag acceptance requires the currently active card to keep
-  `scale(1)` while dragging. The active card must not pulse outward, scale above
-  one, or visually jump depth during horizontal swipe.
+  `scale(1)`, `translateZ(0)`, and `rotateY(0deg)` while dragging. The active
+  card must not pulse outward, scale above one, or visually jump depth during
+  horizontal swipe.
 - Leaflet modal deck-only corrections are accepted only if the existing
   metadata panel remains separate from the deck and is not redesigned, moved,
   attached to a card, removed, or animated with the leaflet cards.
@@ -254,8 +258,9 @@ A feature is accepted only when:
   leaflet artwork at 1024x768 and squeezed/narrow/short viewports. When side
   space is insufficient, branch/source/validity/description metadata must move
   below the hero leaflet or otherwise reflow without covering the leaflet image.
-  Neighbor previews must remain inside the overlay stage as flat left/right
-  cards and must not visually pass behind or merge with the kiosk page panels.
+  Neighbor previews must remain inside the overlay stage as shallow curved
+  left/right cards and must not visually pass behind or merge with the kiosk
+  page panels.
 - Leaflet modal acceptance requires no visible X close button, no Previous/Next
   buttons, no visible dots, no visible `1 / 3` style page indicator, no top
   title/header above the leaflet, no `Holographic Leaflet Gallery`/stage wording,

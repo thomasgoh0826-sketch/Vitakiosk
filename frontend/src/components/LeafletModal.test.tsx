@@ -72,7 +72,7 @@ function renderModal(
 }
 
 describe("LeafletModal holographic gallery", () => {
-  it("renders multiple leaflets as a flat horizontal floating deck without a modal header or dark container", () => {
+  it("renders multiple leaflets as a shallow cylindrical floating deck without a modal header or dark container", () => {
     renderModal("LF-002");
 
     const dialog = screen.getByRole("dialog", { name: /leaflet preview/i });
@@ -83,7 +83,7 @@ describe("LeafletModal holographic gallery", () => {
     expect(within(stage).getByRole("listbox", { name: /floating leaflet swipe surface/i })).toBeInTheDocument();
     expect(within(dialog).getAllByRole("option")).toHaveLength(3);
     expect(within(dialog).getByRole("listbox", { name: /floating leaflet swipe surface/i }))
-      .toHaveAttribute("data-deck-pattern", "flat-horizontal");
+      .toHaveAttribute("data-deck-pattern", "shallow-cylindrical");
     expect(dialog.querySelector(".leaflet-flat-deck-track")).toBeInTheDocument();
     expect(dialog.querySelector(".leaflet-depth-track")).toBeNull();
     expect(within(dialog).queryByRole("banner")).not.toBeInTheDocument();
@@ -106,7 +106,7 @@ describe("LeafletModal holographic gallery", () => {
       .toHaveAttribute("aria-current", "true");
   });
 
-  it("keeps previous and next leaflets visible as flat left-right neighbors", () => {
+  it("curves previous and next leaflets as a shallow cylindrical holographic deck", () => {
     renderModal("LF-002");
 
     const dialog = screen.getByRole("dialog", { name: /leaflet preview/i });
@@ -121,21 +121,29 @@ describe("LeafletModal holographic gallery", () => {
     expect(next).toHaveClass("is-neighbor");
     expect(previous).toHaveStyle({
       "--leaflet-deck-opacity": "0.72",
-      "--leaflet-deck-scale": "0.780",
-      "--leaflet-deck-x": "-237px",
+      "--leaflet-deck-scale": "0.820",
+      "--leaflet-deck-x": "-308px",
+      "--leaflet-deck-depth": "-60px",
+      "--leaflet-deck-rotate": "10deg",
     });
     expect(next).toHaveStyle({
       "--leaflet-deck-opacity": "0.72",
-      "--leaflet-deck-scale": "0.780",
-      "--leaflet-deck-x": "237px",
+      "--leaflet-deck-scale": "0.820",
+      "--leaflet-deck-x": "308px",
+      "--leaflet-deck-depth": "-60px",
+      "--leaflet-deck-rotate": "-10deg",
     });
     expect(active).toHaveStyle({
       "--leaflet-deck-opacity": "1",
       "--leaflet-deck-scale": "1",
       "--leaflet-deck-x": "0px",
+      "--leaflet-deck-depth": "0px",
+      "--leaflet-deck-rotate": "0deg",
     });
-    expect(previous?.getAttribute("style")).not.toContain("rotate");
-    expect(next?.getAttribute("style")).not.toContain("rotate");
+    expect(previous?.getAttribute("style")).not.toContain("rotateX");
+    expect(previous?.getAttribute("style")).not.toContain("rotateZ");
+    expect(next?.getAttribute("style")).not.toContain("rotateX");
+    expect(next?.getAttribute("style")).not.toContain("rotateZ");
   });
 
   it("keeps the current active leaflet at scale 1 while dragging to avoid pop-out motion", () => {
@@ -149,6 +157,8 @@ describe("LeafletModal holographic gallery", () => {
 
     expect(active).toHaveStyle({
       "--leaflet-deck-scale": "1",
+      "--leaflet-deck-depth": "0px",
+      "--leaflet-deck-rotate": "0deg",
     });
     expect(active.getAttribute("style")).not.toContain("1.0");
     expect(active.getAttribute("style")).not.toContain("translateZ");
@@ -170,7 +180,7 @@ describe("LeafletModal holographic gallery", () => {
     });
   });
 
-  it("keeps the existing metadata panel separate from the flat leaflet deck", () => {
+  it("keeps the existing metadata panel separate from the shallow cylindrical leaflet deck", () => {
     renderModal("LF-002");
 
     const dialog = screen.getByRole("dialog", { name: /leaflet preview/i });
