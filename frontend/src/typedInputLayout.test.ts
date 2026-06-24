@@ -80,6 +80,22 @@ describe("typed input layout CSS contract", () => {
     expect(normalizedStyles).toContain("grid-template-areas: \"brand connection diagnostics\"");
   });
 
+  it("adds subtle futuristic motion only through lightweight background and waveform CSS", () => {
+    expect(normalizedStyles).toContain("@keyframes kiosk-background-drift");
+    expect(normalizedStyles).toContain("@keyframes assistant-waveform-breathe");
+    expect(normalizedStyles).toContain("@keyframes assistant-waveform-scan");
+    expect(normalizedStyles).toContain("@keyframes assistant-state-sweep");
+    expect(normalizedStyles).toContain(".assistant-waveform-listening");
+    expect(normalizedStyles).toContain(".assistant-waveform-speaking");
+    expect(normalizedStyles).toContain(".assistant-waveform-thinking");
+    expect(normalizedStyles).toContain(".assistant-waveform-error");
+    expect(normalizedStyles).toContain(".assistant-waveform-pharmacist_escalation");
+    expect(normalizedStyles).toContain(".assistant-waveform-reduced-motion");
+    expect(normalizedStyles).not.toContain("particle");
+    expect(normalizedStyles).not.toContain("smoke");
+    expect(normalizedStyles).not.toContain("fog");
+  });
+
   it("protects measured subtitle-to-product spacing in landscape kiosk mode", () => {
     expect(normalizedStyles).toContain("--deck-card-gap: clamp(16px, 1.2dvw, 22px);");
     expect(normalizedStyles).toContain("minmax(clamp(108px, 14dvh, 158px), 0.34fr)");

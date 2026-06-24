@@ -63,7 +63,10 @@ Three.js/VRM controls body motion, face expressions, blinking, head movement, id
 - The Three.js renderer respects reduced-motion settings and renders safely when WebGL is unavailable.
 - The Lottie-first visual reads as an abstract holographic AI assistant and does not use a childish cartoon face.
 - The assistant stage uses visible text and distinct cyan, purple, or safety-red treatments for idle, listening, thinking, speaking, error, and pharmacist escalation.
-- Listening and speaking activity visibly energizes the waveform without changing the renderer adapter contract.
+- The assistant waveform/status area is state-aware: idle uses calm breathing motion, listening uses microphone activity, thinking uses a scanning/loading pattern, speaking uses playback activity or a subtle visual fallback, error uses restrained warning pulse, and pharmacist escalation uses a professional safety pulse.
+- Listening and speaking activity visibly energizes the waveform without changing the renderer adapter contract or product/business workflow.
+- The waveform exposes stable frontend state markers for runtime QA while remaining non-customer debug-free.
+- Subtle kiosk background motion may use CSS grid drift, scanline sweeps, and panel glow only; it must not add heavy particles, smoke, fog, noisy atmosphere, or animation that reduces readability.
 - The primary interaction state maps to `Tap to Speak`, `Tap to Stop`, `Thinking…`, `Speaking…`, `Try Again`, or `Pharmacist Requested`.
 - `pharmacist_escalation` produces an alert and coral safety treatment.
 - Speaking activity changes waveform and mouth scale within a clamped 0..1 range.
@@ -80,4 +83,6 @@ Three.js/VRM controls body motion, face expressions, blinking, head movement, id
 - `frontend/src/hooks/useAvatarIdleMotion.test.ts`
 - `frontend/src/hooks/useAvatarLipSync.test.ts`
 - `frontend/src/hooks/useAudioActivity.test.ts`
+- `frontend/src/hooks/useVoiceInteraction.test.ts`
+- `frontend/src/typedInputLayout.test.ts`
 - `frontend/src/hooks/useKioskSocket.test.ts`

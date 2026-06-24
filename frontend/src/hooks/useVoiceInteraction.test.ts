@@ -87,6 +87,16 @@ class FakeAudioContext {
   }
 }
 
+class ActiveFakeAnalyser extends FakeAnalyser {
+  getByteTimeDomainData(samples: Uint8Array) {
+    samples.fill(180);
+  }
+}
+
+class ActiveFakeAudioContext extends FakeAudioContext {
+  analyser = new ActiveFakeAnalyser();
+}
+
 function buildApi(redFlag = false, unclear = false, correctedTranscript?: string) {
   return {
     transcribe: vi.fn().mockResolvedValue({
@@ -264,6 +274,37 @@ describe("useVoiceInteraction", () => {
       expect(result.current.state).toBe("idle");
       expect(sendState).toHaveBeenCalledWith("thinking");
       expect(sendState).toHaveBeenCalledWith("idle");
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it("exposes microphone analyser activity while listening so the assistant waveform can react", async () => {
+    vi.useFakeTimers();
+    vi.stubGlobal("AudioContext", ActiveFakeAudioContext);
+    try {
+      const api = buildApi();
+      const { result } = renderHook(() =>
+        useVoiceInteraction({
+          sessionId: "session-mic-activity",
+          branchId: "SG-001",
+          api,
+          serverState: "idle" as AvatarState,
+          sendState: vi.fn(),
+        }),
+      );
+
+      await act(async () => result.current.startRecording());
+      expect(result.current.state).toBe("listening");
+      expect(result.current.audioActivity).toBe(0);
+
+      await act(async () => {
+        vi.advanceTimersByTime(MIN_RECORDING_MS + 120);
+        await Promise.resolve();
+      });
+
+      expect(result.current.state).toBe("listening");
+      expect(result.current.audioActivity).toBeGreaterThan(SILENCE_RMS_THRESHOLD);
     } finally {
       vi.useRealTimers();
     }

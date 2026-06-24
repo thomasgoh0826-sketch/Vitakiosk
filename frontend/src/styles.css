@@ -1478,6 +1478,50 @@ button:focus-visible {
   50% { transform: scaleY(1); opacity: 0.88; }
 }
 
+@keyframes kiosk-background-drift {
+  0% {
+    background-position: 0 0, 0 0, 50% 48%;
+  }
+  100% {
+    background-position: 22px 10px, -14px 18px, 54% 46%;
+  }
+}
+
+@keyframes kiosk-ambient-grid-drift {
+  to {
+    background-position: 36px 36px, 36px 36px;
+  }
+}
+
+@keyframes assistant-state-sweep {
+  0%, 100% {
+    opacity: 0.72;
+    background-position: -120% 0, 0 0, 50% 48%;
+  }
+  50% {
+    opacity: 1;
+    background-position: 120% 0, 0 18px, 52% 46%;
+  }
+}
+
+@keyframes assistant-waveform-breathe {
+  0%, 100% {
+    transform: scaleY(0.76);
+  }
+  50% {
+    transform: scaleY(calc(0.92 + var(--waveform-activity) * 0.32));
+  }
+}
+
+@keyframes assistant-waveform-scan {
+  0% {
+    transform: translateX(-180%);
+  }
+  100% {
+    transform: translateX(380%);
+  }
+}
+
 .avatar-lottie-layer {
   position: absolute;
   inset: 8%;
@@ -1620,20 +1664,121 @@ button:focus-visible {
 .assistant-waveform {
   position: relative;
   z-index: 3;
+  width: min(82%, 260px);
   min-height: 38px;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 3px;
+  --assistant-waveform-primary: var(--neon-cyan);
+  --assistant-waveform-secondary: var(--neon-purple);
+  --assistant-waveform-glow: rgba(70, 248, 255, 0.46);
+  --assistant-waveform-opacity: 0.7;
+  filter: drop-shadow(0 0 12px var(--assistant-waveform-glow));
 }
 
 .assistant-waveform span {
   width: 2px;
   max-height: 36px;
   border-radius: 999px;
-  background: linear-gradient(to top, var(--neon-purple), var(--neon-cyan));
-  box-shadow: 0 0 6px rgba(66, 245, 255, 0.54);
+  background: linear-gradient(
+    to top,
+    var(--assistant-waveform-secondary),
+    var(--assistant-waveform-primary)
+  );
+  box-shadow: 0 0 6px var(--assistant-waveform-glow);
+  opacity: var(--assistant-waveform-opacity);
+  transform-origin: center;
   transition: height 90ms linear;
+  animation: assistant-waveform-breathe 2.8s ease-in-out infinite;
+  animation-delay: calc(var(--waveform-index) * -54ms);
+}
+
+.assistant-waveform::before,
+.assistant-waveform::after {
+  position: absolute;
+  content: "";
+  pointer-events: none;
+}
+
+.assistant-waveform::before {
+  inset: 48% -8% auto;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--assistant-waveform-primary), transparent);
+  opacity: 0.34;
+}
+
+.assistant-waveform::after {
+  top: -6px;
+  bottom: -6px;
+  width: 24%;
+  border-radius: 999px;
+  background: radial-gradient(ellipse, color-mix(in srgb, var(--assistant-waveform-primary), transparent 68%), transparent 68%);
+  opacity: 0;
+  transform: translateX(-180%);
+}
+
+.assistant-waveform-idle {
+  --assistant-waveform-opacity: 0.5;
+  --assistant-waveform-glow: rgba(70, 248, 255, 0.24);
+}
+
+.assistant-waveform-listening {
+  --assistant-waveform-primary: var(--neon-cyan);
+  --assistant-waveform-secondary: #7dfff4;
+  --assistant-waveform-glow: rgba(70, 248, 255, 0.68);
+  --assistant-waveform-opacity: 0.86;
+}
+
+.assistant-waveform-listening.is-audio-reactive span,
+.assistant-waveform-speaking.is-audio-reactive span {
+  animation-duration: 920ms;
+}
+
+.assistant-waveform-thinking {
+  --assistant-waveform-primary: #bfa3ff;
+  --assistant-waveform-secondary: var(--neon-cyan);
+  --assistant-waveform-glow: rgba(168, 117, 255, 0.48);
+  --assistant-waveform-opacity: 0.72;
+}
+
+.assistant-waveform-thinking::after {
+  opacity: 0.62;
+  animation: assistant-waveform-scan 1.8s ease-in-out infinite;
+}
+
+.assistant-waveform-speaking {
+  --assistant-waveform-primary: #c9ffff;
+  --assistant-waveform-secondary: var(--neon-cyan);
+  --assistant-waveform-glow: rgba(70, 248, 255, 0.72);
+  --assistant-waveform-opacity: 0.9;
+}
+
+.assistant-waveform-error {
+  --assistant-waveform-primary: #ff8aa0;
+  --assistant-waveform-secondary: var(--danger-red);
+  --assistant-waveform-glow: rgba(255, 73, 104, 0.48);
+  --assistant-waveform-opacity: 0.72;
+}
+
+.assistant-waveform-error span {
+  animation-duration: 2.3s;
+}
+
+.assistant-waveform-pharmacist_escalation {
+  --assistant-waveform-primary: #ffd1dc;
+  --assistant-waveform-secondary: var(--danger-red);
+  --assistant-waveform-glow: rgba(255, 73, 104, 0.42);
+  --assistant-waveform-opacity: 0.78;
+}
+
+.assistant-waveform-pharmacist_escalation::before {
+  background: linear-gradient(90deg, transparent, rgba(255, 209, 220, 0.78), transparent);
+}
+
+.assistant-waveform-reduced-motion span {
+  animation: none;
+  opacity: 0.82;
 }
 
 .avatar-state-label {
@@ -2522,11 +2667,13 @@ body {
     linear-gradient(rgba(70, 248, 255, 0.028) 1px, transparent 1px),
     radial-gradient(circle at 50% 48%, rgba(37, 74, 130, 0.16), transparent 55%);
   background-size: 58px 58px, 58px 58px, auto;
+  animation: kiosk-background-drift 34s ease-in-out infinite alternate;
 }
 
 .kiosk-ambient-grid {
   opacity: 0.18;
   background-size: 36px 36px;
+  animation: kiosk-ambient-grid-drift 42s linear infinite;
 }
 
 .panel,
@@ -2556,6 +2703,7 @@ body {
     linear-gradient(120deg, transparent 44%, rgba(70, 248, 255, 0.07) 49%, transparent 54%),
     repeating-linear-gradient(0deg, transparent 0 15px, rgba(70, 248, 255, 0.035) 16px 17px),
     radial-gradient(circle at 50% 48%, rgba(168, 117, 255, 0.14), transparent 47%);
+  animation: assistant-state-sweep 9s ease-in-out infinite;
 }
 
 .assistant-stage::after {

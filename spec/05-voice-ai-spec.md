@@ -14,6 +14,8 @@ Typed path: customer text input -> same AI response endpoint and safety/product 
 
 - `Tap to Speak` starts recording and `Tap to Stop` remains available as a manual fallback.
 - Browser-side voice activity detection uses a Web Audio analyser, ignores an initial startup period, and auto-stops after sustained low RMS silence.
+- The microphone analyser RMS used for silence detection is also exposed to the assistant UI as listening-state audio activity so the waveform calms down during silence and energizes during customer speech.
+- During AI playback, the assistant UI uses the playback Web Audio analyser for speaking-state waveform activity; if mock playback has no analyser value, only the waveform may use a subtle visual fallback for continuity.
 - Silence detection constants are explicitly named `MIN_RECORDING_MS`, `SILENCE_STOP_MS`, and `SILENCE_RMS_THRESHOLD`.
 - The listening flow progresses naturally through `idle -> listening -> thinking -> speaking -> idle` without showing an error for normal silence auto-stop.
 - During `speaking`, AI response text is displayed through provider-neutral subtitle chunks instead of one full paragraph; when exact TTS timing is unavailable, subtitle timing is estimated from phrase chunks and text length.

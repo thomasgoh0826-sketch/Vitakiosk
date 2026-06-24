@@ -51,6 +51,7 @@ function useVoiceInteraction({
   const [resultId, setResultId] = useState(0);
   const [error, setError] = useState<string | null>(null);
   const [audioElement, setAudioElement] = useState<HTMLAudioElement | null>(null);
+  const [micActivity, setMicActivity] = useState(0);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const chunksRef = useRef<Blob[]>([]);
@@ -61,7 +62,8 @@ function useVoiceInteraction({
   const inputAudioSourceRef = useRef<MediaStreamAudioSourceNode | null>(null);
   const stopRecordingRef = useRef<(() => Promise<void>) | null>(null);
   const autoStopInProgressRef = useRef(false);
-  const audioActivity = useAudioActivity(audioElement);
+  const playbackAudioActivity = useAudioActivity(audioElement);
+  const audioActivity = state === "listening" ? micActivity : playbackAudioActivity;
 
   useEffect(() => {
     if (serverState === "idle") {
@@ -76,6 +78,7 @@ function useVoiceInteraction({
       silenceTimerRef.current = null;
     }
     silenceStartedAtRef.current = null;
+    setMicActivity(0);
     inputAudioSourceRef.current?.disconnect();
     inputAudioSourceRef.current = null;
     const inputContext = inputAudioContextRef.current;
@@ -121,6 +124,7 @@ function useVoiceInteraction({
     inputAudioContextRef.current = context;
     inputAudioSourceRef.current = source;
     silenceStartedAtRef.current = null;
+    setMicActivity(0);
     const samples = new Uint8Array(analyser.fftSize);
     const startedAt = Date.now();
 
@@ -138,6 +142,7 @@ function useVoiceInteraction({
 
       analyser.getByteTimeDomainData(samples);
       const inputRms = calculateAudioActivity(samples);
+      setMicActivity(inputRms);
       if (inputRms >= SILENCE_RMS_THRESHOLD) {
         silenceStartedAtRef.current = null;
         return;

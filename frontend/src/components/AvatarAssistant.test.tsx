@@ -26,6 +26,55 @@ describe("AvatarAssistant", () => {
     expect(screen.getByText(label)).toBeInTheDocument();
   });
 
+  it.each([
+    ["idle", "breathing", "0.12"],
+    ["listening", "microphone", "0.64"],
+    ["thinking", "scanning", "0.30"],
+    ["speaking", "playback", "0.72"],
+    ["error", "warning", "0.22"],
+    ["pharmacist_escalation", "safety", "0.26"],
+  ] as const)("renders a state-aware %s waveform", (state, mode, expectedActivity) => {
+    render(<AvatarAssistant state={state} audioActivity={state === "listening" ? 0.64 : 0.72} connected />);
+
+    const waveform = screen.getByTestId("assistant-waveform");
+    expect(waveform).toHaveAttribute("data-state", state);
+    expect(waveform).toHaveAttribute("data-waveform-mode", mode);
+    expect(waveform).toHaveAttribute("data-visual-activity", expectedActivity);
+    expect(waveform).toHaveClass(`assistant-waveform-${state}`);
+    expect(screen.getAllByTestId("assistant-waveform-bar")).toHaveLength(25);
+  });
+
+  it("marks the listening waveform as audio-reactive when microphone activity is present", () => {
+    render(<AvatarAssistant state="listening" audioActivity={0.68} connected />);
+
+    expect(screen.getByTestId("assistant-waveform")).toHaveClass("is-audio-reactive");
+  });
+
+  it("uses subtle simulated waveform activity for mock speaking when no playback analyser value is available", () => {
+    render(<AvatarAssistant state="speaking" audioActivity={0} connected />);
+
+    const waveform = screen.getByTestId("assistant-waveform");
+    expect(waveform).toHaveAttribute("data-audio-source", "simulated");
+    expect(waveform).toHaveAttribute("data-visual-activity", "0.34");
+  });
+
+  it("keeps state-aware waveform readable in reduced-motion mode", () => {
+    vi.stubGlobal("matchMedia", (query: string) => ({
+      matches: query === "(prefers-reduced-motion: reduce)",
+      media: query,
+      onchange: null,
+      addEventListener: vi.fn(),
+      removeEventListener: vi.fn(),
+      addListener: vi.fn(),
+      removeListener: vi.fn(),
+      dispatchEvent: vi.fn(),
+    }));
+
+    render(<AvatarAssistant state="thinking" audioActivity={0.5} connected />);
+
+    expect(screen.getByTestId("assistant-waveform")).toHaveAttribute("data-reduced-motion", "true");
+  });
+
   it("uses the Lottie avatar renderer by default", () => {
     render(<AvatarAssistant state="idle" audioActivity={0} connected />);
 
