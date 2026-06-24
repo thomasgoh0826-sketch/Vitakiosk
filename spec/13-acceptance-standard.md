@@ -197,7 +197,10 @@ A feature is accepted only when:
   summary to open an enlarged product summary sheet. The sheet must appear as a
   top-level holographic floating layer, close on outside click or Escape, keep
   inside clicks from closing it, avoid a visible X button, remain responsive, and
-  respect reduced-motion users.
+  respect reduced-motion users. It is not accepted if opening, closing, or
+  animating either Product sheet creates document/body horizontal overflow,
+  flashes a native horizontal scrollbar/white bottom line, or forces summary or
+  fact cards outside the viewport instead of wrapping safely.
 - Shelf Navigation responsive acceptance requires browser bounding-box evidence
   that the route summary, Aisle/Shelf/Level facts, current-position marker, and
   target marker remain fully inside the Shelf Navigation panel at 1024x768, a

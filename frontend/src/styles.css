@@ -5542,6 +5542,12 @@ button.leaflet-card:focus-visible {
   overflow-wrap: anywhere;
 }
 
+html.product-expanded,
+body.product-expanded {
+  overflow: hidden;
+  overscroll-behavior: none;
+}
+
 .product-viewer-backdrop {
   position: fixed;
   z-index: 890;
@@ -5549,18 +5555,25 @@ button.leaflet-card:focus-visible {
   display: grid;
   place-items: center;
   padding: clamp(18px, 4dvw, 56px);
+  overflow: hidden;
   background:
     radial-gradient(circle at 50% 50%, rgba(66, 245, 255, 0.1), transparent 42%),
     rgba(1, 5, 14, 0.56);
   backdrop-filter: blur(10px);
   isolation: isolate;
+  overscroll-behavior: none;
+  user-select: none;
 }
 
 .product-viewer-stage {
   position: relative;
-  width: min(980px, 92dvw);
+  box-sizing: border-box;
+  width: min(980px, calc(100dvw - clamp(36px, 8dvw, 112px)));
+  max-width: 100%;
   max-height: min(86dvh, 760px);
-  overflow: auto;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
   display: grid;
   gap: clamp(16px, 2dvw, 26px);
   padding: clamp(18px, 2.6dvw, 34px);
@@ -5582,8 +5595,9 @@ button.leaflet-card:focus-visible {
   inset: 0;
   border-radius: inherit;
   background: linear-gradient(120deg, transparent 12%, rgba(66, 245, 255, 0.22) 34%, transparent 54%);
+  background-size: 220% 100%;
+  background-position: -120% 0;
   opacity: 0.38;
-  transform: translateX(-70%);
   animation: product-viewer-sweep 680ms ease-out;
   content: "";
   pointer-events: none;
@@ -5592,6 +5606,7 @@ button.leaflet-card:focus-visible {
 .product-viewer-detail {
   position: relative;
   z-index: 1;
+  min-width: 0;
   display: grid;
   grid-template-columns: minmax(180px, 0.72fr) minmax(0, 1.28fr);
   align-items: center;
@@ -5695,6 +5710,7 @@ button.leaflet-card:focus-visible {
 .product-viewer-summary {
   position: relative;
   z-index: 1;
+  min-width: 0;
   display: grid;
   gap: clamp(16px, 2.2dvh, 24px);
 }
@@ -5708,6 +5724,7 @@ button.leaflet-card:focus-visible {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(min(100%, 180px), 1fr));
   gap: clamp(12px, 1.7dvw, 20px);
+  min-width: 0;
 }
 
 .product-viewer-summary-grid .product-summary-field dt {
@@ -5735,7 +5752,7 @@ button.leaflet-card:focus-visible {
 
 @keyframes product-viewer-sweep {
   to {
-    transform: translateX(72%);
+    background-position: 220% 0;
     opacity: 0;
   }
 }

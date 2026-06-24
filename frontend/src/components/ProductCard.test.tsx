@@ -200,4 +200,29 @@ describe("ProductCard futuristic summary transform", () => {
     fireEvent.keyDown(document, { key: "Escape" });
     expect(screen.queryByRole("dialog", { name: /enlarged product details/i })).not.toBeInTheDocument();
   });
+
+  it("locks page scrolling while the enlarged Product view is open and releases it on close", () => {
+    const { unmount } = render(<ProductCard product={product} purchasingQueryId={null} labels={translations.en} language="en" />);
+    const panel = screen.getByRole("region", { name: "Product" });
+
+    expect(document.body).not.toHaveClass("product-expanded");
+    expect(document.documentElement).not.toHaveClass("product-expanded");
+
+    fireEvent.doubleClick(panel);
+
+    expect(screen.getByRole("dialog", { name: /enlarged product details/i })).toBeInTheDocument();
+    expect(document.body).toHaveClass("product-expanded");
+    expect(document.documentElement).toHaveClass("product-expanded");
+
+    fireEvent.mouseDown(screen.getByRole("dialog", { name: /enlarged product details/i }));
+
+    expect(document.body).not.toHaveClass("product-expanded");
+    expect(document.documentElement).not.toHaveClass("product-expanded");
+
+    fireEvent.doubleClick(panel);
+    expect(document.body).toHaveClass("product-expanded");
+    unmount();
+    expect(document.body).not.toHaveClass("product-expanded");
+    expect(document.documentElement).not.toHaveClass("product-expanded");
+  });
 });

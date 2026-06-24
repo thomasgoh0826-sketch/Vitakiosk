@@ -139,6 +139,20 @@ function ProductCard({
     return () => document.removeEventListener("keydown", closeFromEscape);
   }, [enlargedView]);
 
+  useEffect(() => {
+    if (!enlargedView || typeof document === "undefined") {
+      return undefined;
+    }
+
+    document.body.classList.add("product-expanded");
+    document.documentElement.classList.add("product-expanded");
+
+    return () => {
+      document.body.classList.remove("product-expanded");
+      document.documentElement.classList.remove("product-expanded");
+    };
+  }, [enlargedView]);
+
   const summaryRows = product
     ? SUMMARY_FIELDS.map(({ key, labelKey }) => ({
         key,
