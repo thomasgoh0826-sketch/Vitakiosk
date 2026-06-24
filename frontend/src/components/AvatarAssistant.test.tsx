@@ -109,6 +109,22 @@ describe("AvatarAssistant", () => {
     );
     expect(avatar).toHaveAttribute("data-avatar-renderer", "vrm");
     expect(avatar).toHaveAttribute("data-avatar-model-key", "vita-new");
+    expect(screen.queryByText("Renderer: vrm")).not.toBeInTheDocument();
+    expect(screen.queryByText("Model: vita-new")).not.toBeInTheDocument();
+  });
+
+  it("shows renderer diagnostics only when explicit debug status is enabled", async () => {
+    vi.stubEnv("VITE_SHOW_DEBUG_STATUS", "true");
+    vi.stubEnv("VITE_AVATAR_RENDERER", "vrm");
+    vi.stubEnv("VITE_VRM_MODEL", "vita-new");
+
+    render(<AvatarAssistant state="idle" audioActivity={0} connected />);
+
+    await screen.findByLabelText(
+      /vrm (character|fallback) ai avatar: ready/i,
+      {},
+      { timeout: 3000 },
+    );
     expect(screen.getByText("Renderer: vrm")).toBeInTheDocument();
     expect(screen.getByText("Model: vita-new")).toBeInTheDocument();
   });
@@ -122,7 +138,7 @@ describe("AvatarAssistant", () => {
       "data-avatar-renderer",
       "lottie",
     );
-    expect(screen.getByText("Renderer: lottie")).toBeInTheDocument();
+    expect(screen.queryByText("Renderer: lottie")).not.toBeInTheDocument();
     expect(warn).toHaveBeenCalledWith(
       "VITE_AVATAR_RENDERER is not set to vrm; using fallback renderer",
       expect.objectContaining({

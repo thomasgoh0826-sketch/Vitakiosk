@@ -28,6 +28,9 @@ Typed path: customer text input -> same AI response endpoint and safety/product 
 - `STT_PROVIDER=faster_whisper` requires local `FASTER_WHISPER_*` settings and loads models only when that provider is explicitly selected and used.
 - Whisper/OpenAI and faster-whisper STT accept the existing voice upload payload and return transcript text, provider, detected or inferred language, confidence when available, corrected transcript, detected terms, possible product/category matches, and clarification status.
 - STT supports English, Chinese, Malay, and mixed Malaysian-style speech metadata while preserving product and medicine names in the transcript text.
+- Voice and typed AI response requests may include `preferred_language: "en" | "zh" | "ms" | "auto"`. If the customer manually selects EN/中文/BM, the backend receives that preference for response wording; if no manual selection exists, the UI still defaults to EN while the AI workflow may use detected transcript language.
+- Language preference must never bypass safety guardrails, product lookup, unknown-product purchasing query behavior, or VitaFlow/mock source-of-truth rules.
+- Product names, SKU, prices, stock, shelf codes, branch codes, promotion/campaign titles, and VitaFlow/mock data values are not translated or invented by the frontend language selector.
 - Local faster-whisper STT applies a post-STT correction layer using mock VitaFlow product names, aliases, and a local Malaysian pharmacy term lexicon, including likely cough/`ubat batuk` variants; it must not invent stock, price, promotion, shelf location, or product facts.
 - Safety guardrails evaluate the corrected transcript before any AI/product flow, so pregnancy and breastfeeding safety questions still escalate even when STT output is routed through correction metadata.
 - Unclear speech returns `clarification_needed=true`; the frontend asks the customer to try again and must not call AI response, product recommendation, TTS, or promotion flow for that unclear transcript.
@@ -51,7 +54,9 @@ Typed path: customer text input -> same AI response endpoint and safety/product 
 - `frontend/src/components/AiSubtitle.test.tsx`
 - `frontend/src/hooks/useSubtitlePlayback.test.ts`
 - `frontend/src/hooks/useVoiceInteraction.test.ts`
+- `frontend/src/hooks/useKioskLanguage.ts`
 - `backend/tests/test_api.py`
+- `backend/tests/test_ollama_ai.py`
 - `backend/tests/test_provider_config.py`
 - `backend/tests/test_faster_whisper_stt.py`
 - `backend/tests/test_openai_stt.py`

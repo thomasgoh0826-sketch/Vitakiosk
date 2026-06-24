@@ -1,5 +1,6 @@
 import { Suspense, lazy, useEffect } from "react";
 
+import { translations, type KioskTranslations } from "../i18n";
 import type { AvatarState } from "../types";
 import {
   getConfiguredAvatarRenderer,
@@ -7,7 +8,6 @@ import {
 } from "./avatar/AvatarRenderer";
 import { getDefaultVrmAvatarModelKey } from "./avatar/AvatarRuntimeConfig";
 import LottieAvatarRenderer from "./avatar/LottieAvatarRenderer";
-
 
 const ThreeAvatarRenderer = lazy(() => import("./avatar/ThreeAvatarRenderer"));
 const VrmAvatarRenderer = lazy(() => import("./avatar/VrmAvatarRenderer"));
@@ -17,27 +17,33 @@ interface AvatarAssistantProps {
   audioActivity: number;
   connected: boolean;
   renderer?: AvatarRendererKind;
+  labels?: KioskTranslations;
 }
 
-const STATE_LABELS: Record<AvatarState, string> = {
-  idle: "Ready",
-  listening: "Listening",
-  thinking: "Thinking",
-  speaking: "Speaking",
-  error: "Try Again",
-  pharmacist_escalation: "Pharmacist Requested",
-};
+function getStateLabel(state: AvatarState, labels: KioskTranslations) {
+  const stateLabels: Record<AvatarState, string> = {
+    idle: labels.ready,
+    listening: labels.listening,
+    thinking: labels.thinking,
+    speaking: labels.speaking,
+    error: labels.tryAgain,
+    pharmacist_escalation: labels.pharmacistRequested,
+  };
+  return stateLabels[state];
+}
 
 function AvatarAssistant({
   state,
   audioActivity,
   connected,
   renderer,
+  labels = translations.en,
 }: AvatarAssistantProps) {
-  const stateLabel = STATE_LABELS[state];
+  const stateLabel = getStateLabel(state, labels);
   const rendererKind = renderer ?? getConfiguredAvatarRenderer();
   const vrmModelKey = getDefaultVrmAvatarModelKey();
-  const showRendererDebug = import.meta.env.DEV;
+  const showRendererDebug =
+    import.meta.env.DEV && import.meta.env.VITE_SHOW_DEBUG_STATUS === "true";
 
   useEffect(() => {
     if (
@@ -83,20 +89,20 @@ function AvatarAssistant({
 
     if (rendererKind === "threejs") {
       return (
-      <Suspense
-        fallback={
-          <div
-            className={`three-avatar avatar-render-${state} three-avatar-loading`}
-            data-state={state}
-            data-avatar-renderer="threejs"
-            data-reduced-motion="pending"
-            role="presentation"
-            aria-hidden="true"
-          />
-        }
-      >
-        <ThreeAvatarRenderer state={state} audioActivity={audioActivity} />
-      </Suspense>
+        <Suspense
+          fallback={
+            <div
+              className={`three-avatar avatar-render-${state} three-avatar-loading`}
+              data-state={state}
+              data-avatar-renderer="threejs"
+              data-reduced-motion="pending"
+              role="presentation"
+              aria-hidden="true"
+            />
+          }
+        >
+          <ThreeAvatarRenderer state={state} audioActivity={audioActivity} />
+        </Suspense>
       );
     }
 
@@ -108,10 +114,10 @@ function AvatarAssistant({
       <div className="assistant-stage-header">
         <div>
           <span className="eyebrow">VitaKiosk Labs</span>
-          <h1>AI Pharmacy Assistant</h1>
+          <h1>{labels.aiPharmacyAssistant}</h1>
         </div>
         <span className={`assistant-link-state${connected ? " is-connected" : ""}`}>
-          {connected ? "Realtime connected" : "Local state mode"}
+          {connected ? labels.realtimeConnected : labels.localStateMode}
         </span>
       </div>
 
@@ -147,7 +153,7 @@ function AvatarAssistant({
         {stateLabel}
       </p>
       <small className="assistant-safety-copy">
-        Information support only · A pharmacist remains available
+        {labels.safetySupportCopy}
       </small>
     </section>
   );

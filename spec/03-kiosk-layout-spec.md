@@ -15,6 +15,9 @@ AI assistant, primary Tap to Speak voice control plus Start/New Customer reset, 
 - Controls have at least 44px interactive height and visible focus treatment.
 - Portrait and narrow layouts stack without horizontal overflow.
 - Mock provenance and connection state remain visible.
+- Bottom-left connection status includes a compact language selector (`EN`, `中文`, `BM`) in the same normal footer flow; the active language is highlighted and persisted across refreshes.
+- Customer-facing UI must not show renderer/model/provider diagnostics such as `Renderer`, `Model`, `Avatar`, `AI`, or `STT` unless `VITE_SHOW_DEBUG_STATUS=true` is set for local development.
+- When debug diagnostics are enabled, they remain in reserved header space and must not overlap subtitles, product details, promotion content, or safety labels.
 - The primary landscape view uses a dark navy/black cinematic foundation, glass panels, cyan and purple neon accents, and no plain white dashboard background.
 - The primary voice interaction reads `Tap to Speak` when ready and `Tap to Stop` while listening.
 - The secondary assistant action reads `Start` or `Start New Customer` and resets the kiosk for a fresh customer session without a browser refresh.
@@ -55,6 +58,7 @@ AI assistant, primary Tap to Speak voice control plus Start/New Customer reset, 
 - The kiosk must not provide a language toggle, Chinese virtual keyboard mode, fake Chinese phrase buttons, BM toggle, or pinyin candidate keyboard. Chinese text entry relies on the device native Chinese IME / pinyin keyboard or an external keyboard through the normal text field.
 - The typed input rail and popup keyboard remain touch-friendly and must not create horizontal overflow or awkward document scrolling in the normal 1024x768 landscape kiosk view.
 - Dev-only provider/runtime diagnostics must be placed in reserved header space or hidden; they must never use floating positioning that covers AI subtitles, promotion content, product cards, or customer-facing status labels.
+- UI translation applies only to kiosk labels and controls. VitaFlow/mock facts such as product names, SKU, prices, shelf codes, branch codes, promotion titles, and `Mock VitaFlow` provenance values must remain unchanged.
 - Product, poster, pharmacist, and leaflet icon/artwork containers must use stable square/icon-safe sizing with centered content, safe padding, non-shrinking containers, and `object-fit: contain` for image assets so logos and leaflet artwork are not clipped.
 - Product card fact rows and inner text must remain inside the Product panel bounds at the supported landscape QA viewports.
 - The Product panel must grow or compact its own internals instead of clipping stock, branch, shelf, or source facts; at narrower landscape widths the fact row may wrap into a compact grid, but `scrollHeight`/`scrollWidth` clipping and whole-app transform/zoom fixes are not accepted.
@@ -67,6 +71,8 @@ AI assistant, primary Tap to Speak voice control plus Start/New Customer reset, 
 - `frontend/src/typedInputLayout.test.ts`
 - `frontend/src/components/TypedInputPanel.tsx`
 - `frontend/src/components/VirtualKeyboard.tsx`
+- `frontend/src/components/LanguageSelector.tsx`
+- `frontend/src/hooks/useKioskLanguage.ts`
 - `frontend/src/components/AiSubtitle.test.tsx`
 - `frontend/src/hooks/useSubtitlePlayback.test.ts`
 - `frontend/src/components/ShelfMap.test.tsx`

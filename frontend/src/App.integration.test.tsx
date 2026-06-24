@@ -29,6 +29,7 @@ describe("integrated kiosk panels", () => {
   const sendState = vi.fn();
 
   beforeEach(() => {
+    window.localStorage.clear();
     startRecording.mockReset();
     stopRecording.mockReset();
     submitText.mockReset();
@@ -149,7 +150,32 @@ describe("integrated kiosk panels", () => {
     expect(screen.getAllByText(/Mock VitaFlow/i).length).toBeGreaterThan(0);
   });
 
-  it("shows local demo provider and avatar diagnostics in dev mode without coupling backend and frontend config", async () => {
+  it("hides renderer, model, and provider diagnostics from the normal customer UI", async () => {
+    vi.stubEnv("VITE_AVATAR_RENDERER", "vrm");
+    vi.stubEnv("VITE_VRM_MODEL", "vita-new");
+    hookMocks.runtimeStatus.mockResolvedValueOnce({
+      stt_provider: "faster_whisper",
+      tts_provider: "mock",
+      ai_provider: "ollama",
+      vitaflow_provider: "mock",
+      vision_provider: "mock",
+      ollama_reachable: true,
+      model: "qwen2.5:7b",
+    });
+
+    render(<App />);
+
+    await screen.findByLabelText(/vrm (character|fallback) ai avatar: ready/i);
+    expect(screen.queryByLabelText("Local demo runtime diagnostics")).not.toBeInTheDocument();
+    expect(screen.queryByText(/Renderer:/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/Model:/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/Avatar:/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/AI: /i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/STT: /i)).not.toBeInTheDocument();
+  });
+
+  it("shows local demo provider and avatar diagnostics only when the debug flag is enabled", async () => {
+    vi.stubEnv("VITE_SHOW_DEBUG_STATUS", "true");
     vi.stubEnv("VITE_AVATAR_RENDERER", "vrm");
     vi.stubEnv("VITE_VRM_MODEL", "vita-new");
     hookMocks.runtimeStatus.mockResolvedValueOnce({
@@ -176,6 +202,7 @@ describe("integrated kiosk panels", () => {
   });
 
   it("shows controlled provider status unavailable copy instead of UNKNOWN when runtime status cannot be fetched", async () => {
+    vi.stubEnv("VITE_SHOW_DEBUG_STATUS", "true");
     hookMocks.runtimeStatus.mockRejectedValueOnce(new Error("offline"));
 
     render(<App />);
@@ -184,6 +211,61 @@ describe("integrated kiosk panels", () => {
     expect(diagnostics).toHaveTextContent("Provider status unavailable");
     expect(diagnostics).toHaveTextContent("Avatar: lottie");
     expect(diagnostics).not.toHaveTextContent(/unknown/i);
+  });
+
+  it("renders the language selector beside the footer connection status with English as default", () => {
+    render(<App />);
+
+    const footer = screen.getByRole("contentinfo");
+    expect(within(footer).getByText("Connected")).toBeInTheDocument();
+    const selector = within(footer).getByRole("group", { name: "Kiosk language selector" });
+    expect(within(selector).getByRole("button", { name: "EN" })).toHaveAttribute("aria-pressed", "true");
+    expect(within(selector).getByRole("button", { name: "中文" })).toHaveAttribute("aria-pressed", "false");
+    expect(within(selector).getByRole("button", { name: "BM" })).toHaveAttribute("aria-pressed", "false");
+    expect(screen.getByText("AI Pharmacy Assistant")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Tap to Speak" })).toBeInTheDocument();
+    expect(hookMocks.voice.mock.calls.at(-1)?.[0]?.preferredLanguage).toBe("auto");
+  });
+
+  it("translates major customer UI labels to Chinese while preserving VitaFlow product facts", () => {
+    render(<App />);
+
+    fireEvent.click(screen.getByRole("button", { name: "中文" }));
+
+    expect(screen.getByText("AI 药房助手")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "点击说话" })).toBeInTheDocument();
+    expect(screen.getByRole("region", { name: "产品" })).toBeInTheDocument();
+    expect(screen.getByText("货架导航")).toBeInTheDocument();
+    expect(screen.getByText("促销海报")).toBeInTheDocument();
+    expect(screen.getByText("药剂师协助")).toBeInTheDocument();
+    expect(screen.getByLabelText("输入你的问题")).toBeInTheDocument();
+    expect(screen.getAllByText("Relief Balm").length).toBeGreaterThan(0);
+    expect(screen.getByText("MOCK-P001")).toBeInTheDocument();
+    expect(screen.getByText("$12.50")).toBeInTheDocument();
+    expect(screen.getAllByText("A-03").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("Mock VitaFlow").length).toBeGreaterThan(0);
+    expect(hookMocks.voice.mock.calls.at(-1)?.[0]?.preferredLanguage).toBe("zh");
+  });
+
+  it("translates major customer UI labels to BM and persists the selected language", () => {
+    const { unmount } = render(<App />);
+
+    fireEvent.click(screen.getByRole("button", { name: "BM" }));
+
+    expect(screen.getByText("Pembantu Farmasi AI")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Tekan untuk bercakap" })).toBeInTheDocument();
+    expect(screen.getByRole("region", { name: "Produk" })).toBeInTheDocument();
+    expect(screen.getByText("Navigasi rak")).toBeInTheDocument();
+    expect(screen.getByText("Bantuan ahli farmasi")).toBeInTheDocument();
+    expect(window.localStorage.getItem("vitakiosk.language")).toBe("ms");
+    expect(hookMocks.voice.mock.calls.at(-1)?.[0]?.preferredLanguage).toBe("ms");
+
+    unmount();
+    render(<App />);
+
+    expect(screen.getByText("Pembantu Farmasi AI")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Tekan untuk bercakap" })).toBeInTheDocument();
+    expect(hookMocks.voice.mock.calls.at(-1)?.[0]?.preferredLanguage).toBe("ms");
   });
 
   it("shows cinematic AI subtitle while hiding the customer transcript from the main UI", () => {

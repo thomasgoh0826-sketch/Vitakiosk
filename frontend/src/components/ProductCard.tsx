@@ -1,21 +1,30 @@
+import { translations, type KioskTranslations } from "../i18n";
 import type { Product } from "../types";
-
 
 interface ProductCardProps {
   product: Product | null;
   purchasingQueryId: string | null;
+  labels?: KioskTranslations;
 }
 
-function displayValue(value: string | number | null, reason?: string | null) {
-  return value ?? `Unavailable from VitaFlow${reason ? ` · ${reason}` : ""}`;
+function displayValue(
+  value: string | number | null,
+  labels: KioskTranslations,
+  reason?: string | null,
+) {
+  return value ?? `${labels.unavailable} from VitaFlow${reason ? ` · ${reason}` : ""}`;
 }
 
-function ProductCard({ product, purchasingQueryId }: ProductCardProps) {
+function ProductCard({
+  product,
+  purchasingQueryId,
+  labels = translations.en,
+}: ProductCardProps) {
   return (
-    <section className="panel product-panel" aria-label="Product">
+    <section className="panel product-panel" aria-label={labels.product}>
       <div className="panel-title-row">
-        <h2>Product</h2>
-        <span className="source-label">Mock VitaFlow</span>
+        <h2>{labels.product}</h2>
+        <span className="source-label">{labels.mockVitaFlow}</span>
       </div>
       {product ? (
         <>
@@ -24,28 +33,28 @@ function ProductCard({ product, purchasingQueryId }: ProductCardProps) {
               <span>{product.name.slice(0, 2).toUpperCase()}</span>
             </div>
             <div className="product-identity">
-              <span className="eyebrow">Product verified</span>
+              <span className="eyebrow">{labels.productVerified}</span>
               <h3>{product.name}</h3>
               <p>{product.id}</p>
-              <strong>{product.price === null ? "Unavailable" : `$${product.price.toFixed(2)}`}</strong>
-              <small>Current VitaFlow product price</small>
+              <strong>{product.price === null ? labels.unavailable : `$${product.price.toFixed(2)}`}</strong>
+              <small>{labels.currentProductPrice}</small>
             </div>
           </div>
           <dl className="product-facts">
-            <div><dt>Stock</dt><dd>{displayValue(product.stock, product.unavailable_reason)}</dd></div>
-            <div><dt>Branch</dt><dd>{product.branch_id}</dd></div>
-            <div><dt>Shelf</dt><dd>{displayValue(product.shelf_location, product.unavailable_reason)}</dd></div>
-            <div><dt>Source</dt><dd>Mock VitaFlow</dd></div>
+            <div><dt>{labels.stock}</dt><dd>{displayValue(product.stock, labels, product.unavailable_reason)}</dd></div>
+            <div><dt>{labels.branch}</dt><dd>{product.branch_id}</dd></div>
+            <div><dt>{labels.shelf}</dt><dd>{displayValue(product.shelf_location, labels, product.unavailable_reason)}</dd></div>
+            <div><dt>{labels.source}</dt><dd>{labels.mockVitaFlow}</dd></div>
           </dl>
         </>
       ) : (
         <div className="empty-product" role="status">
           <span className="empty-product-orbit" aria-hidden="true" />
-          <h3>{purchasingQueryId ? "Product not found" : "Ready for product search"}</h3>
+          <h3>{purchasingQueryId ? labels.productNotFound : labels.readyForProductSearch}</h3>
           <p>
             {purchasingQueryId
-              ? `Purchasing query ${purchasingQueryId} created. No product details were guessed.`
-              : "Tap to Speak and ask for a product."}
+              ? `Purchasing query ${purchasingQueryId} created. ${labels.noProductGuess}`
+              : labels.askForProduct}
           </p>
         </div>
       )}

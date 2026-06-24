@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 
+import { translations, type KioskTranslations } from "../i18n";
 import type { TypedInputConfig } from "../inputConfig";
 import VirtualKeyboard from "./VirtualKeyboard";
 
@@ -9,19 +10,18 @@ interface TypedInputPanelProps {
   config: TypedInputConfig;
   resetToken: number;
   disabled?: boolean;
+  labels?: KioskTranslations;
   onChange: (value: string) => void;
   onClear: () => void;
   onSubmit: (question: string) => void;
 }
-
-const INPUT_LABEL = "Type your question";
-const INPUT_PLACEHOLDER = "Ask about a product, stock, promotion, or shelf location";
 
 function TypedInputPanel({
   value,
   config,
   resetToken,
   disabled = false,
+  labels = translations.en,
   onChange,
   onClear,
   onSubmit,
@@ -65,6 +65,7 @@ function TypedInputPanel({
     <VirtualKeyboard
       value={value}
       disabled={disabled}
+      labels={labels}
       onChange={onChange}
       onClear={onClear}
       onSubmit={submitQuestion}
@@ -86,7 +87,7 @@ function TypedInputPanel({
         }}
       >
         <label className="typed-input-label" htmlFor="typed-question">
-          {INPUT_LABEL}
+          {labels.typeYourQuestion}
         </label>
         <input
           ref={inputRef}
@@ -95,7 +96,7 @@ function TypedInputPanel({
           type="text"
           value={value}
           disabled={disabled}
-          placeholder={INPUT_PLACEHOLDER}
+          placeholder={labels.askPlaceholder}
           onChange={(event) => onChange(event.target.value)}
           onClick={() => {
             if (usesPopupKeyboard && !disabled) {
@@ -107,8 +108,8 @@ function TypedInputPanel({
           <button
             type="button"
             className="typed-keyboard-button"
-            aria-label="Open typing screen"
-            title="Open typing screen"
+            aria-label={labels.openTypingScreen}
+            title={labels.openTypingScreen}
             onClick={openTypingScreenOrFocus}
             disabled={disabled}
           >
@@ -118,20 +119,20 @@ function TypedInputPanel({
             <button
               type="button"
               className="typed-clear-button"
-              aria-label="Clear typed question"
+              aria-label={`${labels.clear} typed question`}
               onClick={onClear}
               disabled={disabled}
             >
-              Clear
+              {labels.clear}
             </button>
           ) : null}
           <button
             type="submit"
             className="typed-send-button"
-            aria-label="Send typed question"
+            aria-label={`${labels.send} typed question`}
             disabled={!value.trim() || disabled}
           >
-            Send
+            {labels.send}
           </button>
         </div>
       </form>

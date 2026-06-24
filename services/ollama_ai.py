@@ -83,6 +83,7 @@ class OllamaAIBrain:
         text: str,
         branch_id: str,
         session_id: str | None = None,
+        preferred_language: str = "auto",
     ) -> AIResult:
         safe_text = " ".join(text.split())
         correction = correct_transcript(safe_text)
@@ -109,6 +110,7 @@ class OllamaAIBrain:
             detected_language=detect_transcript_language(corrected_text),
             detected_terms=correction.detected_terms,
             possible_product_matches=correction.possible_product_matches,
+            preferred_language=preferred_language,
             branch_id=branch_id,
             base_result=base_result,
         )
@@ -130,6 +132,7 @@ class OllamaAIBrain:
         detected_language: str,
         detected_terms: tuple[str, ...],
         possible_product_matches: tuple[dict[str, object], ...],
+        preferred_language: str,
         branch_id: str,
         base_result: AIResult,
     ) -> dict[str, object]:
@@ -137,6 +140,7 @@ class OllamaAIBrain:
             "original_transcript": original_transcript,
             "corrected_transcript": corrected_transcript,
             "detected_language": detected_language,
+            "preferred_language": preferred_language,
             "detected_terms": list(detected_terms),
             "possible_product_matches": list(possible_product_matches),
             "branch_id": branch_id,

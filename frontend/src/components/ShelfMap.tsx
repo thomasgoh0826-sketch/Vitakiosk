@@ -1,24 +1,28 @@
+import { translations, type KioskTranslations } from "../i18n";
 import type { Product } from "../types";
-
 
 const AISLE_NUMBER_PATTERN = /\d+/;
 
+interface ShelfMapProps {
+  product: Product | null;
+  labels?: KioskTranslations;
+}
 
-function ShelfMap({ product }: { product: Product | null }) {
+function ShelfMap({ product, labels = translations.en }: ShelfMapProps) {
   const shelf = product?.shelf_location?.trim() || null;
   const aisleNumber = shelf?.match(AISLE_NUMBER_PATTERN)?.[0]?.padStart(2, "0") ?? null;
   const aisle = aisleNumber ? `Aisle ${aisleNumber}` : null;
   const hasRoute = Boolean(shelf && aisle);
 
   return (
-    <section className="panel shelf-map-panel" aria-label="Shelf navigation map">
+    <section className="panel shelf-map-panel" aria-label={labels.shelfNavigationMap}>
       <div className="panel-title-row shelf-map-heading">
         <div>
-          <span className="map-kicker">Indoor pharmacy map</span>
-          <h2>Shelf navigation</h2>
+          <span className="map-kicker">{labels.indoorPharmacyMap}</span>
+          <h2>{labels.shelfNavigation}</h2>
         </div>
         <span className="map-route-status">
-          {hasRoute ? "Shortest route" : "Unavailable"}
+          {hasRoute ? labels.shortestRoute : labels.unavailable}
         </span>
       </div>
 
@@ -63,9 +67,9 @@ function ShelfMap({ product }: { product: Product | null }) {
           </svg>
         ) : null}
 
-        <div className="map-marker map-you-are-here" aria-label="You are here at Entrance">
+        <div className="map-marker map-you-are-here" aria-label={`${labels.youAreHere} at Entrance`}>
           <i aria-hidden="true" />
-          <span>You are here</span>
+          <span>{labels.youAreHere}</span>
           <small>Entrance</small>
         </div>
 
@@ -75,8 +79,8 @@ function ShelfMap({ product }: { product: Product | null }) {
             aria-label={`Target location Shelf ${shelf} in ${aisle}`}
           >
             <i aria-hidden="true" />
-            <span>Target</span>
-            <small>Shelf {shelf}</small>
+            <span>{labels.target}</span>
+            <small>{labels.shelf} {shelf}</small>
           </div>
         ) : null}
       </div>
@@ -85,20 +89,20 @@ function ShelfMap({ product }: { product: Product | null }) {
         <>
           <dl className="map-location-data" aria-label="Target shelf details">
             <div>
-              <dt>Aisle</dt>
+              <dt>{labels.aisle}</dt>
               <dd>{aisleNumber}</dd>
             </div>
             <div>
-              <dt>Shelf</dt>
+              <dt>{labels.shelf}</dt>
               <dd>{shelf}</dd>
             </div>
             <div>
-              <dt>Level</dt>
+              <dt>{labels.level}</dt>
               <dd>02</dd>
             </div>
           </dl>
           <p className="map-route-summary">
-            <span>Route</span>
+            <span>{labels.route}</span>
             Entrance → {aisle} → Shelf {shelf}
           </p>
         </>

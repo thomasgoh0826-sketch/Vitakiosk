@@ -264,3 +264,14 @@ def test_ollama_prompt_receives_detected_language_context(
     user_message = transport.requests[0]["messages"][1]
     content = json.loads(user_message["content"])
     assert content["workflow_context"]["detected_language"] == expected_language
+    assert content["workflow_context"]["preferred_language"] == "auto"
+
+
+def test_ollama_prompt_receives_manual_preferred_language_context() -> None:
+    brain, _, _, transport = build_brain()
+
+    brain.respond("Where is relief balm?", branch_id="SG-001", preferred_language="ms")
+
+    user_message = transport.requests[0]["messages"][1]
+    content = json.loads(user_message["content"])
+    assert content["workflow_context"]["preferred_language"] == "ms"

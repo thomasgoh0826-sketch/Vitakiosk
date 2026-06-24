@@ -63,6 +63,29 @@ def test_ai_response_returns_authoritative_product(client: TestClient) -> None:
     assert payload["source"] == "mock_vitaflow"
 
 
+def test_ai_response_accepts_preferred_language_without_changing_product_facts(
+    client: TestClient,
+) -> None:
+    response = client.post(
+        "/api/ai/respond",
+        json={
+            "session_id": "session-language",
+            "text": "what is the price of relief balm",
+            "branch_id": "SG-001",
+            "preferred_language": "zh",
+        },
+    )
+
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload["intent"] == "price_check"
+    assert payload["product"]["id"] == "MOCK-P001"
+    assert payload["product"]["name"] == "Relief Balm"
+    assert payload["product"]["price"] == 12.5
+    assert payload["product"]["shelf_location"] == "A-03"
+    assert payload["source"] == "mock_vitaflow"
+
+
 def test_ai_red_flag_creates_escalation(client: TestClient) -> None:
     response = client.post(
         "/api/ai/respond",

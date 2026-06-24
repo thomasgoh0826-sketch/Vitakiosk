@@ -1,48 +1,64 @@
-import type { AvatarState } from "../types";
 import { useSubtitlePlayback } from "../hooks/useSubtitlePlayback";
-
+import { translations, type KioskTranslations } from "../i18n";
+import type { AvatarState } from "../types";
 
 interface AiSubtitleProps {
   state: AvatarState;
   responseText: string;
   error: string | null;
+  labels?: KioskTranslations;
 }
 
-const IDLE_COPY =
-  "Tap to Speak to ask about products, stock, promotions, or shelf location.";
-const LISTENING_COPY = "Listening…";
-const THINKING_COPY = "Preparing answer…";
-const ERROR_COPY = "Sorry, I could not hear that clearly. Please try again.";
-const ESCALATION_COPY = "For your safety, I will request pharmacist assistance.";
-
-function getStaticSubtitle(state: AvatarState, responseText: string, error: string | null) {
+function getStaticSubtitle(
+  state: AvatarState,
+  responseText: string,
+  error: string | null,
+  labels: KioskTranslations,
+) {
   if (state === "error" || error) {
-    return ERROR_COPY;
+    return labels.errorSubtitle;
   }
   if (state === "pharmacist_escalation") {
-    return ESCALATION_COPY;
+    return labels.escalationSubtitle;
   }
   if (state === "thinking") {
-    return THINKING_COPY;
+    return labels.thinkingSubtitle;
   }
   if (state === "listening") {
-    return LISTENING_COPY;
+    return labels.listeningSubtitle;
   }
   if (state === "speaking") {
-    return responseText || THINKING_COPY;
+    return responseText || labels.thinkingSubtitle;
   }
-  return IDLE_COPY;
+  return labels.idleSubtitle;
 }
 
-function AiSubtitle({ state, responseText, error }: AiSubtitleProps) {
+function getStateLabel(state: AvatarState, labels: KioskTranslations) {
+  const stateLabels: Record<AvatarState, string> = {
+    idle: labels.ready,
+    listening: labels.listening,
+    thinking: labels.thinking,
+    speaking: labels.speaking,
+    error: labels.tryAgain,
+    pharmacist_escalation: labels.pharmacistRequested,
+  };
+  return stateLabels[state];
+}
+
+function AiSubtitle({
+  state,
+  responseText,
+  error,
+  labels = translations.en,
+}: AiSubtitleProps) {
   const playback = useSubtitlePlayback({
     text: responseText,
     state,
   });
   const subtitle = state === "speaking"
-    ? playback.subtitle || THINKING_COPY
-    : getStaticSubtitle(state, responseText, error);
-  const stateLabel = state.replace("_", " ");
+    ? playback.subtitle || labels.thinkingSubtitle
+    : getStaticSubtitle(state, responseText, error, labels);
+  const stateLabel = getStateLabel(state, labels);
 
   return (
     <section

@@ -4,6 +4,7 @@ import { api } from "./api/client";
 import AvatarAssistant from "./components/AvatarAssistant";
 import ConversationPanel from "./components/ConversationPanel";
 import ErpDataPanel from "./components/ErpDataPanel";
+import LanguageSelector from "./components/LanguageSelector";
 import LeafletModal from "./components/LeafletModal";
 import PharmacistEscalationPanel from "./components/PharmacistEscalationPanel";
 import ProductCard from "./components/ProductCard";
@@ -12,13 +13,14 @@ import RuntimeDiagnostics from "./components/RuntimeDiagnostics";
 import ShelfMap from "./components/ShelfMap";
 import TapToSpeakButton from "./components/TapToSpeakButton";
 import TypedInputPanel from "./components/TypedInputPanel";
+import useKioskLanguage from "./hooks/useKioskLanguage";
 import useKioskSocket from "./hooks/useKioskSocket";
 import useVoiceInteraction from "./hooks/useVoiceInteraction";
+import type { KioskTranslations } from "./i18n";
 import { getTypedInputConfig } from "./inputConfig";
 import { MOCK_LEAFLETS } from "./mockLeaflets";
 import type { AvatarState, Leaflet, Product, RuntimeStatusResponse, UiAction } from "./types";
 import { isApprovedUiAction } from "./uiActions";
-
 
 const MOCK_PRODUCT: Product = {
   id: "MOCK-P001",
@@ -63,21 +65,25 @@ function findLeaflet(leaflets: Leaflet[], action: UiAction) {
   return null;
 }
 
-function voiceFeedbackCopy(state: AvatarState, error: string | null) {
+function voiceFeedbackCopy(
+  state: AvatarState,
+  error: string | null,
+  labels: KioskTranslations,
+) {
   if (error) {
-    return "Please try again or press Start.";
+    return labels.retryOrStart;
   }
   switch (state) {
     case "listening":
-      return "Listening...";
+      return labels.listeningSubtitle;
     case "thinking":
-      return "Preparing answer...";
+      return labels.preparingAnswer;
     case "speaking":
-      return "Speaking...";
+      return `${labels.speaking}...`;
     case "pharmacist_escalation":
-      return "Pharmacist assistance requested.";
+      return labels.escalationRequestedCopy;
     default:
-      return "Tap once to begin";
+      return labels.tapOnceToBegin;
   }
 }
 
@@ -94,11 +100,18 @@ function App() {
   const [providerStatusUnavailable, setProviderStatusUnavailable] = useState(false);
   const [pharmacistConfirmationRequested, setPharmacistConfirmationRequested] =
     useState(false);
+  const {
+    language,
+    preferredLanguage,
+    setLanguage,
+    t,
+  } = useKioskLanguage();
   const typedInputConfig = getTypedInputConfig();
   const socket = useKioskSocket(sessionId);
   const voice = useVoiceInteraction({
     sessionId,
     branchId: BRANCH_ID,
+    preferredLanguage,
     api,
     serverState: socket.state,
     sendState: socket.sendState,
@@ -117,10 +130,10 @@ function App() {
     ? "pharmacist_escalation"
     : voice.state;
   const escalationActive = avatarState === "pharmacist_escalation";
-  const connectionCopy = socket.connected ? "Connected" : "Local state mode";
+  const connectionCopy = socket.connected ? t.connected : t.localStateMode;
 
   useEffect(() => {
-    if (!import.meta.env.DEV) {
+    if (!import.meta.env.DEV || import.meta.env.VITE_SHOW_DEBUG_STATUS !== "true") {
       return undefined;
     }
 
@@ -310,7 +323,7 @@ function App() {
         </div>
         <div className="connection-line" aria-label="Kiosk connection status">
           <span className="status-dot" aria-hidden="true" />
-          {connectionCopy} · Mock mode · No customer data
+          {connectionCopy} · {t.mockMode} · {t.noCustomerData}
         </div>
         <RuntimeDiagnostics
           runtimeStatus={runtimeStatus}
@@ -324,6 +337,7 @@ function App() {
             state={avatarState}
             audioActivity={voice.audioActivity}
             connected={socket.connected}
+            labels={t}
           />
 
           <section className="speak-region" aria-label="Voice assistant controls">
@@ -331,19 +345,20 @@ function App() {
               state={avatarState}
               onStart={() => void voice.startRecording()}
               onStop={() => void voice.stopRecording()}
+              labels={t}
             />
             <small className="voice-feedback" aria-live="polite">
-              {voiceFeedbackCopy(avatarState, voice.error)}
+              {voiceFeedbackCopy(avatarState, voice.error, t)}
             </small>
             <section className="customer-reset" aria-label="New customer reset">
-              <span>Fresh session</span>
+              <span>{t.freshSession}</span>
               <button
                 className="customer-reset-button"
                 type="button"
                 onClick={startNewCustomer}
               >
                 <span aria-hidden="true">↻</span>
-                Start
+                {t.start}
               </button>
             </section>
           </section>
@@ -355,13 +370,15 @@ function App() {
             responseText={voice.responseText}
             state={avatarState}
             error={voice.error}
+            labels={t}
           />
-          <ProductCard product={product} purchasingQueryId={voice.purchasingQueryId} />
-          <ShelfMap product={product} />
+          <ProductCard product={product} purchasingQueryId={voice.purchasingQueryId} labels={t} />
+          <ShelfMap product={product} labels={t} />
           <TypedInputPanel
             value={typedQuestion}
             config={typedInputConfig}
             resetToken={typedInputResetToken}
+            labels={t}
             disabled={
               avatarState === "listening"
               || avatarState === "thinking"
@@ -383,15 +400,17 @@ function App() {
             selectedLeafletId={selectedLeafletId}
             product={product}
             safetyOverride={escalationActive}
+            labels={t}
             onOpenLeaflet={openLeaflet}
             onShowPromotions={showPromotionGallery}
             onShowCampaigns={showCampaignGallery}
           />
-          <ErpDataPanel product={product} connected={socket.connected} />
+          <ErpDataPanel product={product} connected={socket.connected} labels={t} />
           <PharmacistEscalationPanel
             active={escalationActive}
             confirmationRequested={pharmacistConfirmationRequested}
             escalationId={manualEscalationId ?? voice.escalationId}
+            labels={t}
             onRequest={requestAssistance}
             onStartNewCustomer={startNewCustomer}
           />
@@ -406,7 +425,12 @@ function App() {
       />
 
       <footer className="kiosk-footer">
-        <span><i className="status-dot" aria-hidden="true" /> {connectionCopy}</span>
+        <span className="footer-status-cluster">
+          <span className="footer-connection">
+            <i className="status-dot" aria-hidden="true" /> {connectionCopy}
+          </span>
+          <LanguageSelector language={language} onChange={setLanguage} />
+        </span>
         <span>VitaFlow ERP is the source of truth · Mock-first demo</span>
       </footer>
     </div>

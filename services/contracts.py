@@ -27,4 +27,5 @@ class AIBrain(Protocol):
         text: str,
         branch_id: str,
         session_id: str | None = None,
+        preferred_language: str = "auto",
     ) -> AIResult: ...

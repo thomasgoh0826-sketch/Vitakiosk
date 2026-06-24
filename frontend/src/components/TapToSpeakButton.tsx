@@ -1,34 +1,40 @@
+import { translations, type KioskTranslations } from "../i18n";
 import type { AvatarState } from "../types";
-
 
 interface TapToSpeakButtonProps {
   state: AvatarState;
   onStart: () => void;
   onStop: () => void;
+  labels?: KioskTranslations;
 }
 
-const LABELS: Record<AvatarState, string> = {
-  idle: "Tap to Speak",
-  listening: "Tap to Stop",
-  thinking: "Thinking…",
-  speaking: "Speaking…",
-  error: "Try Again",
-  pharmacist_escalation: "Pharmacist Requested",
-};
+function buttonLabelFor(state: AvatarState, labels: KioskTranslations) {
+  const buttonLabels: Record<AvatarState, string> = {
+    idle: labels.tapToSpeak,
+    listening: labels.tapToStop,
+    thinking: `${labels.thinking}…`,
+    speaking: `${labels.speaking}…`,
+    error: labels.tryAgain,
+    pharmacist_escalation: labels.pharmacistRequested,
+  };
+  return buttonLabels[state];
+}
 
 function TapToSpeakButton({
   state,
   onStart,
   onStop,
+  labels = translations.en,
 }: TapToSpeakButtonProps) {
   const listening = state === "listening";
   const disabled = ["thinking", "speaking", "pharmacist_escalation"].includes(state);
+  const buttonLabel = buttonLabelFor(state, labels);
 
   return (
     <button
       className={`tap-speak-button tap-speak-${state}`}
       type="button"
-      aria-label={LABELS[state]}
+      aria-label={buttonLabel}
       aria-pressed={listening}
       disabled={disabled}
       onClick={listening ? onStop : onStart}
@@ -37,8 +43,8 @@ function TapToSpeakButton({
         <span className="tap-speak-mic" />
       </span>
       <span>
-        <strong>{LABELS[state]}</strong>
-        <small>{listening ? "Listening securely on this kiosk" : "Voice assistance"}</small>
+        <strong>{buttonLabel}</strong>
+        <small>{listening ? labels.listeningSecurely : labels.voiceAssistance}</small>
       </span>
     </button>
   );

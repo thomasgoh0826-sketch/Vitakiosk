@@ -9,6 +9,7 @@ import type {
   RuntimeStatusResponse,
   TranscriptionResponse,
 } from "../types";
+import type { PreferredLanguage } from "../i18n";
 
 
 const DEFAULT_API_BASE_URL = "http://localhost:8000";
@@ -27,7 +28,12 @@ export interface VitaKioskApiClient {
   health?(): Promise<HealthResponse>;
   runtimeStatus?(): Promise<RuntimeStatusResponse>;
   transcribe(audio: Blob, sessionId: string): Promise<TranscriptionResponse>;
-  respond(sessionId: string, text: string, branchId: string): Promise<AIResponse>;
+  respond(
+    sessionId: string,
+    text: string,
+    branchId: string,
+    preferredLanguage?: PreferredLanguage,
+  ): Promise<AIResponse>;
   synthesize(sessionId: string, text: string): Promise<Blob>;
   searchProducts(query: string, branchId: string): Promise<ProductSearchResponse>;
   matchPromotions(productId: string, branchId: string): Promise<ItemListResponse<Promotion>>;
@@ -71,11 +77,21 @@ export class VitaKioskApi implements VitaKioskApiClient {
     return this.json("/api/voice/transcribe", { method: "POST", body: form });
   }
 
-  respond(sessionId: string, text: string, branchId: string): Promise<AIResponse> {
+  respond(
+    sessionId: string,
+    text: string,
+    branchId: string,
+    preferredLanguage: PreferredLanguage = "auto",
+  ): Promise<AIResponse> {
     return this.json("/api/ai/respond", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ session_id: sessionId, text, branch_id: branchId }),
+      body: JSON.stringify({
+        session_id: sessionId,
+        text,
+        branch_id: branchId,
+        preferred_language: preferredLanguage,
+      }),
     });
   }
 

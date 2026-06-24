@@ -1,8 +1,11 @@
 import { useEffect, useRef } from "react";
 
+import { translations, type KioskTranslations } from "../i18n";
+
 interface VirtualKeyboardProps {
   value: string;
   disabled?: boolean;
+  labels?: KioskTranslations;
   onChange: (value: string) => void;
   onClear: () => void;
   onSubmit: () => void;
@@ -18,6 +21,7 @@ const QWERTY_ROWS = [
 function VirtualKeyboard({
   value,
   disabled = false,
+  labels = translations.en,
   onChange,
   onClear,
   onSubmit,
@@ -82,18 +86,6 @@ function VirtualKeyboard({
     });
   };
 
-  const handleLetter = (letter: string) => {
-    if (disabled) {
-      return;
-    }
-
-    insertText(letter.toLowerCase());
-  };
-
-  const handleSpace = () => {
-    insertText(" ");
-  };
-
   const clearDraft = () => {
     onClear();
     focusTextarea();
@@ -110,7 +102,7 @@ function VirtualKeyboard({
               className="keyboard-key"
               aria-label={`Type ${letter}`}
               disabled={disabled}
-              onClick={() => handleLetter(letter)}
+              onClick={() => insertText(letter.toLowerCase())}
             >
               {letter}
             </button>
@@ -126,13 +118,13 @@ function VirtualKeyboard({
         className="virtual-keyboard typing-modal"
         role="dialog"
         aria-modal="true"
-        aria-label="VitaKiosk typing screen"
+        aria-label={labels.typingScreen}
         data-overlay="typing-screen"
       >
         <div className="virtual-keyboard-header">
           <div>
-            <span className="typed-input-kicker">Focused typing</span>
-            <strong>Type your question</strong>
+            <span className="typed-input-kicker">{labels.focusedTyping}</span>
+            <strong>{labels.typeYourQuestion}</strong>
           </div>
           <button
             className="virtual-keyboard-close"
@@ -140,7 +132,7 @@ function VirtualKeyboard({
             aria-label="Close typing screen"
             onClick={onClose}
           >
-            Close / Done
+            {labels.closeDone}
           </button>
         </div>
 
@@ -152,14 +144,12 @@ function VirtualKeyboard({
           rows={4}
           disabled={disabled}
           autoFocus
-          placeholder="Type your question here. Use the EN on-screen keyboard, device keyboard, or external keyboard."
+          placeholder={labels.typingPlaceholder}
           onChange={(event) => onChange(event.target.value)}
         />
 
         <div className="typing-modal-guidance" aria-live="polite">
-          <p>
-            EN QWERTY is a backup for English and Bahasa Melayu. Use the device keyboard for Chinese pinyin or external keyboard input.
-          </p>
+          <p>{labels.keyboardGuidance}</p>
         </div>
 
         <div
@@ -175,9 +165,9 @@ function VirtualKeyboard({
               className="keyboard-key keyboard-key-wide"
               aria-label="Space"
               disabled={disabled}
-              onClick={handleSpace}
+              onClick={() => insertText(" ")}
             >
-              Space
+              {labels.space}
             </button>
             <button
               type="button"
@@ -186,7 +176,7 @@ function VirtualKeyboard({
               disabled={disabled || !value}
               onClick={backspace}
             >
-              Backspace
+              {labels.backspace}
             </button>
           </div>
         </div>
@@ -199,7 +189,7 @@ function VirtualKeyboard({
             onClick={clearDraft}
             disabled={!value || disabled}
           >
-            Clear
+            {labels.clear}
           </button>
           <button
             type="button"
@@ -207,7 +197,7 @@ function VirtualKeyboard({
             aria-label="Done typing screen"
             onClick={onClose}
           >
-            Done
+            {labels.done}
           </button>
           <button
             type="button"
@@ -216,13 +206,12 @@ function VirtualKeyboard({
             onClick={onSubmit}
             disabled={!value.trim() || disabled}
           >
-            Send
+            {labels.send}
           </button>
         </div>
 
         <p className="virtual-keyboard-note">
-          Native and external keyboards remain available for full IME typing. The kiosk
-          keyboard does not provide product, promotion, or medical phrase shortcuts.
+          Native and external keyboards remain available for full IME typing. The kiosk still sends typed questions through the same safety workflow as voice.
         </p>
       </div>
     </div>

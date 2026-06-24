@@ -41,7 +41,9 @@ class MockAIBrain:
         text: str,
         branch_id: str,
         session_id: str | None = None,
+        preferred_language: str = "auto",
     ) -> AIResult:
+        del preferred_language
         safe_text = " ".join(text.split())
         corrected_text = correct_transcript(safe_text).corrected_transcript
         safety = self._guardrails.evaluate_any(safe_text, corrected_text)
@@ -441,8 +443,9 @@ class LiveAIPlaceholder:
         text: str,
         branch_id: str,
         session_id: str | None = None,
+        preferred_language: str = "auto",
     ) -> AIResult:
-        del session_id
+        del session_id, preferred_language
         safe_text = " ".join(text.split())
         corrected_text = correct_transcript(safe_text).corrected_transcript
         safety = self._guardrails.evaluate_any(safe_text, corrected_text)

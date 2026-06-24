@@ -17,6 +17,10 @@ A feature is accepted only when:
 - Staged paths pass `node scripts/check-staged-files.mjs`.
 - No secret or real business data is tracked.
 - Mock/live provider mode and VitaFlow provenance are explicit.
+- Customer-facing screens must hide raw provider/runtime/avatar diagnostics by default. `Renderer`, `Model`, `Avatar`, `AI`, and `STT` labels are accepted only behind an explicit local development flag such as `VITE_SHOW_DEBUG_STATUS=true`.
+- Language UI acceptance requires a compact footer language selector for EN, 中文, and BM; default display language is EN, manual selection persists in localStorage, and Start/New Customer does not reset the selected language.
+- Language preference acceptance requires typed and voice workflows to pass a safe `preferred_language` value when available, while safety guardrails, red-flag escalation, unknown-product purchasing queries, and VitaFlow/mock source-of-truth facts remain unchanged.
+- Frontend i18n must translate kiosk labels only; product names, SKU, prices, stock, shelf codes, branch codes, promotion/campaign titles, and `Mock VitaFlow` provenance values must remain unchanged.
 - Default provider selectors remain mock unless a task explicitly enables one layer.
 - Credentials alone never activate OpenAI, ElevenLabs, Ollama, VitaFlow, or OCR providers.
 - Live-provider work must be one layer at a time, with tests proving mock-default behavior remains unchanged.

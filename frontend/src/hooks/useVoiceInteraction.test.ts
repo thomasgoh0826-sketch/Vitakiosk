@@ -212,6 +212,7 @@ describe("useVoiceInteraction", () => {
       "session-a",
       "price of relief balm",
       "SG-001",
+      "auto",
     );
     expect(api.synthesize).toHaveBeenCalledTimes(1);
     expect(result.current.product).toEqual(product);
@@ -257,6 +258,7 @@ describe("useVoiceInteraction", () => {
         "session-auto-stop",
         "price of relief balm",
         "SG-001",
+        "auto",
       );
       expect(api.synthesize).toHaveBeenCalledTimes(1);
       expect(result.current.state).toBe("idle");
@@ -334,6 +336,7 @@ describe("useVoiceInteraction", () => {
       "session-corrected",
       "price of Panadol",
       "SG-001",
+      "auto",
     );
   });
 
@@ -358,6 +361,7 @@ describe("useVoiceInteraction", () => {
       "session-typed",
       "Where is Panadol?",
       "SG-001",
+      "auto",
     );
     expect(api.synthesize).toHaveBeenCalledTimes(1);
     expect(result.current.transcript).toBe("Where is Panadol?");
@@ -402,6 +406,7 @@ describe("useVoiceInteraction", () => {
       "session-typed-pregnancy",
       "I am pregnant, can I take this supplement?",
       "SG-001",
+      "auto",
     );
     expect(result.current.state).toBe("pharmacist_escalation");
     expect(result.current.escalationId).toBe("ESC-PREGNANCY");
@@ -441,6 +446,30 @@ describe("useVoiceInteraction", () => {
     expect(result.current.product).toBeNull();
     expect(result.current.purchasingQueryId).toBe("PQ-TYPED-0001");
     expect(api.synthesize).toHaveBeenCalledTimes(1);
+  });
+
+  it("sends the selected preferred language through typed and voice workflows", async () => {
+    const api = buildApi();
+    const { result } = renderHook(() =>
+      useVoiceInteraction({
+        sessionId: "session-language",
+        branchId: "SG-001",
+        api,
+        serverState: "idle" as AvatarState,
+        sendState: vi.fn(),
+        preferredLanguage: "zh",
+      }),
+    );
+
+    await act(async () => result.current.submitText("Where is Panadol?"));
+    await waitFor(() => expect(result.current.state).toBe("idle"));
+
+    expect(api.respond).toHaveBeenLastCalledWith(
+      "session-language",
+      "Where is Panadol?",
+      "SG-001",
+      "zh",
+    );
   });
 
   it("resets pharmacist escalation state for a new customer without deleting the ticket", async () => {

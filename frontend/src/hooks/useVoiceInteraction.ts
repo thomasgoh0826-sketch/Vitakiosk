@@ -10,11 +10,13 @@ import type {
   UiAction,
 } from "../types";
 import { calculateAudioActivity, useAudioActivity } from "./useAudioActivity";
+import type { PreferredLanguage } from "../i18n";
 
 
 interface UseVoiceInteractionOptions {
   sessionId: string;
   branchId: string;
+  preferredLanguage?: PreferredLanguage;
   api: VitaKioskApiClient;
   serverState: AvatarState;
   sendState: (state: AvatarState) => void;
@@ -30,6 +32,7 @@ type AudioContextConstructor = new () => AudioContext;
 function useVoiceInteraction({
   sessionId,
   branchId,
+  preferredLanguage = "auto",
   api,
   serverState,
   sendState,
@@ -223,7 +226,12 @@ function useVoiceInteraction({
     sendState("thinking");
 
     try {
-      const response = await api.respond(sessionId, safeTranscript, branchId);
+      const response = await api.respond(
+        sessionId,
+        safeTranscript,
+        branchId,
+        preferredLanguage,
+      );
       setHasResult(true);
       setProduct(response.product);
       setPromotions(response.promotions);
@@ -268,6 +276,7 @@ function useVoiceInteraction({
   }, [
     api,
     branchId,
+    preferredLanguage,
     releaseMedia,
     sendState,
     sessionId,

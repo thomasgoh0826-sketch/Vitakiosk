@@ -1,5 +1,5 @@
+import { translations, type KioskTranslations } from "../i18n";
 import type { Leaflet, Product } from "../types";
-
 
 export type PromotionPanelMode =
   | "idle"
@@ -15,6 +15,7 @@ interface PromotionPosterProps {
   selectedLeafletId: string | null;
   product?: Product | null;
   safetyOverride: boolean;
+  labels?: KioskTranslations;
   onOpenLeaflet: (leaflet: Leaflet) => void;
   onShowPromotions: () => void;
   onShowCampaigns: () => void;
@@ -32,8 +33,8 @@ function isProductLinked(leaflet: Leaflet, product: Product | null | undefined) 
   return Boolean(product && leaflet.product_ids.includes(product.id));
 }
 
-function kindLabel(kind: Leaflet["kind"]) {
-  return kind === "promotion" ? "Promotion" : "Campaign";
+function kindLabel(kind: Leaflet["kind"], labels: KioskTranslations) {
+  return kind === "promotion" ? labels.promotion : labels.campaign;
 }
 
 function PromotionPoster({
@@ -42,6 +43,7 @@ function PromotionPoster({
   selectedLeafletId,
   product,
   safetyOverride,
+  labels = translations.en,
   onOpenLeaflet,
   onShowPromotions,
   onShowCampaigns,
@@ -59,10 +61,10 @@ function PromotionPoster({
 
   if (safetyOverride) {
     return (
-      <section className="panel promotion-panel" aria-label="Promotion">
+      <section className="panel promotion-panel" aria-label={labels.promotion}>
         <div className="poster-frame leaflet-safety-override">
-          <span className="eyebrow">Safety priority</span>
-          <h2>Pharmacist handoff active</h2>
+          <span className="eyebrow">{labels.clinicalSafety}</span>
+          <h2>{labels.pharmacistRequested}</h2>
           <p>
             Promotion and campaign browsing is paused while pharmacist assistance is
             requested.
@@ -74,7 +76,7 @@ function PromotionPoster({
 
   if (mode === "product_options") {
     return (
-      <section className="panel promotion-panel" aria-label="Promotion">
+      <section className="panel promotion-panel" aria-label={labels.promotion}>
         <div className="poster-frame leaflet-choice-frame">
           <span className="eyebrow">No product-specific promotion</span>
           <h2>{product?.name ?? "Selected product"}</h2>
@@ -84,10 +86,10 @@ function PromotionPoster({
           </p>
           <div className="leaflet-choice-buttons">
             <button type="button" onClick={onShowPromotions}>
-              Promotion
+              {labels.promotion}
             </button>
             <button type="button" onClick={onShowCampaigns}>
-              Campaign
+              {labels.campaign}
             </button>
           </div>
         </div>
@@ -97,9 +99,9 @@ function PromotionPoster({
 
   if (mode === "promotion_gallery" || mode === "campaign_gallery") {
     const galleryLeaflets = mode === "promotion_gallery" ? promotionLeaflets : campaignLeaflets;
-    const title = mode === "promotion_gallery" ? "Promotion gallery" : "Campaign gallery";
+    const title = mode === "promotion_gallery" ? `${labels.promotion} gallery` : `${labels.campaign} gallery`;
     return (
-      <section className="panel promotion-panel" aria-label="Promotion">
+      <section className="panel promotion-panel" aria-label={labels.promotion}>
         <div className="poster-frame leaflet-gallery-frame">
           <div className="poster-topline">
             <span>Active for SG-001</span>
@@ -112,12 +114,13 @@ function PromotionPoster({
                 <LeafletCard
                   key={leaflet.id}
                   leaflet={leaflet}
+                  labels={labels}
                   onOpen={() => onOpenLeaflet(leaflet)}
                 />
               ))}
             </div>
           ) : (
-            <p>No active branch-valid {kindLabel(mode === "promotion_gallery" ? "promotion" : "campaign").toLowerCase()} leaflets are available.</p>
+            <p>No active branch-valid {kindLabel(mode === "promotion_gallery" ? "promotion" : "campaign", labels).toLowerCase()} leaflets are available.</p>
           )}
         </div>
       </section>
@@ -125,9 +128,13 @@ function PromotionPoster({
   }
 
   return (
-    <section className="panel promotion-panel" aria-label="Promotion">
+    <section className="panel promotion-panel" aria-label={labels.promotion}>
       {selectedLeaflet ? (
-        <LeafletPoster leaflet={selectedLeaflet} onOpen={() => onOpenLeaflet(selectedLeaflet)} />
+        <LeafletPoster
+          leaflet={selectedLeaflet}
+          labels={labels}
+          onOpen={() => onOpenLeaflet(selectedLeaflet)}
+        />
       ) : (
         <div className="poster-frame leaflet-empty-frame">
           <span className="eyebrow">Branch-aware display</span>
@@ -141,29 +148,31 @@ function PromotionPoster({
 
 function LeafletPoster({
   leaflet,
+  labels,
   onOpen,
 }: {
   leaflet: Leaflet;
+  labels: KioskTranslations;
   onOpen: () => void;
 }) {
   return (
     <article className={`poster-frame leaflet-poster leaflet-${leaflet.kind}`}>
       <div className="poster-grid" aria-hidden="true" />
       <div className="poster-topline">
-        <span>{kindLabel(leaflet.kind)} leaflet</span>
+        <span>{leaflet.kind === "promotion" ? labels.promotionLeaflet : `${labels.campaign} Leaflet`}</span>
         <strong>LIVE</strong>
       </div>
       <div className="leaflet-image-stage">
         <img src={leaflet.image_url} alt="" />
       </div>
       <div className="poster-copy">
-        <span className="eyebrow">Mock VitaFlow sourced</span>
+        <span className="eyebrow">{labels.mockVitaFlow} sourced</span>
         <h2>{leaflet.title}</h2>
         <p>{leaflet.description}</p>
       </div>
       <dl className="poster-meta">
         <div>
-          <dt>Branch</dt>
+          <dt>{labels.branch}</dt>
           <dd>{leaflet.branch_id}</dd>
         </div>
         <div>
@@ -172,7 +181,7 @@ function LeafletPoster({
         </div>
       </dl>
       <button className="leaflet-open-button" type="button" onClick={onOpen}>
-        Enlarge leaflet
+        {labels.enlargeLeaflet}
       </button>
     </article>
   );
@@ -180,15 +189,17 @@ function LeafletPoster({
 
 function LeafletCard({
   leaflet,
+  labels,
   onOpen,
 }: {
   leaflet: Leaflet;
+  labels: KioskTranslations;
   onOpen: () => void;
 }) {
   return (
     <article className="leaflet-card">
       <img src={leaflet.image_url} alt="" />
-      <span>{kindLabel(leaflet.kind)}</span>
+      <span>{kindLabel(leaflet.kind, labels)}</span>
       <h3>{leaflet.title}</h3>
       <p>{leaflet.description}</p>
       <button type="button" onClick={onOpen}>

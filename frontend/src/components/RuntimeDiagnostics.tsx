@@ -19,7 +19,7 @@ function RuntimeDiagnostics({
   avatarRenderer,
   vrmModel,
 }: RuntimeDiagnosticsProps) {
-  if (!import.meta.env.DEV) {
+  if (!import.meta.env.DEV || import.meta.env.VITE_SHOW_DEBUG_STATUS !== "true") {
     return null;
   }
 

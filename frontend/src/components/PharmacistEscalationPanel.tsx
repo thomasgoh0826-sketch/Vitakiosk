@@ -1,7 +1,10 @@
+import { translations, type KioskTranslations } from "../i18n";
+
 interface PharmacistEscalationPanelProps {
   active: boolean;
   confirmationRequested?: boolean;
   escalationId: string | null;
+  labels?: KioskTranslations;
   onRequest: () => void;
   onStartNewCustomer: () => void;
 }
@@ -10,6 +13,7 @@ function PharmacistEscalationPanel({
   active,
   confirmationRequested = false,
   escalationId,
+  labels = translations.en,
   onRequest,
   onStartNewCustomer,
 }: PharmacistEscalationPanelProps) {
@@ -18,36 +22,36 @@ function PharmacistEscalationPanel({
   return (
     <section
       className={`panel pharmacist-panel${active ? " pharmacist-panel-active" : ""}`}
-      aria-label="Pharmacist assistance"
+      aria-label={labels.pharmacistAssistance}
     >
       <div className="pharmacist-icon" aria-hidden="true">
         <span />
       </div>
       <div className="pharmacist-copy">
         <span className="eyebrow">
-          {active ? "Ticket recorded" : reviewRequested ? "Review recommended" : "Clinical safety"}
+          {active ? "Ticket recorded" : reviewRequested ? labels.requestPharmacistReview : labels.clinicalSafety}
         </span>
         <h2>
           {active
-            ? "Pharmacist assistance requested"
+            ? `${labels.pharmacistAssistance} requested`
             : reviewRequested
-              ? "Pharmacist review available"
-              : "Pharmacist assistance"}
+              ? labels.requestPharmacistReview
+              : labels.pharmacistAssistance}
         </h2>
         <p role={active ? "alert" : undefined}>
           {active
             ? `A pharmacist has been notified${escalationId ? ` · ${escalationId}` : ""}.`
             : reviewRequested
-              ? "For personal medicine advice, VitaKiosk can notify an in-store pharmacist."
-              : "AI does not diagnose or replace a pharmacist. Request in-store help at any time."}
+              ? labels.pharmacistAvailable
+              : labels.safeHandoffOnly}
         </p>
       </div>
       <button type="button" onClick={active ? onStartNewCustomer : onRequest}>
         <span aria-hidden="true">{active ? "↻" : "+"}</span>
-        {active ? "Start New Customer" : "Request assistance"}
+        {active ? labels.startNewCustomer : labels.requestAssistance}
       </button>
       <span className="pharmacist-availability">
-        {active ? "Ready to reset" : reviewRequested ? "Awaiting consent" : "Available"}
+        {active ? labels.ready : reviewRequested ? labels.pharmacistAvailable : "Available"}
       </span>
     </section>
   );
