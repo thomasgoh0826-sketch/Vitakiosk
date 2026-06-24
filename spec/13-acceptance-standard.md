@@ -138,6 +138,12 @@ A feature is accepted only when:
   1366x768. The Product panel is not accepted if `scrollHeight` or `scrollWidth`
   exceeds the panel client size because of hidden clipped content or decorative
   overflow.
+- Shelf Navigation responsive acceptance requires browser bounding-box evidence
+  that the route summary, Aisle/Shelf/Level facts, current-position marker, and
+  target marker remain fully inside the Shelf Navigation panel at 1024x768, a
+  narrower landscape width, and 1366x768. The route row is not accepted if it
+  intersects the typed input rail or if `scrollHeight` exceeds the Shelf panel
+  client height because important content is clipped.
 - Typed-input responsiveness work is not accepted if it globally scales, fixed-canvas shrinks, or transform-scales the whole kiosk UI instead of constraining the typed rail internally.
 - The compact typed rail is not accepted if its keyboard icon or Send button collapses, disappears, or lets input text push controls out of view.
 - The compact typed rail is not accepted if its two-row state floats over the

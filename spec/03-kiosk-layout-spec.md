@@ -38,6 +38,7 @@ AI assistant, primary Tap to Speak voice control plus Start/New Customer reset, 
 - Shelf navigation is rendered as an indoor map with aisle and shelf blocks, not as a plain progress stepper.
 - The map shows a labelled current position, target shelf marker, route line, Aisle, Shelf, Level, and a readable route summary.
 - The route uses only VitaFlow-provided shelf location data; unavailable locations are never inferred.
+- Shelf navigation reserves normal-flow rows for header, map, Aisle/Shelf/Level facts, and the `Route` summary. The route summary, fact cards, current-position marker, and target marker must remain fully visible at supported landscape widths; fixed-height clipping, negative margins, and whole-app transform/zoom fixes are not accepted.
 - A compact typed accessibility input rail appears below Shelf navigation for customers who cannot or prefer not to speak.
 - Shelf navigation has layout priority: the typed input rail must stay in normal document flow below the map and must not overlap, intersect, cover, or make the map incomplete at 1024x768 landscape.
 - The typed input rail has a clear accessible `Type your question` label, visible placeholder, small keyboard icon action, conditional clear action, send action, and no raw debug/customer data.
@@ -70,4 +71,4 @@ AI assistant, primary Tap to Speak voice control plus Start/New Customer reset, 
 - `frontend/src/hooks/useSubtitlePlayback.test.ts`
 - `frontend/src/components/ShelfMap.test.tsx`
 - `frontend/src/components/avatar/VrmAvatarRenderer.test.tsx`
-- Browser screenshot evidence recorded in `reports/test-evidence.md`, including the 1024x768, 1366x768, and 1920x1080 responsive dark neon compositions plus Product panel clipping checks at 1024x768, a narrower landscape width, and 1366x768.
+- Browser screenshot evidence recorded in `reports/test-evidence.md`, including the 1024x768, 1366x768, and 1920x1080 responsive dark neon compositions plus Product and Shelf Navigation clipping checks at 1024x768, a narrower landscape width, and 1366x768.

@@ -4479,7 +4479,7 @@ body {
   max-width: 76px;
 }
 
-@container (max-width: 520px) {
+@container (max-width: 380px) {
   .typed-input-form {
     grid-template-columns: auto auto minmax(72px, 1fr);
     grid-template-areas:
@@ -4552,6 +4552,7 @@ body {
 .kiosk-shell {
   --deck-card-gap: clamp(16px, 1.2dvw, 22px);
   --product-panel-min-height: clamp(220px, 28dvh, 300px);
+  --shelf-panel-min-height: clamp(244px, 31dvh, 340px);
 }
 
 .clinical-deck {
@@ -4563,10 +4564,44 @@ body {
     grid-template-rows:
       minmax(clamp(108px, 14dvh, 158px), 0.34fr)
       minmax(var(--product-panel-min-height), 0.66fr)
-      minmax(160px, 0.88fr)
+      minmax(var(--shelf-panel-min-height), 0.88fr)
       minmax(var(--typed-input-rail-min-height), auto);
     gap: var(--deck-card-gap);
   }
+}
+
+.shelf-map-panel {
+  display: grid;
+  grid-template-rows: auto minmax(112px, 1fr) auto auto;
+  gap: clamp(5px, 0.8dvh, 10px);
+  height: auto;
+  min-height: var(--shelf-panel-min-height);
+  overflow: visible;
+  padding-bottom: clamp(12px, 1.6dvh, 18px);
+}
+
+.shelf-map-heading {
+  margin: 0;
+}
+
+.shelf-map-canvas {
+  align-self: stretch;
+  height: auto;
+  min-height: 112px;
+  margin-top: 0;
+}
+
+.map-location-data {
+  margin: 0;
+  overflow: visible;
+}
+
+.map-route-summary {
+  min-height: 18px;
+  margin: 0;
+  overflow: visible;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
 }
 
 .product-panel {

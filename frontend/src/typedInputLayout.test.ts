@@ -108,6 +108,15 @@ describe("typed input layout CSS contract", () => {
     expect(normalizedStyles).toContain("@container (max-width: 380px)");
   });
 
+  it("lets the Shelf Navigation panel reserve route-row space instead of clipping it", () => {
+    expect(normalizedStyles).toContain("--shelf-panel-min-height: clamp(244px, 31dvh, 340px);");
+    expect(normalizedStyles).toContain("minmax(var(--shelf-panel-min-height), 0.88fr)");
+    expect(normalizedStyles).toMatch(/\.shelf-map-panel\s*\{[^}]*display: grid;[^}]*grid-template-rows: auto minmax\(112px, 1fr\) auto auto;[^}]*overflow: visible;/);
+    expect(normalizedStyles).toMatch(/\.shelf-map-canvas\s*\{[^}]*height: auto;[^}]*min-height: 112px;/);
+    expect(normalizedStyles).toMatch(/\.map-route-summary\s*\{[^}]*min-height: 18px;[^}]*line-height: 1\.35;/);
+    expect(normalizedStyles).toContain("@container (max-width: 380px) {\n  .typed-input-form");
+  });
+
   it("prevents product, poster, and leaflet artwork from clipping inner icons", () => {
     expect(normalizedStyles).toContain(".product-art {\n  position: relative;");
     expect(normalizedStyles).toContain("padding: 10px;");
