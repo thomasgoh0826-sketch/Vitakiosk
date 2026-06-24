@@ -146,7 +146,8 @@ describe("integrated kiosk panels", () => {
 
     expect(screen.getAllByText("Relief Balm").length).toBeGreaterThan(0);
     expect(screen.getByText("$12.50")).toBeInTheDocument();
-    expect(screen.getByText("Relief Balm Demo Leaflet")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /open Relief Balm Demo Leaflet leaflet/i })).toBeInTheDocument();
+    expect(screen.getByRole("region", { name: "Promotion" })).not.toHaveTextContent("Relief Balm Demo Leaflet");
     expect(screen.getAllByText(/Mock VitaFlow/i).length).toBeGreaterThan(0);
   });
 
@@ -236,7 +237,7 @@ describe("integrated kiosk panels", () => {
     expect(screen.getByRole("button", { name: "点击说话" })).toBeInTheDocument();
     expect(screen.getByRole("region", { name: "产品" })).toBeInTheDocument();
     expect(screen.getByText("货架导航")).toBeInTheDocument();
-    expect(screen.getByText("促销海报")).toBeInTheDocument();
+    expect(screen.getByRole("region", { name: "促销" })).toBeInTheDocument();
     expect(screen.getByText("药剂师协助")).toBeInTheDocument();
     expect(screen.getByLabelText("输入你的问题")).toBeInTheDocument();
     expect(screen.getAllByText("Relief Balm").length).toBeGreaterThan(0);
@@ -357,8 +358,8 @@ describe("integrated kiosk panels", () => {
 
     render(<App />);
 
-    expect(screen.getByText("Campaign gallery")).toBeInTheDocument();
-    expect(screen.getByText("Hydration Health Campaign")).toBeInTheDocument();
+    expect(screen.queryByText("Campaign gallery")).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /open Hydration Health Campaign leaflet/i })).toBeInTheDocument();
   });
 
   it("keeps pharmacist escalation ahead of promotion modal actions", () => {

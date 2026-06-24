@@ -3755,14 +3755,10 @@ body {
   min-height: 0;
   height: 100%;
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(220px, 100%), 1fr));
-  grid-auto-rows: minmax(0, 1fr);
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: minmax(0, 1fr);
   align-items: stretch;
-  gap: clamp(8px, 0.9dvw, 16px);
-}
-
-.leaflet-display-grid .leaflet-poster:nth-child(n + 2) {
-  display: none;
+  justify-items: stretch;
 }
 
 .leaflet-poster,
@@ -3774,11 +3770,17 @@ body {
 }
 
 .leaflet-poster {
-  grid-template-rows: auto minmax(clamp(150px, 34cqh, 360px), 1fr) auto auto;
+  grid-template-rows: minmax(0, 1fr);
   min-width: 0;
   min-height: 0;
   align-content: stretch;
   justify-content: stretch;
+  display: grid;
+  padding: clamp(8px, 1cqw, 16px);
+}
+
+.leaflet-display-grid .leaflet-poster {
+  display: grid;
 }
 
 .leaflet-image-stage,
@@ -3819,53 +3821,27 @@ body {
 }
 
 .leaflet-display-grid .leaflet-image-stage {
-  min-height: clamp(150px, 34cqh, 360px);
+  --leaflet-stage-padding: clamp(10px, 1.1cqw, 18px);
+  min-height: clamp(180px, 46cqh, 520px);
   height: 100%;
   align-self: stretch;
-  padding: clamp(10px, 1.1cqw, 18px);
-}
-
-.leaflet-display-grid[data-single-leaflet="true"] .leaflet-image-stage {
-  min-height: clamp(180px, 46cqh, 430px);
+  padding: var(--leaflet-stage-padding);
+  overflow: hidden;
 }
 
 .leaflet-display-grid .leaflet-image-stage img {
-  width: 100%;
-  height: 100%;
+  position: absolute;
+  inset: var(--leaflet-stage-padding);
+  width: calc(100% - var(--leaflet-stage-padding) - var(--leaflet-stage-padding));
+  height: calc(100% - var(--leaflet-stage-padding) - var(--leaflet-stage-padding));
   max-height: 100%;
+  object-fit: contain;
 }
 
-.leaflet-display-grid .poster-copy h2 {
-  font-size: clamp(0.95rem, 1.18cqw, 1.72rem);
-}
-
-.leaflet-display-grid .poster-copy p {
-  display: -webkit-box;
-  overflow: hidden;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 2;
-}
-
-.leaflet-display-grid .poster-meta {
-  gap: clamp(5px, 0.7cqw, 10px);
-}
-
-@container (min-width: 440px) and (min-height: 360px) {
-  .leaflet-display-grid .leaflet-poster:nth-child(2) {
-    display: grid;
-  }
-}
-
-@container (min-width: 680px) and (min-height: 420px) {
-  .leaflet-display-grid .leaflet-poster:nth-child(3) {
-    display: grid;
-  }
-}
-
-@container (min-width: 920px) and (min-height: 480px) {
-  .leaflet-display-grid .leaflet-poster:nth-child(4) {
-    display: grid;
-  }
+.leaflet-poster .poster-copy,
+.leaflet-poster .poster-meta,
+.leaflet-poster .poster-topline {
+  display: none;
 }
 
 .leaflet-open-button,
@@ -4054,7 +4030,7 @@ button.leaflet-card:focus-visible {
   width: min(1080px, 93dvw);
   height: min(650px, 86dvh);
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(178px, 0.22fr);
+  grid-template-columns: minmax(0, 1fr) minmax(260px, 320px);
   grid-template-areas:
     "gallery copy";
   gap: clamp(10px, 1.5dvw, 22px);
@@ -4147,7 +4123,7 @@ button.leaflet-card:focus-visible {
   grid-area: gallery;
   min-height: 0;
   min-width: 0;
-  overflow: visible;
+  overflow: hidden;
   border-radius: clamp(18px, 1.8dvw, 28px);
   background: transparent;
   perspective: 1200px;
@@ -4192,12 +4168,13 @@ button.leaflet-card:focus-visible {
 }
 
 .floating-leaflet-panel {
+  --leaflet-panel-padding: clamp(8px, 1dvw, 14px);
   position: relative;
   flex: 0 0 68%;
   height: 100%;
   display: grid;
   place-items: center;
-  padding: clamp(8px, 1dvw, 14px);
+  padding: var(--leaflet-panel-padding);
   border: 1px solid rgba(66, 245, 255, 0.34);
   border-radius: clamp(18px, 1.7dvw, 28px);
   background:
@@ -4209,6 +4186,7 @@ button.leaflet-card:focus-visible {
     0 18px 48px rgba(0, 0, 0, 0.36);
   opacity: 0.32;
   transform: perspective(900px) rotateY(16deg) translateZ(-110px) scale(0.78);
+  overflow: hidden;
   transition:
     border-color 280ms ease,
     box-shadow 280ms ease,
@@ -4243,8 +4221,10 @@ button.leaflet-card:focus-visible {
 }
 
 .floating-leaflet-panel img {
-  width: 100%;
-  height: 100%;
+  position: absolute;
+  inset: var(--leaflet-panel-padding);
+  width: calc(100% - var(--leaflet-panel-padding) - var(--leaflet-panel-padding));
+  height: calc(100% - var(--leaflet-panel-padding) - var(--leaflet-panel-padding));
   max-width: 100%;
   max-height: 100%;
   object-fit: contain;
@@ -4313,12 +4293,14 @@ button.leaflet-card:focus-visible {
       "gallery"
       "copy";
     width: min(94dvw, 760px);
-    height: min(86dvh, 760px);
+    height: auto;
+    max-height: min(92dvh, 760px);
     overflow: visible;
   }
 
   .leaflet-stage-scene {
-    min-height: min(58dvh, 480px);
+    height: clamp(300px, 54dvh, 480px);
+    min-height: 0;
   }
 
   .leaflet-meta-panel {
@@ -4331,30 +4313,32 @@ button.leaflet-card:focus-visible {
 @media (max-width: 1120px), (max-height: 740px) {
   .leaflet-floating-stage {
     grid-template-columns: 1fr;
-    grid-template-rows: minmax(0, 1fr) auto;
+    grid-template-rows: auto auto;
     grid-template-areas:
       "gallery"
       "copy";
     width: min(94dvw, 820px);
-    height: min(90dvh, 780px);
+    height: auto;
+    max-height: min(92dvh, 780px);
     gap: clamp(8px, 1.2dvh, 14px);
     overflow: visible;
   }
 
   .leaflet-stage-scene {
-    min-height: min(58dvh, 520px);
-    max-height: min(58dvh, 520px);
+    height: clamp(300px, 56dvh, 520px);
+    min-height: 0;
+    max-height: none;
     overflow: hidden;
   }
 
   .floating-leaflet-panel {
-    flex-basis: min(78%, 650px);
+    flex-basis: min(78%, 620px);
   }
 
   .leaflet-meta-panel {
     align-self: stretch;
-    max-height: min(24dvh, 170px);
-    overflow: auto;
+    max-height: none;
+    overflow: visible;
   }
 
   .leaflet-meta-panel dl {

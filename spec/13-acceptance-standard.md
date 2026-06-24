@@ -52,10 +52,18 @@ A feature is accepted only when:
   branch-valid campaign leaflet when one exists.
 - Promotion panel responsive acceptance requires browser-measured evidence that
   the normal promotion region uses its available container space without a tiny
-  fixed-size leaflet stranded in a large panel. Narrow/short panels show one
-  readable primary leaflet; wider/taller panels may reveal multiple active
-  branch-valid leaflets via container-driven grid rules; no leaflet artwork or
-  metadata may be cropped by the panel.
+  fixed-size leaflet stranded in a large panel. The normal/collapsed promotion
+  panel must show exactly one readable primary leaflet hero at a time at all
+  supported viewport/container sizes; multiple active branch-valid leaflets are
+  browseable through the enlarged swipeable viewer rather than visible as
+  multiple right-rail cards.
+- Promotion panel collapsed-content acceptance requires the normal right-rail
+  leaflet to show artwork only. Title blocks, descriptions, branch/source/
+  validity metadata blocks, and extra details are accepted only in the enlarged
+  leaflet viewer.
+- Promotion panel responsive acceptance is not met if the normal panel clips
+  leaflet artwork, stacks/splits two visible leaflets, or shows more than one
+  `.leaflet-poster` card in the collapsed/default promotion region.
 - Red-flag safety acceptance requires no promotion/campaign leaflet or modal to
   appear before pharmacist escalation.
 - Voice-flow acceptance requires `Tap to Speak` as the main control, manual

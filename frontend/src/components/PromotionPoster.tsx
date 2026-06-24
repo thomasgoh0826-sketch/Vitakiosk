@@ -21,20 +21,8 @@ interface PromotionPosterProps {
   onShowCampaigns: () => void;
 }
 
-function formatDate(value: string) {
-  return new Date(value).toLocaleDateString("en-SG", {
-    day: "2-digit",
-    month: "short",
-    year: "numeric",
-  });
-}
-
 function isProductLinked(leaflet: Leaflet, product: Product | null | undefined) {
   return Boolean(product && leaflet.product_ids.includes(product.id));
-}
-
-function kindLabel(kind: Leaflet["kind"], labels: KioskTranslations) {
-  return kind === "promotion" ? labels.promotion : labels.campaign;
 }
 
 function firstProductLinked(
@@ -154,9 +142,7 @@ function PromotionPoster({
         {displayLeaflets.length ? (
           <LeafletDisplayGrid
             leaflets={displayLeaflets}
-            labels={labels}
             onOpenLeaflet={onOpenLeaflet}
-            contextCopyForFirst="Default active campaign"
           />
         ) : (
           <div className="poster-frame leaflet-empty-frame">
@@ -179,30 +165,20 @@ function PromotionPoster({
 
   if (mode === "promotion_gallery" || mode === "campaign_gallery") {
     const galleryLeaflets = mode === "promotion_gallery" ? promotionLeaflets : campaignLeaflets;
-    const title = mode === "promotion_gallery" ? `${labels.promotion} gallery` : `${labels.campaign} gallery`;
     return (
       <section className="panel promotion-panel" aria-label={labels.promotion}>
-        <div className="poster-frame leaflet-gallery-frame">
-          <div className="poster-topline">
-            <span>Active for SG-001</span>
-            <strong>{galleryLeaflets.length ? "LIVE" : "EMPTY"}</strong>
+        {galleryLeaflets.length ? (
+          <LeafletDisplayGrid
+            leaflets={galleryLeaflets}
+            onOpenLeaflet={onOpenLeaflet}
+          />
+        ) : (
+          <div className="poster-frame leaflet-empty-frame">
+            <span className="eyebrow">Branch-aware display</span>
+            <h2>No active leaflet</h2>
+            <p>No active branch-valid leaflets are available.</p>
           </div>
-          <h2>{title}</h2>
-          {galleryLeaflets.length ? (
-            <div className="leaflet-carousel" aria-label={title}>
-              {galleryLeaflets.map((leaflet) => (
-                <LeafletCard
-                  key={leaflet.id}
-                  leaflet={leaflet}
-                  labels={labels}
-                  onOpen={() => onOpenLeaflet(leaflet)}
-                />
-              ))}
-            </div>
-          ) : (
-            <p>No active branch-valid {kindLabel(mode === "promotion_gallery" ? "promotion" : "campaign", labels).toLowerCase()} leaflets are available.</p>
-          )}
-        </div>
+        )}
       </section>
     );
   }
@@ -212,7 +188,6 @@ function PromotionPoster({
       {displayLeaflets.length ? (
         <LeafletDisplayGrid
           leaflets={displayLeaflets}
-          labels={labels}
           onOpenLeaflet={onOpenLeaflet}
         />
       ) : (
@@ -228,48 +203,38 @@ function PromotionPoster({
 
 function LeafletDisplayGrid({
   leaflets,
-  labels,
   onOpenLeaflet,
-  contextCopyForFirst,
 }: {
   leaflets: Leaflet[];
-  labels: KioskTranslations;
   onOpenLeaflet: (leaflet: Leaflet) => void;
-  contextCopyForFirst?: string;
 }) {
+  const primaryLeaflet = leaflets[0] ?? null;
+
+  if (!primaryLeaflet) {
+    return null;
+  }
+
   return (
     <div
       className="leaflet-display-grid"
-      aria-label="Active promotion and campaign leaflets"
-      data-leaflet-count={Math.min(leaflets.length, 4)}
-      data-single-leaflet={String(leaflets.length === 1)}
+      aria-label="Active leaflet hero"
+      data-leaflet-count={leaflets.length}
+      data-visible-leaflets="1"
     >
-      {leaflets.map((leaflet, index) => (
-        <LeafletPoster
-          key={leaflet.id}
-          leaflet={leaflet}
-          labels={labels}
-          onOpen={() => onOpenLeaflet(leaflet)}
-          contextCopy={index === 0 ? contextCopyForFirst : undefined}
-          priority={index + 1}
-        />
-      ))}
+      <LeafletPoster
+        leaflet={primaryLeaflet}
+        onOpen={() => onOpenLeaflet(primaryLeaflet)}
+      />
     </div>
   );
 }
 
 function LeafletPoster({
   leaflet,
-  labels,
   onOpen,
-  contextCopy,
-  priority,
 }: {
   leaflet: Leaflet;
-  labels: KioskTranslations;
   onOpen: () => void;
-  contextCopy?: string;
-  priority?: number;
 }) {
   return (
     <button
@@ -277,55 +242,12 @@ function LeafletPoster({
       type="button"
       onClick={onOpen}
       aria-label={`Open ${leaflet.title} leaflet`}
-      data-leaflet-priority={priority}
+      data-leaflet-kind={leaflet.kind}
     >
       <div className="poster-grid" aria-hidden="true" />
-      <div className="poster-topline">
-        <span>{contextCopy ?? (leaflet.kind === "promotion" ? labels.promotionLeaflet : `${labels.campaign} Leaflet`)}</span>
-        <strong>LIVE</strong>
-      </div>
       <div className="leaflet-image-stage">
         <img src={leaflet.image_url} alt="" />
       </div>
-      <div className="poster-copy">
-        <span className="eyebrow">{labels.mockVitaFlow} sourced</span>
-        <h2>{leaflet.title}</h2>
-        <p>{leaflet.description}</p>
-      </div>
-      <dl className="poster-meta">
-        <div>
-          <dt>{labels.branch}</dt>
-          <dd>{leaflet.branch_id}</dd>
-        </div>
-        <div>
-          <dt>Valid</dt>
-          <dd>{formatDate(leaflet.valid_from)} - {formatDate(leaflet.valid_to)}</dd>
-        </div>
-      </dl>
-    </button>
-  );
-}
-
-function LeafletCard({
-  leaflet,
-  labels,
-  onOpen,
-}: {
-  leaflet: Leaflet;
-  labels: KioskTranslations;
-  onOpen: () => void;
-}) {
-  return (
-    <button
-      className="leaflet-card"
-      type="button"
-      onClick={onOpen}
-      aria-label={`Open ${leaflet.title} leaflet`}
-    >
-      <img src={leaflet.image_url} alt="" />
-      <span>{kindLabel(leaflet.kind, labels)}</span>
-      <h3>{leaflet.title}</h3>
-      <p>{leaflet.description}</p>
     </button>
   );
 }

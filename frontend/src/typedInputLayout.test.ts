@@ -155,6 +155,8 @@ describe("typed input layout CSS contract", () => {
   it("lets the enlarged leaflet viewer move metadata below the hero card when space is tight", () => {
     expect(normalizedStyles).toMatch(/\.leaflet-floating-stage\s*\{[^}]*display: grid;[^}]*grid-template-areas:\s*\n    "gallery copy";[^}]*overflow: visible;/);
     expect(normalizedStyles).toMatch(/\.leaflet-meta-panel\s*\{[^}]*grid-area: copy;[^}]*position: relative;/);
+    expect(normalizedStyles).toMatch(/\.floating-leaflet-panel\s*\{[^}]*--leaflet-panel-padding: clamp\(8px, 1dvw, 14px\);[^}]*overflow: hidden;/);
+    expect(normalizedStyles).toMatch(/\.floating-leaflet-panel img\s*\{[^}]*position: absolute;[^}]*inset: var\(--leaflet-panel-padding\);[^}]*object-fit: contain;/);
     expect(normalizedStyles).toMatch(
       /@media \(max-width: 1120px\), \(max-height: 740px\)\s*\{[\s\S]*\.leaflet-floating-stage\s*\{[\s\S]*grid-template-areas:\s*\n      "gallery"\s*\n      "copy";/,
     );
@@ -162,23 +164,22 @@ describe("typed input layout CSS contract", () => {
       /@media \(max-width: 1120px\), \(max-height: 740px\)\s*\{[\s\S]*\.leaflet-stage-scene\s*\{[\s\S]*overflow: hidden;/,
     );
     expect(normalizedStyles).toMatch(
-      /@media \(max-width: 1120px\), \(max-height: 740px\)\s*\{[\s\S]*\.leaflet-meta-panel\s*\{[\s\S]*align-self: stretch;/,
+      /@media \(max-width: 1120px\), \(max-height: 740px\)\s*\{[\s\S]*\.leaflet-meta-panel\s*\{[\s\S]*align-self: stretch;[\s\S]*overflow: visible;/,
     );
   });
 
-  it("lets the normal promotion section use responsive leaflet grids instead of one fixed tiny poster", () => {
+  it("keeps the normal promotion section as one responsive hero leaflet only", () => {
     expect(normalizedStyles).toMatch(/\.promotion-panel\s*\{[\s\S]*container-type: size;/);
     expect(normalizedStyles).toMatch(/\.leaflet-display-grid\s*\{[\s\S]*display: grid;/);
-    expect(normalizedStyles).toContain("grid-template-columns: repeat(auto-fit, minmax(min(220px, 100%), 1fr));");
-    expect(normalizedStyles).toMatch(/\.leaflet-display-grid \.leaflet-poster:nth-child\(n \+ 2\)\s*\{[\s\S]*display: none;/);
-    expect(normalizedStyles).toMatch(
-      /@container \(min-width: 440px\) and \(min-height: 360px\)\s*\{[\s\S]*\.leaflet-display-grid \.leaflet-poster:nth-child\(2\)\s*\{[\s\S]*display: grid;/,
-    );
-    expect(normalizedStyles).toMatch(
-      /@container \(min-width: 680px\) and \(min-height: 420px\)\s*\{[\s\S]*\.leaflet-display-grid \.leaflet-poster:nth-child\(3\)\s*\{[\s\S]*display: grid;/,
-    );
-    expect(normalizedStyles).toMatch(/\.leaflet-display-grid\[data-single-leaflet="true"\] \.leaflet-image-stage\s*\{[\s\S]*min-height: clamp\(180px, 46cqh, 430px\);/);
-    expect(normalizedStyles).toMatch(/\.leaflet-poster\s*\{[\s\S]*grid-template-rows: auto minmax\(clamp\(150px, 34cqh, 360px\), 1fr\) auto auto;/);
+    expect(normalizedStyles).toContain("grid-template-columns: minmax(0, 1fr);");
+    expect(normalizedStyles).toMatch(/\.leaflet-display-grid \.leaflet-poster\s*\{[\s\S]*display: grid;/);
+    expect(normalizedStyles).not.toMatch(/\.leaflet-display-grid \.leaflet-poster:nth-child\(2\)\s*\{[\s\S]*display: grid;/);
+    expect(normalizedStyles).not.toMatch(/\.leaflet-display-grid \.leaflet-poster:nth-child\(3\)\s*\{[\s\S]*display: grid;/);
+    expect(normalizedStyles).not.toMatch(/\.leaflet-display-grid \.leaflet-poster:nth-child\(4\)\s*\{[\s\S]*display: grid;/);
+    expect(normalizedStyles).toMatch(/\.leaflet-display-grid \.leaflet-image-stage\s*\{[\s\S]*--leaflet-stage-padding: clamp\(10px, 1\.1cqw, 18px\);[\s\S]*min-height: clamp\(180px, 46cqh, 520px\);[\s\S]*overflow: hidden;/);
+    expect(normalizedStyles).toMatch(/\.leaflet-display-grid \.leaflet-image-stage img\s*\{[\s\S]*position: absolute;[\s\S]*inset: var\(--leaflet-stage-padding\);[\s\S]*object-fit: contain;/);
+    expect(normalizedStyles).toMatch(/\.leaflet-poster\s*\{[\s\S]*grid-template-rows: minmax\(0, 1fr\);/);
+    expect(normalizedStyles).toMatch(/\.leaflet-poster \.poster-copy,\s*\.leaflet-poster \.poster-meta,\s*\.leaflet-poster \.poster-topline\s*\{[\s\S]*display: none;/);
   });
 
   it("prevents product, poster, and leaflet artwork from clipping inner icons", () => {
