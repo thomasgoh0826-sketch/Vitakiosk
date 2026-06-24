@@ -210,9 +210,6 @@ function VirtualKeyboard({
           </button>
         </div>
 
-        <p className="virtual-keyboard-note">
-          Native and external keyboards remain available for full IME typing. The kiosk still sends typed questions through the same safety workflow as voice.
-        </p>
       </div>
     </div>
   );

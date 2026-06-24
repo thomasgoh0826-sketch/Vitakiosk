@@ -49,14 +49,33 @@ describe("typed input layout CSS contract", () => {
   });
 
   it("reserves a real touch keyboard area inside the focused typing screen", () => {
-    expect(normalizedStyles).toContain("minmax(192px, 0.9fr)");
+    expect(normalizedStyles).toContain('grid-template-areas:\n    "typing-header"\n    "typing-textarea"\n    "typing-guidance"\n    "typing-keyboard"\n    "typing-actions";');
+    expect(normalizedStyles).toContain("grid-template-rows: auto minmax(160px, 1fr) auto minmax(192px, auto) auto;");
     expect(normalizedStyles).toContain(".virtual-keyboard-layout {");
-    expect(normalizedStyles).toContain("align-content: end");
+    expect(normalizedStyles).toMatch(/\.virtual-keyboard-header\s*\{[\s\S]*grid-area: typing-header;/);
+    expect(normalizedStyles).toMatch(/\.typing-modal-textarea\s*\{[\s\S]*grid-area: typing-textarea;/);
+    expect(normalizedStyles).toMatch(/\.typing-modal-guidance\s*\{[\s\S]*grid-area: typing-guidance;/);
+    expect(normalizedStyles).toMatch(/\.virtual-keyboard-layout\s*\{[\s\S]*grid-area: typing-keyboard;/);
+    expect(normalizedStyles).toMatch(/\.keyboard-action-row\s*\{[\s\S]*grid-area: typing-actions;/);
+    expect(normalizedStyles).toContain("align-content: center");
     expect(normalizedStyles).not.toContain(".language-switcher {");
     expect(normalizedStyles).not.toContain(".language-switcher-button");
     expect(normalizedStyles).not.toContain(".device-ime-panel {");
     expect(normalizedStyles).not.toContain(".pinyin-candidates {");
     expect(normalizedStyles).toContain(".keyboard-key-wide");
+    expect(normalizedVirtualKeyboardSource).not.toContain("virtual-keyboard-note");
+  });
+
+  it("keeps typing modal helper, keyboard, and actions in normal flow without overlap hacks", () => {
+    expect(normalizedStyles).not.toMatch(/\.typing-modal-guidance\s*\{[^}]*position:\s*absolute;/);
+    expect(normalizedStyles).not.toMatch(/\.virtual-keyboard-layout\s*\{[^}]*position:\s*absolute;/);
+    expect(normalizedStyles).not.toMatch(/\.keyboard-action-row\s*\{[^}]*position:\s*absolute;/);
+    expect(normalizedStyles).not.toMatch(/\.typing-modal-guidance\s*\{[^}]*margin-top:\s*-/);
+    expect(normalizedStyles).not.toMatch(/\.virtual-keyboard-layout\s*\{[^}]*margin-top:\s*-/);
+    expect(normalizedStyles).not.toMatch(/\.keyboard-action-row\s*\{[^}]*margin-top:\s*-/);
+    expect(normalizedStyles).toMatch(
+      /@media \(max-width: 1100px\) and \(orientation: landscape\)\s*\{[\s\S]*\.virtual-keyboard\s*\{[\s\S]*grid-template-rows: auto minmax\(150px, 1fr\) auto minmax\(180px, auto\) auto;/,
+    );
   });
 
   it("does not ship a custom Chinese pharmacy phrase dictionary in the keyboard", () => {

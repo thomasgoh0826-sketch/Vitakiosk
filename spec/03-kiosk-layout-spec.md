@@ -59,6 +59,7 @@ AI assistant, primary Tap to Speak voice control plus Start/New Customer reset, 
 - The full typing surface is a viewport-level overlay rendered outside the compact input rail and Shelf Navigation map, so the normal shelf map row cannot clip, compress, or contain the popup.
 - Opening the typing surface focuses the large textarea for native keyboard/IME entry; Close/Done preserves the draft, Clear clears both compact and popup drafts, and Send uses the same safe typed workflow as the compact rail.
 - The full typing surface includes a real touch keyboard area for EN QWERTY only, with Space and Backspace as an explicit backup.
+- The full typing surface uses normal vertical layout rows for header, textarea, helper text, EN keyboard, and action buttons; the helper row, keyboard rows, and Clear/Done/Send actions must never overlap or cover the textarea.
 - Bahasa Melayu text is typed in EN mode because it uses the Latin keyboard.
 - The kiosk must not provide a language toggle, Chinese virtual keyboard mode, fake Chinese phrase buttons, BM toggle, or pinyin candidate keyboard. Chinese text entry relies on the device native Chinese IME / pinyin keyboard or an external keyboard through the normal text field.
 - The typed input rail and popup keyboard remain touch-friendly and must not create horizontal overflow or awkward document scrolling in the normal 1024x768 landscape kiosk view.

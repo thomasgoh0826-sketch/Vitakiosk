@@ -84,6 +84,11 @@ A feature is accepted only when:
   input rail and Shelf Navigation map, with the textarea focused on open; it is
   not accepted as a small nested popup clipped or contained by the normal kiosk
   grid row.
+- Popup typed input must use a normal vertical layout with reserved rows for
+  header, textarea, helper text, EN keyboard, and Clear/Done/Send actions. The
+  helper row, keyboard, and action row must remain below the textarea and must
+  not use overlap hacks such as absolute positioning, negative margins, or
+  floating over the textarea.
 - Popup typed input must include visible, touch-friendly input support.
   EN QWERTY must show keys with Space and Backspace. It must not include a
   language toggle, BM toggle, Chinese virtual keyboard mode, hardcoded Chinese
