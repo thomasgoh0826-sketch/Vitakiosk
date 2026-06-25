@@ -128,10 +128,26 @@ def test_unknown_product_creates_one_purchasing_query() -> None:
     assert "dragon miracle capsule" in purchasing.items[0].query
 
 
-def test_near_product_name_returns_candidate_without_purchasing_query() -> None:
+def test_corrected_relief_bomb_returns_authoritative_product_without_purchasing_query() -> None:
     brain, purchasing, _ = build_brain()
 
     result = brain.respond("Where is Relief Bomb?", branch_id="SG-001")
+
+    assert result.intent is Intent.SHELF_LOCATION
+    assert result.product is not None
+    assert result.product.id == "MOCK-P001"
+    assert result.product.name == "Relief Balm"
+    assert result.product.shelf_location == "A-03"
+    assert result.purchasing_query_id is None
+    assert len(purchasing.items) == 0
+    assert result.product_candidates == ()
+    assert result.source == "mock_vitaflow"
+
+
+def test_near_product_name_returns_candidate_without_purchasing_query() -> None:
+    brain, purchasing, _ = build_brain()
+
+    result = brain.respond("Where is Relief Barm?", branch_id="SG-001")
 
     assert result.intent is Intent.PRODUCT_SEARCH
     assert result.product is None

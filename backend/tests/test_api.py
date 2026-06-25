@@ -1,11 +1,13 @@
 from fastapi.testclient import TestClient
 
+from services.models import TranscriptionResult
+
 
 def test_transcribe_accepts_audio(client: TestClient) -> None:
     response = client.post(
         "/api/voice/transcribe",
         data={"session_id": "session-a"},
-        files={"audio": ("voice.webm", b"mock audio", "audio/webm")},
+        files={"audio": ("voice.webm", b"\x1a\x45\xdf\xa3mock audio", "audio/webm")},
     )
 
     assert response.status_code == 200
@@ -29,7 +31,75 @@ def test_transcribe_rejects_empty_audio(client: TestClient) -> None:
     )
 
     assert response.status_code == 422
-    assert response.json()["detail"] == "Audio payload is empty"
+    assert response.json() == {
+        "ok": False,
+        "error": "invalid_audio",
+        "message": "Audio could not be decoded. Please try again.",
+    }
+
+
+def test_transcribe_rejects_unsupported_content_type(client: TestClient) -> None:
+    response = client.post(
+        "/api/voice/transcribe",
+        data={"session_id": "session-a"},
+        files={"audio": ("voice.txt", b"not an audio file", "text/plain")},
+    )
+
+    assert response.status_code == 422
+    assert response.json()["error"] == "invalid_audio"
+
+
+def test_transcribe_rejects_malformed_audio_before_provider(
+    client: TestClient,
+    monkeypatch,
+) -> None:
+    from backend.app.routes import voice
+
+    class UnexpectedSTT:
+        provider_name = "unexpected"
+
+        def transcribe(self, audio: bytes, content_type: str) -> TranscriptionResult:
+            raise AssertionError("malformed audio should not reach provider")
+
+    monkeypatch.setattr(voice, "stt", UnexpectedSTT())
+
+    response = client.post(
+        "/api/voice/transcribe",
+        data={"session_id": "session-a"},
+        files={"audio": ("voice.webm", b"not a webm file", "audio/webm")},
+    )
+
+    assert response.status_code == 422
+    assert response.json() == {
+        "ok": False,
+        "error": "invalid_audio",
+        "message": "Audio could not be decoded. Please try again.",
+    }
+
+
+def test_transcribe_provider_decode_failure_returns_controlled_error(
+    client: TestClient,
+    monkeypatch,
+) -> None:
+    from backend.app.routes import voice
+
+    class DecodeFailingSTT:
+        provider_name = "faster_whisper"
+
+        def transcribe(self, audio: bytes, content_type: str) -> TranscriptionResult:
+            del audio, content_type
+            raise ValueError("ffmpeg could not decode input")
+
+    monkeypatch.setattr(voice, "stt", DecodeFailingSTT())
+
+    response = client.post(
+        "/api/voice/transcribe",
+        data={"session_id": "session-a"},
+        files={"audio": ("voice.webm", b"\x1a\x45\xdf\xa3mock audio", "audio/webm")},
+    )
+
+    assert response.status_code == 422
+    assert response.json()["error"] == "invalid_audio"
 
 
 def test_ai_response_returns_authoritative_product(client: TestClient) -> None:

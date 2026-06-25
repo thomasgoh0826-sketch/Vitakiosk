@@ -6,6 +6,7 @@ interface AiSubtitleProps {
   state: AvatarState;
   responseText: string;
   error: string | null;
+  audioPlaybackBlocked?: boolean;
   labels?: KioskTranslations;
 }
 
@@ -49,16 +50,19 @@ function AiSubtitle({
   state,
   responseText,
   error,
+  audioPlaybackBlocked = false,
   labels = translations.en,
 }: AiSubtitleProps) {
   const playback = useSubtitlePlayback({
     text: responseText,
     state,
   });
-  const subtitle = state === "speaking"
+  const subtitle = audioPlaybackBlocked && responseText
+    ? responseText
+    : state === "speaking"
     ? playback.subtitle || labels.thinkingSubtitle
     : getStaticSubtitle(state, responseText, error, labels);
-  const stateLabel = getStateLabel(state, labels);
+  const stateLabel = audioPlaybackBlocked ? labels.tapToPlayVoice : getStateLabel(state, labels);
 
   return (
     <section

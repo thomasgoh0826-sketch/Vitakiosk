@@ -72,11 +72,15 @@ class MockAIBrain:
         if confirmation is not None:
             return confirmation
 
-        requested_intent = self._classify(safe_text)
-        products = self._vitaflow.search_products(safe_text, branch_id)
+        lookup_text = corrected_text or safe_text
+        requested_intent = self._classify(lookup_text)
+        products = self._vitaflow.search_products(lookup_text, branch_id)
+        if not products and lookup_text != safe_text:
+            products = self._vitaflow.search_products(safe_text, branch_id)
         if not products:
             product_candidates = tuple(
-                self._vitaflow.search_product_candidates(safe_text, branch_id)
+                self._vitaflow.search_product_candidates(lookup_text, branch_id)
+                or self._vitaflow.search_product_candidates(safe_text, branch_id)
             )
             if product_candidates:
                 best_candidate = product_candidates[0]

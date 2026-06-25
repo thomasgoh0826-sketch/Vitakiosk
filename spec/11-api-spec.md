@@ -14,6 +14,7 @@ Expose typed mock contracts for the kiosk without provider-specific route logic.
 - `/health` returns service status, provider mode, and a provider summary for development diagnostics without requiring live provider credentials.
 - Empty audio and empty search values return validation errors.
 - `/api/voice/transcribe` returns `transcript`, `provider`, `language`, `confidence`, `clarification_needed`, `corrected_transcript`, `detected_terms`, and `possible_product_matches` metadata for mock, explicitly enabled OpenAI Whisper STT, and explicitly enabled local faster-whisper STT.
+- `/api/voice/transcribe` rejects empty, unsupported, malformed, or provider-undecodable audio with a controlled 422 `invalid_audio` JSON response instead of a backend 500. The response must not expose stack traces, raw audio, local file paths, provider internals, API keys, or customer data.
 - TTS returns `audio/wav` and `X-Voice-Provider: mock_tts`.
 - Product, promotion, poster, query, and escalation responses include mock provenance.
 - Product search responses include exact `items`, fuzzy `candidates`, mock

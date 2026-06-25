@@ -71,6 +71,11 @@ A feature is accepted only when:
   `Tap to Stop` fallback, browser-side silence auto-stop, and a secondary
   `Start` / `Start New Customer` reset action instead of a small `Hold to
   Speak` fallback.
+- Voice playback acceptance requires successful backend TTS audio to enter
+  `speaking`, activate playback/VRM speaking behavior, return to `idle` after
+  audio end, and avoid `Try Again`. Browser autoplay blocking after successful
+  TTS must show a controlled `Tap to play voice` path while keeping the answer
+  visible.
 - Typed-input acceptance requires a compact accessibility input rail
   below Shelf navigation, a clearly labelled text field, visible current draft,
   small keyboard icon, conditional Clear, and Send actions, native
@@ -120,9 +125,14 @@ A feature is accepted only when:
   live STT network calls or faster-whisper model downloads in tests or CI,
   transcript language metadata for English/Chinese/Malay/mixed speech,
   confidence/correction metadata when available, local pharmacy dictionary
-  correction without inventing product facts, and an unclear/low-confidence
+  correction without inventing product facts, common mock-product STT variants
+  such as `Relief Bomb` -> `Relief Balm`, and an unclear/low-confidence
   speech path that asks for clarification instead of calling AI, TTS, product,
   promotion, or recommendation workflows.
+- STT API acceptance requires empty, unsupported, malformed, or provider
+  decode-failed audio to return controlled 400/422-style client feedback
+  (`invalid_audio`) instead of a backend 500, stack trace, raw audio log, or
+  bad-audio persistence.
 - Ollama AI provider acceptance requires mock AI by default, explicit
   `AI_PROVIDER=ollama` selection for local Ollama, no real Ollama calls in tests
   or CI, structured JSON validation, safety checks before and after model

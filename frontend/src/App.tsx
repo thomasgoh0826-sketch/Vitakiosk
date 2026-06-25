@@ -76,8 +76,12 @@ function findLeaflet(leaflets: Leaflet[], action: UiAction) {
 function voiceFeedbackCopy(
   state: AvatarState,
   error: string | null,
+  audioPlaybackBlocked: boolean,
   labels: KioskTranslations,
 ) {
+  if (audioPlaybackBlocked) {
+    return labels.tapToPlayVoice;
+  }
   if (error) {
     return labels.retryOrStart;
   }
@@ -405,12 +409,20 @@ function App() {
           <section className="speak-region" aria-label="Voice assistant controls">
             <TapToSpeakButton
               state={avatarState}
-              onStart={() => void voice.startRecording()}
+              onStart={() => {
+                if (voice.audioPlaybackBlocked) {
+                  void voice.playBlockedAudio();
+                  return;
+                }
+                void voice.startRecording();
+              }}
               onStop={() => void voice.stopRecording()}
+              labelOverride={voice.audioPlaybackBlocked ? t.tapToPlayVoice : null}
+              helperOverride={voice.audioPlaybackBlocked ? t.voiceAssistance : null}
               labels={t}
             />
             <small className="voice-feedback" aria-live="polite">
-              {voiceFeedbackCopy(avatarState, voice.error, t)}
+              {voiceFeedbackCopy(avatarState, voice.error, voice.audioPlaybackBlocked, t)}
             </small>
             <section className="customer-reset" aria-label="New customer reset">
               <span>{t.freshSession}</span>
@@ -432,6 +444,7 @@ function App() {
             responseText={voice.responseText}
             state={avatarState}
             error={voice.error}
+            audioPlaybackBlocked={voice.audioPlaybackBlocked}
             labels={t}
           />
           <ProductCandidatePanel

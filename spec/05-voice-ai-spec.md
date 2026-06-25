@@ -18,11 +18,13 @@ Typed path: customer text input -> same AI response endpoint and safety/product 
 - During AI playback, the assistant UI uses the playback Web Audio analyser for speaking-state waveform activity; if mock playback has no analyser value, only the waveform may use a subtle visual fallback for continuity.
 - Silence detection constants are explicitly named `MIN_RECORDING_MS`, `SILENCE_STOP_MS`, and `SILENCE_RMS_THRESHOLD`.
 - The listening flow progresses naturally through `idle -> listening -> thinking -> speaking -> idle` without showing an error for normal silence auto-stop.
+- If backend TTS returns playable audio, the frontend enters `speaking`, plays the audio, activates playback waveform/VRM speaking behavior, revokes the object URL after playback, and returns to `idle`.
+- If the browser blocks audio autoplay after successful TTS, the kiosk must not show generic `Try Again`; it keeps the approved answer visible, shows `Tap to play voice`, and allows the customer to replay the generated audio from the primary control.
 - During `speaking`, AI response text is displayed through provider-neutral subtitle chunks instead of one full paragraph; when exact TTS timing is unavailable, subtitle timing is estimated from phrase chunks and text length.
 - Subtitle chunking splits on natural sentence or phrase boundaries while preserving decimal prices and medicine/product names.
 - During `idle`, `listening`, `thinking`, `error`, and `pharmacist_escalation`, the subtitle area shows short state-appropriate copy and does not expose the customer transcript in the main UI.
 - The secondary `Start` / `Start New Customer` action resets microphone, audio, error, conversation, product-not-found, escalation, and local socket state without a browser refresh.
-- Empty audio is rejected with 422.
+- Empty, unsupported, malformed, or provider-undecodable audio is rejected with a controlled `invalid_audio` 422 response and no stack trace, raw audio logging, bad-audio persistence, or cloud STT request for obviously malformed local uploads.
 - The demo completes listening, thinking, speaking, and idle states without a provider key.
 - `STT_PROVIDER` and `TTS_PROVIDER` default to `mock`.
 - OpenAI Whisper, local faster-whisper, and ElevenLabs settings do not activate live or local voice providers unless the matching provider selector is explicitly changed.
@@ -33,13 +35,13 @@ Typed path: customer text input -> same AI response endpoint and safety/product 
 - Voice and typed AI response requests may include `preferred_language: "en" | "zh" | "ms" | "auto"`. If the customer manually selects EN/中文/BM, the backend receives that preference for response wording; if no manual selection exists, the UI still defaults to EN while the AI workflow may use detected transcript language.
 - Language preference must never bypass safety guardrails, product lookup, unknown-product purchasing query behavior, or VitaFlow/mock source-of-truth rules.
 - Product names, SKU, prices, stock, shelf codes, branch codes, promotion/campaign titles, and VitaFlow/mock data values are not translated or invented by the frontend language selector.
-- Local faster-whisper STT applies a post-STT correction layer using mock VitaFlow product names, aliases, and a local Malaysian pharmacy term lexicon, including likely cough/`ubat batuk` variants; it must not invent stock, price, promotion, shelf location, or product facts.
+- Local faster-whisper STT applies a post-STT correction layer using mock VitaFlow product names, aliases, and a local Malaysian pharmacy term lexicon, including likely cough/`ubat batuk` variants and common product-name mishearing such as `Relief Bomb` -> `Relief Balm`; it must not invent stock, price, promotion, shelf location, or product facts.
 - Safety guardrails evaluate the corrected transcript before any AI/product flow, so pregnancy and breastfeeding safety questions still escalate even when STT output is routed through correction metadata.
 - Unclear speech returns `clarification_needed=true`; the frontend asks the customer to try again and must not call AI response, product recommendation, TTS, or promotion flow for that unclear transcript.
 - STT remains conversion-only and must not diagnose, prescribe, recommend products, or generate medical advice.
 - Tests must not call OpenAI Whisper, ElevenLabs, or any external speech provider.
 - Red-flag responses stop before TTS playback.
-- Microphone denial, unsupported recording, and playback failure enter `error` with actionable text, and `Start` can reset the kiosk afterward.
+- Microphone denial, unsupported recording, and real unrecoverable playback failure enter `error` with actionable text, and `Start` can reset the kiosk afterward. Browser autoplay blocking after successful TTS is not treated as unrecoverable playback failure.
 - Tracks, audio URLs, analyser nodes, microphone silence timers, and socket timers are cleaned up.
 - Accessibility typed input is an alternative input channel, not a replacement for Tap to Speak and not a separate business logic path.
 - Submitting typed text calls the same high-level AI/business/safety workflow used after voice transcription, including red-flag escalation, product lookup, promotion matching, unknown-product purchasing queries, subtitles, and TTS/poster updates.
@@ -62,4 +64,4 @@ Typed path: customer text input -> same AI response endpoint and safety/product 
 - `backend/tests/test_provider_config.py`
 - `backend/tests/test_faster_whisper_stt.py`
 - `backend/tests/test_openai_stt.py`
-- Manual microphone evidence in `reports/test-evidence.md`.
+- Manual microphone evidence in `reports/test-evidence.md`; automated CI must not depend on real microphone hardware or permission prompts.

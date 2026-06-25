@@ -74,6 +74,12 @@ Expected local demo provider summary:
 }
 ```
 
+For the full local voice demo after provider verification, `TTS_PROVIDER` may be
+set to `elevenlabs` only in local `.env` after the ElevenLabs key has been
+verified. Keep `ELEVENLABS_API_KEY`, `ELEVENLABS_VOICE_ID`, and
+`ELEVENLABS_MODEL_ID` in root `.env` only. Do not copy any ElevenLabs key into
+`frontend/.env.local`, docs, screenshots, logs, or reports.
+
 Expected local runtime status includes only safe provider fields:
 
 ```json
@@ -171,3 +177,26 @@ Before showing the local demo, verify:
 - Ollama output is accepted only as structured, validated, safe wording.
 - Frontend executes only whitelisted `ui_actions`.
 - No real customer audio, transcripts, logs, or screenshots are committed.
+
+## Manual microphone QA checklist
+
+Automated tests mock MediaRecorder and must not require real microphone hardware,
+browser permission prompts, faster-whisper model downloads, ElevenLabs keys, or
+live Ollama availability. Real microphone QA is manual:
+
+1. Open `http://127.0.0.1:5175`.
+2. Allow browser microphone permission.
+3. Press `Tap to Speak`.
+4. Say `Where is Relief Balm?`.
+5. Confirm the raw transcript can remain `Relief Bomb` when STT hears it that
+   way, but the corrected product flow resolves to mock VitaFlow `Relief Balm`.
+6. Confirm the Product, Shelf, Promotion, and ERP panels use only mock VitaFlow
+   facts.
+7. Confirm ElevenLabs voice plays when `TTS_PROVIDER=elevenlabs` is explicitly
+   enabled locally.
+8. Confirm VRM enters speaking state during playback and returns to ready after
+   audio ends.
+9. If the browser blocks autoplay, confirm the kiosk keeps the answer visible,
+   shows `Tap to play voice`, and does not fall into generic `Try Again`.
+10. Test `I am pregnant. Can I use Relief Balm?` and confirm pharmacist
+    escalation happens before normal product or promotion flow.

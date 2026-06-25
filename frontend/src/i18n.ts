@@ -12,6 +12,7 @@ export const LANGUAGE_OPTIONS: Array<{ code: KioskLanguage; label: string }> = [
 export interface KioskTranslations {
   aiPharmacyAssistant: string;
   tapToSpeak: string;
+  tapToPlayVoice: string;
   tapToStop: string;
   tryAgain: string;
   start: string;
@@ -107,6 +108,7 @@ export const translations: Record<KioskLanguage, KioskTranslations> = {
   en: {
     aiPharmacyAssistant: "AI Pharmacy Assistant",
     tapToSpeak: "Tap to Speak",
+    tapToPlayVoice: "Tap to play voice",
     tapToStop: "Tap to Stop",
     tryAgain: "Try Again",
     start: "Start",
@@ -200,6 +202,7 @@ export const translations: Record<KioskLanguage, KioskTranslations> = {
   zh: {
     aiPharmacyAssistant: "AI 药房助手",
     tapToSpeak: "点击说话",
+    tapToPlayVoice: "点击播放语音",
     tapToStop: "点击停止",
     tryAgain: "再试一次",
     start: "开始",
@@ -293,6 +296,7 @@ export const translations: Record<KioskLanguage, KioskTranslations> = {
   ms: {
     aiPharmacyAssistant: "Pembantu Farmasi AI",
     tapToSpeak: "Tekan untuk bercakap",
+    tapToPlayVoice: "Tekan untuk main suara",
     tapToStop: "Tekan untuk berhenti",
     tryAgain: "Cuba lagi",
     start: "Mula",

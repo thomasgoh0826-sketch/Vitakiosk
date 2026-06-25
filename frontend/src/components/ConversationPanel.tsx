@@ -8,6 +8,7 @@ interface ConversationPanelProps {
   responseText: string;
   state: AvatarState;
   error: string | null;
+  audioPlaybackBlocked?: boolean;
   labels: KioskTranslations;
 }
 
@@ -16,6 +17,7 @@ function ConversationPanel({
   responseText,
   state,
   error,
+  audioPlaybackBlocked = false,
   labels,
 }: ConversationPanelProps) {
   const showTranscriptDebug =
@@ -23,7 +25,13 @@ function ConversationPanel({
 
   return (
     <div className="conversation-panel panel" aria-label="AI conversation deck">
-      <AiSubtitle state={state} responseText={responseText} error={error} labels={labels} />
+      <AiSubtitle
+        state={state}
+        responseText={responseText}
+        error={error}
+        audioPlaybackBlocked={audioPlaybackBlocked}
+        labels={labels}
+      />
       {showTranscriptDebug && transcript ? (
         <details className="transcript-debug-panel">
           <summary>Transcript debug</summary>
