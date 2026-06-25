@@ -9,7 +9,7 @@ from services.product_vision import MockProductVision
 from services.promotion_engine import PromotionEngine
 from services.safety_guardrails import SafetyGuardrails
 from services.vitaflow_api import MockVitaFlowAPI
-from services.voice_ai import MockSTT, MockTTS
+from services.voice_ai import ElevenLabsTTS, MockSTT, MockTTS
 
 
 NOW = datetime(2026, 6, 21, 12, 0, tzinfo=UTC)
@@ -120,6 +120,65 @@ def test_mock_tts_returns_playable_wav_header() -> None:
     assert audio[:4] == b"RIFF"
     assert audio[8:12] == b"WAVE"
     assert len(audio) > 44
+
+
+def test_elevenlabs_tts_posts_audio_request_without_real_network(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    captured: dict[str, object] = {}
+
+    class FakeResponse:
+        status_code = 200
+        content = b"\xff\xfbmock-mp3"
+
+        def raise_for_status(self) -> None:
+            return None
+
+    class FakeClient:
+        def __init__(self, *, timeout: float) -> None:
+            captured["timeout"] = timeout
+
+        def __enter__(self) -> "FakeClient":
+            return self
+
+        def __exit__(self, *args: object) -> None:
+            return None
+
+        def post(
+            self,
+            url: str,
+            *,
+            params: dict[str, str],
+            headers: dict[str, str],
+            json: dict[str, str],
+        ) -> FakeResponse:
+            captured["url"] = url
+            captured["params"] = params
+            captured["headers"] = headers
+            captured["json"] = json
+            return FakeResponse()
+
+    monkeypatch.setattr("services.voice_ai.httpx.Client", FakeClient)
+
+    audio = ElevenLabsTTS(
+        api_key="test-api-key",
+        voice_id="test-voice-id",
+    ).synthesize("VitaKiosk ElevenLabs voice test.")
+
+    assert audio == b"\xff\xfbmock-mp3"
+    assert captured["url"] == (
+        "https://api.elevenlabs.io/v1/text-to-speech/test-voice-id"
+    )
+    assert captured["params"] == {"output_format": "mp3_44100_128"}
+    assert captured["headers"] == {
+        "Accept": "audio/mpeg",
+        "Content-Type": "application/json",
+        "xi-api-key": "test-api-key",
+    }
+    assert captured["json"] == {
+        "text": "VitaKiosk ElevenLabs voice test.",
+        "model_id": "eleven_multilingual_v2",
+    }
 
 
 def test_red_flag_is_escalated() -> None:

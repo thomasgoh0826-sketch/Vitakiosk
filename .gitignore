@@ -51,6 +51,7 @@ sales-data/
 private-data/
 recordings/
 generated-audio/
+tmp/
 *.wav
 *.webm
 *.mp3

@@ -5,6 +5,8 @@ import math
 import struct
 import wave
 
+import httpx
+
 from services.models import TranscriptionResult
 
 
@@ -26,6 +28,8 @@ class MockSTT:
 
 
 class MockTTS:
+    provider_name = "mock_tts"
+
     def synthesize(self, text: str) -> bytes:
         if not text.strip():
             raise ValueError("Text payload is empty")
@@ -53,17 +57,50 @@ class MockTTS:
 
 
 class ElevenLabsTTS:
-    """Placeholder adapter for a future explicitly enabled ElevenLabs TTS layer."""
+    """Explicitly enabled ElevenLabs text-to-speech adapter."""
 
     provider_name = "elevenlabs"
+    media_type = "audio/mpeg"
 
-    def __init__(self, *, api_key: str, voice_id: str) -> None:
+    def __init__(
+        self,
+        *,
+        api_key: str,
+        voice_id: str,
+        model_id: str = "eleven_multilingual_v2",
+    ) -> None:
         self._api_key = api_key
         self._voice_id = voice_id
+        self._model_id = model_id or "eleven_multilingual_v2"
 
     def synthesize(self, text: str) -> bytes:
-        del text
-        raise RuntimeError(
-            "ElevenLabs TTS is a live-provider placeholder and is not "
-            "implemented in the mock-first demo."
-        )
+        clean_text = text.strip()
+        if not clean_text:
+            raise ValueError("Text payload is empty")
+
+        url = f"https://api.elevenlabs.io/v1/text-to-speech/{self._voice_id}"
+        try:
+            with httpx.Client(timeout=30.0) as client:
+                response = client.post(
+                    url,
+                    params={"output_format": "mp3_44100_128"},
+                    headers={
+                        "Accept": "audio/mpeg",
+                        "Content-Type": "application/json",
+                        "xi-api-key": self._api_key,
+                    },
+                    json={
+                        "text": clean_text,
+                        "model_id": self._model_id,
+                    },
+                )
+                response.raise_for_status()
+        except httpx.HTTPStatusError as exc:
+            raise RuntimeError(
+                "ElevenLabs TTS request failed with status "
+                f"{exc.response.status_code}"
+            ) from exc
+        except httpx.HTTPError as exc:
+            raise RuntimeError("ElevenLabs TTS request failed") from exc
+
+        return response.content

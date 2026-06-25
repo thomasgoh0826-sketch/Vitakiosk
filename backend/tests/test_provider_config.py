@@ -8,7 +8,7 @@ from services.openai_stt import OpenAIWhisperSTT
 from services.product_vision import MockProductVision
 from services.providers import create_provider_bundle
 from services.vitaflow_api import MockVitaFlowAPI
-from services.voice_ai import MockSTT, MockTTS
+from services.voice_ai import ElevenLabsTTS, MockSTT, MockTTS
 
 
 PROVIDER_ENV = (
@@ -27,6 +27,7 @@ PROVIDER_ENV = (
     "STT_LOW_CONFIDENCE_THRESHOLD",
     "ELEVENLABS_API_KEY",
     "ELEVENLABS_VOICE_ID",
+    "ELEVENLABS_MODEL_ID",
     "OLLAMA_BASE_URL",
     "OLLAMA_MODEL",
     "OLLAMA_TIMEOUT_SECONDS",
@@ -85,6 +86,7 @@ def test_credentials_do_not_auto_enable_live_providers(
     monkeypatch.setenv("OPENAI_API_KEY", "not-real-openai-test-value")
     monkeypatch.setenv("ELEVENLABS_API_KEY", "eleven-not-real-test-value")
     monkeypatch.setenv("ELEVENLABS_VOICE_ID", "voice-not-real-test-value")
+    monkeypatch.setenv("ELEVENLABS_MODEL_ID", "eleven-mock-model")
     monkeypatch.setenv("OLLAMA_BASE_URL", "http://localhost:11434")
     monkeypatch.setenv("VITAFLOW_API_BASE_URL", "https://vitaflow.invalid")
     monkeypatch.setenv("FASTER_WHISPER_MODEL_SIZE", "small")
@@ -121,6 +123,35 @@ def test_openai_whisper_stt_fails_closed_without_api_key(
     monkeypatch.setenv("STT_PROVIDER", "openai_whisper")
 
     with pytest.raises(RuntimeError, match="OPENAI_API_KEY"):
+        create_provider_bundle(Settings.from_environment())
+
+
+def test_elevenlabs_tts_requires_explicit_provider_selection_without_network(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    clear_provider_env(monkeypatch)
+    monkeypatch.setenv("TTS_PROVIDER", "elevenlabs")
+    monkeypatch.setenv("ELEVENLABS_API_KEY", "eleven-not-real-test-value")
+    monkeypatch.setenv("ELEVENLABS_VOICE_ID", "voice-not-real-test-value")
+    monkeypatch.setenv("ELEVENLABS_MODEL_ID", "eleven_multilingual_v2")
+
+    bundle = create_provider_bundle(Settings.from_environment())
+
+    assert isinstance(bundle.stt, MockSTT)
+    assert isinstance(bundle.tts, ElevenLabsTTS)
+    assert bundle.tts.provider_name == "elevenlabs"
+    assert isinstance(bundle.ai_brain, MockAIBrain)
+    assert isinstance(bundle.vitaflow, MockVitaFlowAPI)
+
+
+def test_elevenlabs_tts_fails_closed_without_api_key(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    clear_provider_env(monkeypatch)
+    monkeypatch.setenv("TTS_PROVIDER", "elevenlabs")
+    monkeypatch.setenv("ELEVENLABS_VOICE_ID", "voice-not-real-test-value")
+
+    with pytest.raises(RuntimeError, match="ELEVENLABS_API_KEY"):
         create_provider_bundle(Settings.from_environment())
 
 
@@ -172,6 +203,16 @@ def test_ollama_settings_have_local_defaults(
     assert settings.ollama_base_url == "http://localhost:11434"
     assert settings.ollama_model == "qwen2.5:7b"
     assert settings.ollama_timeout_seconds == 20
+
+
+def test_elevenlabs_settings_have_safe_model_default(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    clear_provider_env(monkeypatch)
+
+    settings = Settings.from_environment()
+
+    assert settings.elevenlabs_model_id == "eleven_multilingual_v2"
 
 
 def test_invalid_provider_selector_is_rejected(

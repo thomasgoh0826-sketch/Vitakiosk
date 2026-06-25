@@ -37,10 +37,20 @@ async def transcribe(
 
 @router.post("/tts")
 async def synthesize(request: TTSRequest) -> Response:
-    audio = tts.synthesize(request.text)
+    try:
+        audio = tts.synthesize(request.text)
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
+    except RuntimeError as exc:
+        raise HTTPException(
+            status_code=502,
+            detail="TTS provider request failed",
+        ) from exc
     await manager.broadcast_state(request.session_id, "speaking", "playing response")
+    provider_name = getattr(tts, "provider_name", "tts")
+    media_type = getattr(tts, "media_type", "audio/wav")
     return Response(
         content=audio,
-        media_type="audio/wav",
-        headers={"X-Voice-Provider": "mock_tts"},
+        media_type=media_type,
+        headers={"X-Voice-Provider": provider_name},
     )

@@ -130,6 +130,7 @@ def _create_tts(settings: Settings) -> TTSAdapter:
             "ELEVENLABS_VOICE_ID",
             "TTS_PROVIDER=elevenlabs",
         ),
+        model_id=settings.elevenlabs_model_id,
     )
 
 

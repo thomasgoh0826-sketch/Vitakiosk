@@ -1,7 +1,11 @@
 from collections.abc import Iterator
+import os
 
 import pytest
 from fastapi.testclient import TestClient
+
+
+os.environ.setdefault("VITAKIOSK_LOAD_DOTENV", "false")
 
 
 @pytest.fixture

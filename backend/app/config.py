@@ -3,6 +3,8 @@ from __future__ import annotations
 import os
 from dataclasses import dataclass
 
+from dotenv import load_dotenv
+
 
 ALLOWED_STT_PROVIDERS = frozenset({"mock", "openai_whisper", "faster_whisper"})
 ALLOWED_TTS_PROVIDERS = frozenset({"mock", "elevenlabs"})
@@ -35,6 +37,21 @@ def _env_int(name: str, default: int) -> int:
         raise RuntimeError(f"{name} must be an integer") from exc
 
 
+def _should_load_dotenv() -> bool:
+    value = (os.getenv("VITAKIOSK_LOAD_DOTENV", "true") or "true").strip().casefold()
+    return value not in {
+        "0",
+        "false",
+        "no",
+        "off",
+    }
+
+
+def _load_local_dotenv() -> None:
+    if _should_load_dotenv():
+        load_dotenv(override=False)
+
+
 def _validate_choice(name: str, value: str, allowed: frozenset[str]) -> None:
     if value not in allowed:
         allowed_values = ", ".join(sorted(allowed))
@@ -58,6 +75,7 @@ class Settings:
     stt_low_confidence_threshold: float
     elevenlabs_api_key: str
     elevenlabs_voice_id: str
+    elevenlabs_model_id: str
     ollama_base_url: str
     ollama_model: str
     ollama_timeout_seconds: int
@@ -65,6 +83,7 @@ class Settings:
 
     @classmethod
     def from_environment(cls) -> "Settings":
+        _load_local_dotenv()
         return cls(
             provider_mode=_env_choice("VITAKIOSK_PROVIDER_MODE", "mock"),
             stt_provider=_env_choice("STT_PROVIDER", "mock"),
@@ -90,6 +109,10 @@ class Settings:
             ),
             elevenlabs_api_key=_env_text("ELEVENLABS_API_KEY"),
             elevenlabs_voice_id=_env_text("ELEVENLABS_VOICE_ID"),
+            elevenlabs_model_id=_env_text(
+                "ELEVENLABS_MODEL_ID",
+                "eleven_multilingual_v2",
+            ),
             ollama_base_url=_env_text("OLLAMA_BASE_URL", "http://localhost:11434"),
             ollama_model=_env_text("OLLAMA_MODEL", "qwen2.5:7b"),
             ollama_timeout_seconds=_env_int("OLLAMA_TIMEOUT_SECONDS", 20),

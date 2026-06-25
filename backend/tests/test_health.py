@@ -89,6 +89,7 @@ def test_runtime_status_reports_local_ollama_profile_without_secrets(
             stt_low_confidence_threshold=0.55,
             elevenlabs_api_key="secret-elevenlabs-key",
             elevenlabs_voice_id="private-voice",
+            elevenlabs_model_id="private-model",
             ollama_base_url="http://127.0.0.1:11434",
             ollama_model="qwen2.5:7b",
             ollama_timeout_seconds=20,
