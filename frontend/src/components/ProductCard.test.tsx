@@ -183,6 +183,38 @@ describe("ProductCard futuristic summary transform", () => {
     }
   });
 
+  it("toggles enlarged product details and summary with one inside click using holographic morph state", () => {
+    vi.useFakeTimers();
+    try {
+      render(<ProductCard product={product} purchasingQueryId={null} labels={translations.en} language="en" />);
+      const panel = screen.getByRole("region", { name: "Product" });
+
+      fireEvent.doubleClick(panel);
+
+      let dialog = screen.getByRole("dialog", { name: /enlarged product details/i });
+      let stage = within(dialog).getByTestId("product-viewer-stage");
+      expect(stage).toHaveAttribute("data-product-morph", "holographic");
+
+      fireEvent.click(stage);
+
+      dialog = screen.getByRole("dialog", { name: /enlarged product summary/i });
+      stage = within(dialog).getByTestId("product-viewer-stage");
+      expect(stage).toHaveAttribute("data-product-view", "summary");
+      expect(stage).toHaveTextContent("Ingredient");
+      expect(stage).toHaveTextContent("Relief Balm");
+
+      fireEvent.click(stage);
+
+      dialog = screen.getByRole("dialog", { name: /enlarged product details/i });
+      stage = within(dialog).getByTestId("product-viewer-stage");
+      expect(stage).toHaveAttribute("data-product-view", "details");
+      expect(stage).toHaveTextContent("$12.50");
+      expect(stage).toHaveTextContent("Mock VitaFlow");
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
   it("closes the enlarged product view from outside click and Escape", () => {
     render(<ProductCard product={product} purchasingQueryId={null} labels={translations.en} language="en" />);
     const panel = screen.getByRole("region", { name: "Product" });

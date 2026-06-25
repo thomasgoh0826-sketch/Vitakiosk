@@ -22,11 +22,15 @@ def search_products(
     branch_id: Annotated[str, Query(min_length=1, max_length=40)],
 ) -> dict[str, Any]:
     products = vitaflow.search_products(query, branch_id)
+    candidates = []
     purchasing_query_id: str | None = None
     if not products:
+        candidates = vitaflow.search_product_candidates(query, branch_id)
+    if not products and not candidates:
         purchasing_query_id = purchasing_store.create(query, branch_id).id
     return {
         "items": [asdict(product) for product in products],
+        "candidates": [asdict(candidate) for candidate in candidates],
         "purchasing_query_id": purchasing_query_id,
         "source": "mock_vitaflow",
     }

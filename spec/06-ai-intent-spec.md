@@ -24,6 +24,9 @@ Classify requests deterministically before any future model integration.
 - Pregnancy and breastfeeding questions, including English, Malay, and Chinese terms, return pharmacist escalation/review before any product, promotion, shelf, or purchasing-query flow.
 - High-risk terms for child use, kidney disease, liver disease, blood thinner use, severe allergy, chest pain, breathing difficulty, fainting, high fever, and severe symptoms escalate before product flow.
 - Price, stock, promotion, and shelf responses reproduce adapter facts exactly.
+- Near product matches from the VitaFlow adapter return a confirmation flow
+  such as `Do you mean Relief Balm?` with product candidates and without
+  creating a purchasing query.
 - Unknown products return no product and create one purchasing query.
 - Backend AI responses may include only structured whitelisted `ui_actions`; arbitrary UI instructions are not valid output.
 - Product-specific promotion and campaign actions reference only adapter-provided leaflet IDs.

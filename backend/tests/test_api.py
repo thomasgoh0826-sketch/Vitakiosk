@@ -165,6 +165,25 @@ def test_product_not_found_creates_purchasing_query(client: TestClient) -> None:
     assert payload["purchasing_query_id"].startswith("PQ-")
 
 
+def test_product_search_returns_fuzzy_candidates_without_purchasing_query(
+    client: TestClient,
+) -> None:
+    response = client.get(
+        "/api/products/search",
+        params={"query": "Where is Relief Bomb?", "branch_id": "SG-001"},
+    )
+
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload["items"] == []
+    assert payload["purchasing_query_id"] is None
+    assert payload["candidates"][0]["product"]["id"] == "MOCK-P001"
+    assert payload["candidates"][0]["product"]["price"] == 12.5
+    assert payload["candidates"][0]["product"]["stock"] == 18
+    assert payload["candidates"][0]["product"]["shelf_location"] == "A-03"
+    assert payload["candidates"][0]["match_reason"] == "near_name_match"
+
+
 def test_promotion_match_is_branch_aware(client: TestClient) -> None:
     matching = client.get(
         "/api/promotions/match",

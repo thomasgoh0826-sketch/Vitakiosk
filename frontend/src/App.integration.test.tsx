@@ -397,6 +397,55 @@ describe("integrated kiosk panels", () => {
     expect(screen.queryByText("Relief Balm")).not.toBeInTheDocument();
   });
 
+  it("shows fuzzy product candidates and applies the selected VitaFlow item", () => {
+    const candidateProduct = {
+      id: "MOCK-P001",
+      name: "Relief Balm",
+      branch_id: "SG-001",
+      price: 12.5,
+      stock: 18,
+      shelf_location: "A-03",
+      source: "mock_vitaflow",
+      unavailable_reason: null,
+    };
+    hookMocks.voice.mockReturnValue({
+      ...hookMocks.voice(),
+      product: null,
+      promotions: [],
+      responseText: "Do you mean Relief Balm?",
+      purchasingQueryId: null,
+      productCandidates: [
+        {
+          product: candidateProduct,
+          confidence: 0.91,
+          match_reason: "near_name_match",
+          matched_text: "Relief Bomb",
+        },
+      ],
+    });
+
+    render(<App />);
+
+    expect(screen.getByText("Do you mean this item?")).toBeInTheDocument();
+    expect(screen.getByText("Best match")).toBeInTheDocument();
+    const candidateButton = screen.getByRole("button", {
+      name: /select item: relief balm/i,
+    });
+    expect(candidateButton).toHaveTextContent("MOCK-P001");
+    expect(candidateButton).toHaveTextContent("$12.50");
+    expect(candidateButton).toHaveTextContent("18");
+    expect(candidateButton).toHaveTextContent("A-03");
+    expect(candidateButton).toHaveTextContent("SG-001");
+    expect(candidateButton).toHaveTextContent("Mock VitaFlow");
+
+    fireEvent.click(candidateButton);
+
+    expect(screen.getAllByText("Relief Balm").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("A-03").length).toBeGreaterThan(0);
+    expect(screen.getByRole("button", { name: /open Relief Balm Demo Leaflet leaflet/i })).toBeInTheDocument();
+    expect(screen.queryByText("Do you mean this item?")).not.toBeInTheDocument();
+  });
+
   it("shows immediate local feedback after manual pharmacist request", async () => {
     render(<App />);
 

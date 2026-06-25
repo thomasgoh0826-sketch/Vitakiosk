@@ -6,6 +6,7 @@ import type {
   Leaflet,
   Poster,
   Product,
+  ProductSearchCandidate,
   Promotion,
   UiAction,
 } from "../types";
@@ -39,6 +40,7 @@ function useVoiceInteraction({
 }: UseVoiceInteractionOptions) {
   const [state, setState] = useState<AvatarState>("idle");
   const [product, setProduct] = useState<Product | null>(null);
+  const [productCandidates, setProductCandidates] = useState<ProductSearchCandidate[]>([]);
   const [promotions, setPromotions] = useState<Promotion[]>([]);
   const [leaflets, setLeaflets] = useState<Leaflet[]>([]);
   const [uiActions, setUiActions] = useState<UiAction[]>([]);
@@ -181,6 +183,7 @@ function useVoiceInteraction({
     chunksRef.current = [];
     setState("idle");
     setProduct(null);
+    setProductCandidates([]);
     setPromotions([]);
     setLeaflets([]);
     setUiActions([]);
@@ -239,6 +242,7 @@ function useVoiceInteraction({
       );
       setHasResult(true);
       setProduct(response.product);
+      setProductCandidates(response.product_candidates ?? []);
       setPromotions(response.promotions);
       setLeaflets(response.leaflets ?? []);
       setUiActions(response.ui_actions ?? []);
@@ -349,6 +353,7 @@ function useVoiceInteraction({
         || workflowTranscript.trim().length === 0
       ) {
         setProduct(null);
+        setProductCandidates([]);
         setPromotions([]);
         setLeaflets([]);
         setUiActions([]);
@@ -381,6 +386,7 @@ function useVoiceInteraction({
     state,
     audioActivity,
     product,
+    productCandidates,
     promotions,
     leaflets,
     uiActions,

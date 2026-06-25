@@ -98,6 +98,9 @@ export interface KioskTranslations {
   safetyEscalationActive: string;
   requestPharmacistReview: string;
   safeHandoffOnly: string;
+  doYouMeanThisItem: string;
+  bestMatch: string;
+  selectProductCandidate: string;
 }
 
 export const translations: Record<KioskLanguage, KioskTranslations> = {
@@ -190,6 +193,9 @@ export const translations: Record<KioskLanguage, KioskTranslations> = {
     safetyEscalationActive: "Safety escalation active.",
     requestPharmacistReview: "Request pharmacist review",
     safeHandoffOnly: "In-store safety handoff only.",
+    doYouMeanThisItem: "Do you mean this item?",
+    bestMatch: "Best match",
+    selectProductCandidate: "Select item",
   },
   zh: {
     aiPharmacyAssistant: "AI 药房助手",
@@ -280,6 +286,9 @@ export const translations: Record<KioskLanguage, KioskTranslations> = {
     safetyEscalationActive: "安全转交已启动。",
     requestPharmacistReview: "请求药剂师审核",
     safeHandoffOnly: "仅限店内安全转交。",
+    doYouMeanThisItem: "你是指这个产品吗？",
+    bestMatch: "最佳匹配",
+    selectProductCandidate: "选择此产品",
   },
   ms: {
     aiPharmacyAssistant: "Pembantu Farmasi AI",
@@ -370,6 +379,9 @@ export const translations: Record<KioskLanguage, KioskTranslations> = {
     safetyEscalationActive: "Eskalasi keselamatan aktif.",
     requestPharmacistReview: "Minta semakan ahli farmasi",
     safeHandoffOnly: "Serahan keselamatan dalam kedai sahaja.",
+    doYouMeanThisItem: "Adakah anda maksudkan produk ini?",
+    bestMatch: "Padanan terbaik",
+    selectProductCandidate: "Pilih produk ini",
   },
 };
 

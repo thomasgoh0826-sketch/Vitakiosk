@@ -178,6 +178,18 @@ A feature is accepted only when:
   1366x768. The Product panel is not accepted if `scrollHeight` or `scrollWidth`
   exceeds the panel client size because of hidden clipped content or decorative
   overflow.
+- Fuzzy ERP product search acceptance requires the VitaFlow adapter to expose a
+  read-only candidate-search method that supports exact, partial, alias,
+  SKU/code, and near spelling/STT variants with branch-aware confidence and
+  match reason. Candidate facts must come only from the adapter, and a no-candidate
+  result is the only product-search path that may create a purchasing query.
+- Fuzzy product UI acceptance requires medium or ambiguous matches such as
+  `Relief Bomb` -> `Relief Balm` to show a customer-facing `Do you mean this
+  item?` panel with touch-friendly candidate cards, simple labels such as
+  `Best match`, source/provenance, and no technical scoring vocabulary.
+- Candidate selection acceptance requires the selected adapter-backed item to
+  update Product, Shelf Navigation, Promotion leaflet priority, and ERP
+  provenance while preserving safety, non-invention, and red-flag priority.
 - Product summary transform acceptance requires a source-backed Product panel to
   switch between details and a concise summary state through click/tap and
   keyboard activation, use a futuristic shift/morph style rather than a
@@ -201,6 +213,11 @@ A feature is accepted only when:
   animating either Product sheet creates document/body horizontal overflow,
   flashes a native horizontal scrollbar/white bottom line, or forces summary or
   fact cards outside the viewport instead of wrapping safely.
+- Enlarged Product interaction acceptance requires a single click/tap inside
+  the enlarged sheet to toggle details and summary with a holographic morph,
+  light sweep, layered-glass shift, or reduced-motion fade. A standard 180-degree
+  card flip, instant swap, inside-click close, or double-tap open causing
+  duplicate toggles is not accepted.
 - Shelf Navigation responsive acceptance requires browser bounding-box evidence
   that the route summary, Aisle/Shelf/Level facts, current-position marker, and
   target marker remain fully inside the Shelf Navigation panel at 1024x768, a
