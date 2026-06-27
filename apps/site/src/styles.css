@@ -98,14 +98,11 @@ img {
   pointer-events: none;
   content: "";
   background:
-    radial-gradient(
-      circle at calc(var(--pointer-x, 0.5) * 100%) calc(var(--pointer-y, 0.45) * 100%),
-      rgba(53, 244, 232, 0.14),
-      rgba(155, 124, 255, 0.075) 18rem,
-      transparent 34rem
-    );
+    linear-gradient(105deg, rgba(53, 244, 232, 0.055), transparent 34% 64%, rgba(155, 124, 255, 0.045)),
+    radial-gradient(ellipse at 18% 22%, rgba(53, 244, 232, 0.075), transparent 34rem),
+    radial-gradient(ellipse at 86% 18%, rgba(155, 124, 255, 0.06), transparent 38rem);
   mix-blend-mode: screen;
-  opacity: 0.86;
+  opacity: 0.72;
   transition: opacity 260ms var(--ease-out);
 }
 
@@ -128,8 +125,9 @@ img {
 .global-liquid-backdrop[data-reduced-motion="true"] {
   opacity: 0.3;
   background:
-    radial-gradient(circle at 28% 32%, rgba(53, 244, 232, 0.22), transparent 32%),
-    radial-gradient(circle at 72% 26%, rgba(155, 124, 255, 0.18), transparent 34%);
+    linear-gradient(115deg, rgba(53, 244, 232, 0.16), transparent 42%, rgba(155, 124, 255, 0.13)),
+    radial-gradient(ellipse at 28% 32%, rgba(53, 244, 232, 0.12), transparent 34%),
+    radial-gradient(ellipse at 72% 26%, rgba(155, 124, 255, 0.1), transparent 36%);
 }
 
 .site-header {

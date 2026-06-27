@@ -339,6 +339,7 @@ function GlobalLiquidBackdrop({ progress }: { progress: number }) {
       return;
     }
 
+    canvas.dataset.effect = "liquid-wake";
     const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
     if (reducedMotion.matches) {
       canvas.dataset.reducedMotion = "true";
@@ -350,9 +351,25 @@ function GlobalLiquidBackdrop({ progress }: { progress: number }) {
     let width = 0;
     let height = 0;
     let dpr = 1;
-    let lastRipple = 0;
+    let lastWake = 0;
+    let lastFrameTime = performance.now();
     const pointer = { x: 0.5, y: 0.45 };
-    const ripples: Array<{ x: number; y: number; radius: number; life: number; hue: number; strength: number }> = [];
+    const previousPointer = { x: 0, y: 0, initialized: false };
+    type LiquidWake = {
+      x: number;
+      y: number;
+      previousX: number;
+      previousY: number;
+      angle: number;
+      length: number;
+      width: number;
+      life: number;
+      intensity: number;
+      hue: number;
+      curl: number;
+    };
+    const wakes: LiquidWake[] = [];
+    const clamp = (value: number, min: number, max: number) => Math.min(max, Math.max(min, value));
 
     const resize = () => {
       const rect = canvas.getBoundingClientRect();
@@ -363,35 +380,58 @@ function GlobalLiquidBackdrop({ progress }: { progress: number }) {
       canvas.height = height;
     };
 
-    const addRipple = (clientX: number, clientY: number, strength = 1) => {
+    const addLiquidWake = (clientX: number, clientY: number, strength = 1) => {
       const now = performance.now();
-      if (now - lastRipple < 42) {
+      if (now - lastWake < 20) {
         return;
       }
-      lastRipple = now;
+      lastWake = now;
       const rect = canvas.getBoundingClientRect();
       pointer.x = (clientX - rect.left) / Math.max(rect.width, 1);
       pointer.y = (clientY - rect.top) / Math.max(rect.height, 1);
       document.documentElement.style.setProperty("--pointer-x", pointer.x.toFixed(4));
       document.documentElement.style.setProperty("--pointer-y", pointer.y.toFixed(4));
-      ripples.push({
-        x: pointer.x * width,
-        y: pointer.y * height,
-        radius: 8 * dpr,
+      const x = pointer.x * width;
+      const y = pointer.y * height;
+      if (!previousPointer.initialized) {
+        previousPointer.x = x;
+        previousPointer.y = y;
+        previousPointer.initialized = true;
+        return;
+      }
+      const dx = x - previousPointer.x;
+      const dy = y - previousPointer.y;
+      const speed = Math.hypot(dx, dy);
+      previousPointer.x = x;
+      previousPointer.y = y;
+      if (speed < 1.2 * dpr) {
+        return;
+      }
+      const angle = Math.atan2(dy, dx);
+      const intensity = clamp((speed / (42 * dpr)) * strength, 0.14, 1);
+      wakes.push({
+        x,
+        y,
+        previousX: x - dx * 0.58,
+        previousY: y - dy * 0.58,
+        angle,
+        length: clamp(speed * 5.4, 42 * dpr, 190 * dpr),
+        width: clamp(speed * 1.55, 20 * dpr, 76 * dpr),
         life: 1,
-        hue: ripples.length % 2 ? 266 : 178,
-        strength,
+        intensity,
+        hue: wakes.length % 2 ? 266 : 178,
+        curl: (Math.sin(now * 0.006 + wakes.length) * 0.42 + Math.cos(angle * 2.4) * 0.22) * dpr,
       });
-      if (ripples.length > 16) {
-        ripples.shift();
+      if (wakes.length > 34) {
+        wakes.splice(0, wakes.length - 34);
       }
     };
 
-    const onPointerMove = (event: PointerEvent) => addRipple(event.clientX, event.clientY, event.pointerType === "touch" ? 0.72 : 1);
+    const onPointerMove = (event: PointerEvent) => addLiquidWake(event.clientX, event.clientY, event.pointerType === "touch" ? 0.78 : 1);
     const onTouchMove = (event: TouchEvent) => {
       const touch = event.touches[0];
       if (touch) {
-        addRipple(touch.clientX, touch.clientY, 0.72);
+        addLiquidWake(touch.clientX, touch.clientY, 0.78);
       }
     };
     const onVisibilityChange = () => {
@@ -406,41 +446,81 @@ function GlobalLiquidBackdrop({ progress }: { progress: number }) {
         frame = 0;
         return;
       }
-      context.clearRect(0, 0, width, height);
+      const now = performance.now();
+      const delta = Math.min(32, now - lastFrameTime);
+      lastFrameTime = now;
+      context.globalCompositeOperation = "source-over";
+      context.fillStyle = `rgba(0, 4, 11, ${0.17 + progressRef.current * 0.032})`;
+      context.fillRect(0, 0, width, height);
       const depth = 0.35 + progressRef.current * 0.45;
-      const time = performance.now() * 0.00018;
-      const gradient = context.createRadialGradient(
-        pointer.x * width,
-        pointer.y * height,
-        0,
-        pointer.x * width,
-        pointer.y * height,
-        Math.max(width, height) * (0.56 + depth * 0.18),
-      );
-      gradient.addColorStop(0, `rgba(53, 244, 232, ${0.2 + depth * 0.1})`);
-      gradient.addColorStop(0.3, "rgba(155, 124, 255, 0.12)");
-      gradient.addColorStop(1, "rgba(0, 0, 0, 0)");
-      context.fillStyle = gradient;
+      const time = now * 0.00024;
+      const ambient = context.createLinearGradient(0, height * 0.18, width, height * 0.82);
+      ambient.addColorStop(0, `rgba(53, 244, 232, ${0.035 + depth * 0.018})`);
+      ambient.addColorStop(0.5, "rgba(155, 124, 255, 0.045)");
+      ambient.addColorStop(1, "rgba(53, 244, 232, 0)");
+      context.fillStyle = ambient;
       context.fillRect(0, 0, width, height);
 
       context.save();
       context.globalCompositeOperation = "screen";
-      for (let index = ripples.length - 1; index >= 0; index -= 1) {
-        const ripple = ripples[index];
-        ripple.radius += (2.2 + depth * 2.1) * dpr;
-        ripple.life -= 0.012 + depth * 0.004;
-        if (ripple.life <= 0) {
-          ripples.splice(index, 1);
+      context.lineCap = "round";
+      context.lineJoin = "round";
+      for (let index = wakes.length - 1; index >= 0; index -= 1) {
+        const wake = wakes[index];
+        wake.life -= (0.013 + depth * 0.0045) * (delta / 16.67);
+        wake.length *= 0.997;
+        wake.width *= 0.992;
+        wake.x += Math.cos(wake.angle + Math.PI / 2) * wake.curl * (1 - wake.life) * 0.52;
+        wake.y += Math.sin(wake.angle + Math.PI / 2) * wake.curl * (1 - wake.life) * 0.52;
+        if (wake.life <= 0.02) {
+          wakes.splice(index, 1);
           continue;
         }
-        const alpha = ripple.life * 0.36 * ripple.strength;
+
+        const tailX = wake.x - Math.cos(wake.angle) * wake.length;
+        const tailY = wake.y - Math.sin(wake.angle) * wake.length;
+        const sideX = Math.cos(wake.angle + Math.PI / 2);
+        const sideY = Math.sin(wake.angle + Math.PI / 2);
+        const alpha = wake.life * wake.intensity;
+        const smear = context.createLinearGradient(tailX, tailY, wake.x, wake.y);
+        smear.addColorStop(0, `hsla(${wake.hue}, 96%, 62%, 0)`);
+        smear.addColorStop(0.46, `hsla(${wake.hue}, 96%, 62%, ${0.045 * alpha})`);
+        smear.addColorStop(1, `hsla(${wake.hue === 178 ? 178 : 266}, 96%, 68%, ${0.16 * alpha})`);
+
+        context.save();
+        context.filter = `blur(${clamp(wake.width * 0.16, 4 * dpr, 13 * dpr)}px)`;
+        context.shadowBlur = (32 + wake.width * 0.7) * wake.life;
+        context.shadowColor = wake.hue === 178 ? "rgba(53, 244, 232, 0.72)" : "rgba(155, 124, 255, 0.62)";
+        context.strokeStyle = smear;
+        context.lineWidth = Math.max(10 * dpr, wake.width * wake.life * 0.82);
         context.beginPath();
-        context.arc(ripple.x, ripple.y, ripple.radius + Math.sin(time * 18 + index) * 9 * dpr, 0, Math.PI * 2);
-        context.strokeStyle = `hsla(${ripple.hue}, 96%, 64%, ${alpha})`;
-        context.lineWidth = Math.max(1, 2.2 * dpr * ripple.life);
-        context.shadowBlur = 24 * dpr * ripple.life;
-        context.shadowColor = ripple.hue === 178 ? "rgba(53, 244, 232, 0.7)" : "rgba(155, 124, 255, 0.7)";
+        context.moveTo(tailX, tailY);
+        context.bezierCurveTo(
+          wake.previousX + sideX * wake.width * Math.sin(time + index),
+          wake.previousY + sideY * wake.width * Math.cos(time * 1.4 + index),
+          wake.x - Math.cos(wake.angle) * wake.length * 0.22 + sideX * wake.curl * 14,
+          wake.y - Math.sin(wake.angle) * wake.length * 0.22 + sideY * wake.curl * 14,
+          wake.x,
+          wake.y,
+        );
         context.stroke();
+        context.restore();
+
+        const eddyAlpha = Math.max(0, (1 - Math.abs(wake.life - 0.45) * 1.7) * wake.intensity * 0.065);
+        if (eddyAlpha > 0.01) {
+          context.save();
+          context.filter = `blur(${clamp(wake.width * 0.12, 4 * dpr, 10 * dpr)}px)`;
+          context.translate(wake.x - Math.cos(wake.angle) * wake.length * 0.32, wake.y - Math.sin(wake.angle) * wake.length * 0.32);
+          context.rotate(wake.angle + Math.sin(time + index) * 0.55);
+          const eddy = context.createRadialGradient(0, 0, 0, 0, 0, wake.width * 1.9);
+          eddy.addColorStop(0, `hsla(${wake.hue}, 96%, 68%, ${eddyAlpha})`);
+          eddy.addColorStop(0.58, `hsla(${wake.hue}, 96%, 62%, ${eddyAlpha * 0.32})`);
+          eddy.addColorStop(1, "rgba(0, 0, 0, 0)");
+          context.scale(1.9, 0.42);
+          context.fillStyle = eddy;
+          context.fillRect(-wake.width * 2, -wake.width * 2, wake.width * 4, wake.width * 4);
+          context.restore();
+        }
       }
       context.restore();
 

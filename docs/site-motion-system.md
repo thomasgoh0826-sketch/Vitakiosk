@@ -28,7 +28,16 @@ Behavior:
 - A fixed canvas is mounted once per site page at the root layout layer, above
   the static background and behind all content.
 - It uses `pointer-events: none` and never blocks buttons, cards, forms, or videos.
-- Pointer and touch movement create subtle cyan/violet ripple rings.
+- Pointer and touch movement create cyan/violet liquid wakes rather than
+  tap-style ripple rings.
+- The canvas stores the previous pointer position, derives velocity, and adds
+  elongated blurred wake strokes along the movement vector.
+- Faster movement creates a longer, brighter smear; slow movement creates a
+  shorter soft trail.
+- When direction changes, low-opacity elliptical eddies appear along the path
+  and fade as the field settles.
+- When the pointer stops, no new wake is created; existing strokes decay through
+  the animation loop.
 - The page also updates `--pointer-x` and `--pointer-y` so foreground glass
   panels receive a soft light bend from the same pointer source.
 - Scroll progress changes the depth/intensity of the canvas field.
