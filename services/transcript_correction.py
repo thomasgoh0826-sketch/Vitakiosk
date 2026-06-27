@@ -57,6 +57,13 @@ def _mock_product_terms() -> tuple[CorrectionTerm, ...]:
 
 COMMON_PHARMACY_TERMS: tuple[CorrectionTerm, ...] = (
     CorrectionTerm(
+        canonical="Relief Balm",
+        variants=("relief bomb",),
+        kind="product",
+        source="correction_lexicon",
+        product_id="MOCK-P001",
+    ),
+    CorrectionTerm(
         canonical="Panadol",
         variants=("panadol", "pana doll", "pan a doll", "panadol"),
         kind="product_or_brand_term",

@@ -56,6 +56,7 @@ def test_faster_whisper_detects_multilingual_pharmacy_speech(
     ("raw_text", "expected_text", "expected_term"),
     [
         ("where is pana doll", "where is Panadol", "Panadol"),
+        ("Where is Relief Bomb?", "Where is Relief Balm?", "Relief Balm"),
         ("do you have probio gut", "do you have ProbioGut", "ProbioGut"),
         ("ada ubat batok", "ada ubat batuk", "ubat batuk"),
         ("Aida you bat batuck", "ada ubat batuk", "ubat batuk"),
@@ -85,6 +86,17 @@ def test_faster_whisper_returns_correction_metadata() -> None:
     assert result.possible_product_matches[0]["name"] == "Panadol"
     assert result.confidence == 0.92
     assert result.language == "mixed"
+
+
+def test_faster_whisper_corrects_relief_bomb_without_losing_raw_transcript() -> None:
+    stt = FasterWhisperSTT(model_runner=transcriber("Where is Relief Bomb?"))
+
+    result = stt.transcribe(b"mock audio", "audio/webm")
+
+    assert result.transcript == "Where is Relief Bomb?"
+    assert result.corrected_transcript == "Where is Relief Balm?"
+    assert result.detected_terms == ("Relief Balm",)
+    assert result.possible_product_matches[0]["id"] == "MOCK-P001"
 
 
 def test_faster_whisper_low_confidence_requests_clarification_without_guessing() -> None:

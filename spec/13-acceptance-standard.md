@@ -71,6 +71,11 @@ A feature is accepted only when:
   `Tap to Stop` fallback, browser-side silence auto-stop, and a secondary
   `Start` / `Start New Customer` reset action instead of a small `Hold to
   Speak` fallback.
+- Voice playback acceptance requires successful backend TTS audio to enter
+  `speaking`, activate playback/VRM speaking behavior, return to `idle` after
+  audio end, and avoid `Try Again`. Browser autoplay blocking after successful
+  TTS must show a controlled `Tap to play voice` path while keeping the answer
+  visible.
 - Typed-input acceptance requires a compact accessibility input rail
   below Shelf navigation, a clearly labelled text field, visible current draft,
   small keyboard icon, conditional Clear, and Send actions, native
@@ -120,9 +125,14 @@ A feature is accepted only when:
   live STT network calls or faster-whisper model downloads in tests or CI,
   transcript language metadata for English/Chinese/Malay/mixed speech,
   confidence/correction metadata when available, local pharmacy dictionary
-  correction without inventing product facts, and an unclear/low-confidence
+  correction without inventing product facts, common mock-product STT variants
+  such as `Relief Bomb` -> `Relief Balm`, and an unclear/low-confidence
   speech path that asks for clarification instead of calling AI, TTS, product,
   promotion, or recommendation workflows.
+- STT API acceptance requires empty, unsupported, malformed, or provider
+  decode-failed audio to return controlled 400/422-style client feedback
+  (`invalid_audio`) instead of a backend 500, stack trace, raw audio log, or
+  bad-audio persistence.
 - Ollama AI provider acceptance requires mock AI by default, explicit
   `AI_PROVIDER=ollama` selection for local Ollama, no real Ollama calls in tests
   or CI, structured JSON validation, safety checks before and after model
@@ -178,6 +188,18 @@ A feature is accepted only when:
   1366x768. The Product panel is not accepted if `scrollHeight` or `scrollWidth`
   exceeds the panel client size because of hidden clipped content or decorative
   overflow.
+- Fuzzy ERP product search acceptance requires the VitaFlow adapter to expose a
+  read-only candidate-search method that supports exact, partial, alias,
+  SKU/code, and near spelling/STT variants with branch-aware confidence and
+  match reason. Candidate facts must come only from the adapter, and a no-candidate
+  result is the only product-search path that may create a purchasing query.
+- Fuzzy product UI acceptance requires medium or ambiguous matches such as
+  `Relief Bomb` -> `Relief Balm` to show a customer-facing `Do you mean this
+  item?` panel with touch-friendly candidate cards, simple labels such as
+  `Best match`, source/provenance, and no technical scoring vocabulary.
+- Candidate selection acceptance requires the selected adapter-backed item to
+  update Product, Shelf Navigation, Promotion leaflet priority, and ERP
+  provenance while preserving safety, non-invention, and red-flag priority.
 - Product summary transform acceptance requires a source-backed Product panel to
   switch between details and a concise summary state through click/tap and
   keyboard activation, use a futuristic shift/morph style rather than a
@@ -201,6 +223,11 @@ A feature is accepted only when:
   animating either Product sheet creates document/body horizontal overflow,
   flashes a native horizontal scrollbar/white bottom line, or forces summary or
   fact cards outside the viewport instead of wrapping safely.
+- Enlarged Product interaction acceptance requires a single click/tap inside
+  the enlarged sheet to toggle details and summary with a holographic morph,
+  light sweep, layered-glass shift, or reduced-motion fade. A standard 180-degree
+  card flip, instant swap, inside-click close, or double-tap open causing
+  duplicate toggles is not accepted.
 - Shelf Navigation responsive acceptance requires browser bounding-box evidence
   that the route summary, Aisle/Shelf/Level facts, current-position marker, and
   target marker remain fully inside the Shelf Navigation panel at 1024x768, a

@@ -16,6 +16,7 @@ interface ProductCardProps {
   purchasingQueryId: string | null;
   labels?: KioskTranslations;
   language?: KioskLanguage;
+  hasActivePromotion?: boolean;
 }
 
 type ProductViewMode = "details" | "summary";
@@ -102,6 +103,7 @@ function ProductCard({
   purchasingQueryId,
   labels = translations.en,
   language = "en",
+  hasActivePromotion = false,
 }: ProductCardProps) {
   const [isSummaryVisible, setIsSummaryVisible] = useState(false);
   const [enlargedView, setEnlargedView] = useState<ProductViewMode | null>(null);
@@ -184,6 +186,15 @@ function ProductCard({
 
     clearPendingToggle();
     setEnlargedView(mode);
+  };
+
+  const toggleEnlargedView = () => {
+    setEnlargedView((current) => {
+      if (!current) {
+        return current;
+      }
+      return current === "details" ? "summary" : "details";
+    });
   };
 
   const handlePanelClick = (event: MouseEvent<HTMLElement>) => {
@@ -279,8 +290,21 @@ function ProductCard({
         >
           <article
             className="product-viewer-stage"
+            data-product-morph="holographic"
             data-product-view={enlargedView}
             data-testid="product-viewer-stage"
+            tabIndex={0}
+            onClick={(event) => {
+              event.stopPropagation();
+              toggleEnlargedView();
+            }}
+            onKeyDown={(event) => {
+              if (event.key !== "Enter" && event.key !== " ") {
+                return;
+              }
+              event.preventDefault();
+              toggleEnlargedView();
+            }}
             onMouseDown={(event) => event.stopPropagation()}
           >
             {enlargedView === "details" ? (
@@ -292,6 +316,9 @@ function ProductCard({
                   <span className="eyebrow">{labels.productVerified}</span>
                   <h2>{product.name}</h2>
                   <p>{product.id}</p>
+                  {hasActivePromotion ? (
+                    <span className="product-promotion-badge">{labels.promotion}</span>
+                  ) : null}
                   <strong>
                     {product.price === null ? labels.unavailable : `$${product.price.toFixed(2)}`}
                   </strong>

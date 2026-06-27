@@ -6,6 +6,7 @@ import type {
   Leaflet,
   Poster,
   Product,
+  ProductSearchCandidate,
   Promotion,
   UiAction,
 } from "../types";
@@ -29,6 +30,22 @@ export const SILENCE_RMS_THRESHOLD = 0.018;
 const SILENCE_SAMPLE_INTERVAL_MS = 100;
 type AudioContextConstructor = new () => AudioContext;
 
+function isAutoplayBlockedError(error: unknown) {
+  return (
+    error instanceof DOMException && error.name === "NotAllowedError"
+  ) || (
+    error instanceof Error && error.name === "NotAllowedError"
+  );
+}
+
+function waitForAudioPlayback(audio: HTMLAudioElement): Promise<void> {
+  return new Promise<void>((resolve, reject) => {
+    audio.onended = () => resolve();
+    audio.onerror = () => reject(new Error("Audio playback failed"));
+    void audio.play().catch(reject);
+  });
+}
+
 function useVoiceInteraction({
   sessionId,
   branchId,
@@ -39,6 +56,7 @@ function useVoiceInteraction({
 }: UseVoiceInteractionOptions) {
   const [state, setState] = useState<AvatarState>("idle");
   const [product, setProduct] = useState<Product | null>(null);
+  const [productCandidates, setProductCandidates] = useState<ProductSearchCandidate[]>([]);
   const [promotions, setPromotions] = useState<Promotion[]>([]);
   const [leaflets, setLeaflets] = useState<Leaflet[]>([]);
   const [uiActions, setUiActions] = useState<UiAction[]>([]);
@@ -50,6 +68,7 @@ function useVoiceInteraction({
   const [hasResult, setHasResult] = useState(false);
   const [resultId, setResultId] = useState(0);
   const [error, setError] = useState<string | null>(null);
+  const [audioPlaybackBlocked, setAudioPlaybackBlocked] = useState(false);
   const [audioElement, setAudioElement] = useState<HTMLAudioElement | null>(null);
   const [micActivity, setMicActivity] = useState(0);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
@@ -61,6 +80,7 @@ function useVoiceInteraction({
   const inputAudioContextRef = useRef<AudioContext | null>(null);
   const inputAudioSourceRef = useRef<MediaStreamAudioSourceNode | null>(null);
   const stopRecordingRef = useRef<(() => Promise<void>) | null>(null);
+  const blockedAudioRef = useRef<HTMLAudioElement | null>(null);
   const autoStopInProgressRef = useRef(false);
   const playbackAudioActivity = useAudioActivity(audioElement);
   const audioActivity = state === "listening" ? micActivity : playbackAudioActivity;
@@ -181,6 +201,7 @@ function useVoiceInteraction({
     chunksRef.current = [];
     setState("idle");
     setProduct(null);
+    setProductCandidates([]);
     setPromotions([]);
     setLeaflets([]);
     setUiActions([]);
@@ -192,12 +213,16 @@ function useVoiceInteraction({
     setHasResult(false);
     setResultId(0);
     setError(null);
+    setAudioPlaybackBlocked(false);
     setAudioElement(null);
+    blockedAudioRef.current = null;
     autoStopInProgressRef.current = false;
     sendState("idle");
   }, [audioElement, releaseMedia, sendState, stopSilenceMonitor]);
 
   const stopCurrentAudio = useCallback(() => {
+    blockedAudioRef.current = null;
+    setAudioPlaybackBlocked(false);
     if (audioElement) {
       audioElement.onended = null;
       audioElement.onerror = null;
@@ -210,6 +235,54 @@ function useVoiceInteraction({
       audioUrlRef.current = null;
     }
   }, [audioElement]);
+
+  const clearCurrentAudioUrl = useCallback(() => {
+    if (audioUrlRef.current) {
+      URL.revokeObjectURL(audioUrlRef.current);
+      audioUrlRef.current = null;
+    }
+  }, []);
+
+  const finishSuccessfulPlayback = useCallback(() => {
+    clearCurrentAudioUrl();
+    blockedAudioRef.current = null;
+    setAudioElement(null);
+    setAudioPlaybackBlocked(false);
+    setState("idle");
+    sendState("idle");
+  }, [clearCurrentAudioUrl, sendState]);
+
+  const playBlockedAudio = useCallback(async () => {
+    const audio = blockedAudioRef.current;
+    if (!audio) {
+      return;
+    }
+
+    setError(null);
+    setAudioPlaybackBlocked(false);
+    setAudioElement(audio);
+    setState("speaking");
+    sendState("speaking");
+    try {
+      await waitForAudioPlayback(audio);
+      finishSuccessfulPlayback();
+    } catch (caught) {
+      if (isAutoplayBlockedError(caught)) {
+        blockedAudioRef.current = audio;
+        setAudioElement(null);
+        setAudioPlaybackBlocked(true);
+        setState("idle");
+        sendState("idle");
+        return;
+      }
+      clearCurrentAudioUrl();
+      blockedAudioRef.current = null;
+      setAudioElement(null);
+      setAudioPlaybackBlocked(false);
+      setState("error");
+      setError("Voice playback failed. Please try again.");
+    }
+  }, [clearCurrentAudioUrl, finishSuccessfulPlayback, sendState]);
 
   const runTextWorkflow = useCallback(async (
     workflowTranscript: string,
@@ -225,6 +298,7 @@ function useVoiceInteraction({
     stopCurrentAudio();
     chunksRef.current = [];
     setError(null);
+    setAudioPlaybackBlocked(false);
     setTranscript(displayTranscript);
     setResponseText("Preparing answer...");
     setState("thinking");
@@ -239,6 +313,7 @@ function useVoiceInteraction({
       );
       setHasResult(true);
       setProduct(response.product);
+      setProductCandidates(response.product_candidates ?? []);
       setPromotions(response.promotions);
       setLeaflets(response.leaflets ?? []);
       setUiActions(response.ui_actions ?? []);
@@ -262,17 +337,26 @@ function useVoiceInteraction({
       const audio = new Audio(audioUrl) as HTMLAudioElement;
       setAudioElement(audio);
       setState("speaking");
+      sendState("speaking");
 
-      await new Promise<void>((resolve, reject) => {
-        audio.onended = () => resolve();
-        audio.onerror = () => reject(new Error("Audio playback failed"));
-        void audio.play().catch(reject);
-      });
-      URL.revokeObjectURL(audioUrl);
-      audioUrlRef.current = null;
-      setAudioElement(null);
-      setState("idle");
-      sendState("idle");
+      try {
+        await waitForAudioPlayback(audio);
+        finishSuccessfulPlayback();
+      } catch (playbackError) {
+        if (isAutoplayBlockedError(playbackError)) {
+          blockedAudioRef.current = audio;
+          setAudioElement(null);
+          setAudioPlaybackBlocked(true);
+          setState("idle");
+          sendState("idle");
+          return;
+        }
+        clearCurrentAudioUrl();
+        blockedAudioRef.current = null;
+        setAudioElement(null);
+        setAudioPlaybackBlocked(false);
+        throw playbackError;
+      }
     } catch (caught) {
       releaseMedia();
       setState("error");
@@ -285,6 +369,8 @@ function useVoiceInteraction({
     releaseMedia,
     sendState,
     sessionId,
+    clearCurrentAudioUrl,
+    finishSuccessfulPlayback,
     stopCurrentAudio,
     stopSilenceMonitor,
   ]);
@@ -349,6 +435,7 @@ function useVoiceInteraction({
         || workflowTranscript.trim().length === 0
       ) {
         setProduct(null);
+        setProductCandidates([]);
         setPromotions([]);
         setLeaflets([]);
         setUiActions([]);
@@ -381,6 +468,7 @@ function useVoiceInteraction({
     state,
     audioActivity,
     product,
+    productCandidates,
     promotions,
     leaflets,
     uiActions,
@@ -392,9 +480,11 @@ function useVoiceInteraction({
     hasResult,
     resultId,
     error,
+    audioPlaybackBlocked,
     startRecording,
     stopRecording,
     submitText,
+    playBlockedAudio,
     reset,
   };
 }

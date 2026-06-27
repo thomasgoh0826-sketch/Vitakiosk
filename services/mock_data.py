@@ -12,6 +12,33 @@ MOCK_PRODUCTS: tuple[Product, ...] = (
         price=12.50,
         stock=18,
         shelf_location="A-03",
+        productSummary={
+            "ingredient": {
+                "en": "Menthol, camphor, herbal soothing ingredients",
+                "zh": "Menthol、camphor、草本舒缓成分",
+                "ms": "Menthol, camphor, bahan herba yang menenangkan",
+            },
+            "howToUse": {
+                "en": "Apply externally to the affected area as needed.",
+                "zh": "外用，适量涂抹在需要舒缓的部位。",
+                "ms": "Sapu secara luaran pada bahagian yang diperlukan.",
+            },
+            "bestFor": {
+                "en": "Muscle discomfort, shoulder tension, general soothing use.",
+                "zh": "肌肉不适、肩颈紧绷、日常舒缓。",
+                "ms": "Ketidakselesaan otot, ketegangan bahu, kegunaan luaran umum.",
+            },
+            "size": {
+                "en": "30g",
+                "zh": "30g",
+                "ms": "30g",
+            },
+            "description": {
+                "en": "Cooling relief balm. Easy to apply. For external use only.",
+                "zh": "清凉舒缓膏，方便外用。只供外用。",
+                "ms": "Balm rasa sejuk untuk kegunaan luaran. Mudah digunakan.",
+            },
+        },
     ),
     Product(
         id="MOCK-P002",
@@ -21,6 +48,17 @@ MOCK_PRODUCTS: tuple[Product, ...] = (
         price=8.90,
         stock=24,
         shelf_location="B-07",
+        productSummary={
+            "ingredient": {"en": "Oral rehydration salts blend"},
+            "howToUse": {
+                "en": "Follow the product label and ask the pharmacist if unsure."
+            },
+            "bestFor": {"en": "Hydration support information from mock VitaFlow."},
+            "size": {"en": "10 sachets"},
+            "description": {
+                "en": "Mock hydration product record. Speak with a pharmacist for advice."
+            },
+        },
     ),
     Product(
         id="MOCK-P003",
@@ -30,6 +68,15 @@ MOCK_PRODUCTS: tuple[Product, ...] = (
         price=10.20,
         stock=11,
         shelf_location="C-02",
+        productSummary={
+            "ingredient": {"en": "Gentle skin cleansing base"},
+            "howToUse": {"en": "Use externally as described on the product label."},
+            "bestFor": {"en": "General cleansing information from mock VitaFlow."},
+            "size": {"en": "250ml"},
+            "description": {
+                "en": "Mock skin wash product record. Ask the pharmacist for personal advice."
+            },
+        },
     ),
 )
 

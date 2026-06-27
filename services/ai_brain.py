@@ -72,9 +72,34 @@ class MockAIBrain:
         if confirmation is not None:
             return confirmation
 
-        requested_intent = self._classify(safe_text)
-        products = self._vitaflow.search_products(safe_text, branch_id)
+        lookup_text = corrected_text or safe_text
+        requested_intent = self._classify(lookup_text)
+        products = self._vitaflow.search_products(lookup_text, branch_id)
+        if not products and lookup_text != safe_text:
+            products = self._vitaflow.search_products(safe_text, branch_id)
         if not products:
+            product_candidates = tuple(
+                self._vitaflow.search_product_candidates(lookup_text, branch_id)
+                or self._vitaflow.search_product_candidates(safe_text, branch_id)
+            )
+            if product_candidates:
+                best_candidate = product_candidates[0]
+                if best_candidate.confidence >= 0.95:
+                    return self._build_product_result(
+                        requested_intent,
+                        best_candidate.product,
+                        branch_id,
+                        session_id=session_id,
+                    )
+                self._clear_pending(session_id)
+                return AIResult(
+                    intent=Intent.PRODUCT_SEARCH,
+                    message=f"Do you mean {best_candidate.product.name}?",
+                    requires_pharmacist=False,
+                    product_candidates=product_candidates,
+                    leaflets=tuple(self._leaflet_engine.eligible_for_branch(branch_id)),
+                    source=best_candidate.product.source,
+                )
             if requested_intent is Intent.PROMOTION_CHECK:
                 return self._build_gallery_result(
                     Intent.PROMOTION_CHECK,

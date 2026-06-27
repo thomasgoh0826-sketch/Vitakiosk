@@ -95,11 +95,14 @@ class FasterWhisperSTT:
         model = self._get_model()
         audio_path = self._write_temp_audio(audio, content_type)
         try:
-            segments, info = model.transcribe(
-                str(audio_path),
-                language=None if self._language == "auto" else self._language,
-                vad_filter=True,
-            )
+            try:
+                segments, info = model.transcribe(
+                    str(audio_path),
+                    language=None if self._language == "auto" else self._language,
+                    vad_filter=True,
+                )
+            except Exception as exc:
+                raise ValueError("Audio could not be decoded") from exc
             text = " ".join(
                 segment.text.strip()
                 for segment in segments

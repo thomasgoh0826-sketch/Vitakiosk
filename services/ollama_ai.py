@@ -14,6 +14,7 @@ from services.models import (
     Intent,
     Leaflet,
     Product,
+    ProductSearchResult,
     Promotion,
     UiAction,
     UiActionType,
@@ -148,6 +149,10 @@ class OllamaAIBrain:
             "base_safe_answer": base_result.message,
             "requires_pharmacist": base_result.requires_pharmacist,
             "product": self._product_context(base_result.product),
+            "product_candidates": [
+                self._candidate_context(item)
+                for item in base_result.product_candidates
+            ],
             "promotions": [self._promotion_context(item) for item in base_result.promotions],
             "leaflets": [self._leaflet_context(item) for item in base_result.leaflets],
             "allowed_ui_actions": [action.type.value for action in base_result.ui_actions],
@@ -363,6 +368,18 @@ class OllamaAIBrain:
             "shelf_location": product.shelf_location,
             "source": product.source,
             "unavailable_reason": product.unavailable_reason,
+        }
+
+    @classmethod
+    def _candidate_context(
+        cls,
+        candidate: ProductSearchResult,
+    ) -> dict[str, object]:
+        return {
+            "product": cls._product_context(candidate.product),
+            "confidence": candidate.confidence,
+            "match_reason": candidate.match_reason,
+            "matched_text": candidate.matched_text,
         }
 
     @staticmethod

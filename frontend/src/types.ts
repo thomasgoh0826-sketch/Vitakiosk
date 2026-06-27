@@ -33,6 +33,13 @@ export interface Product {
   productSummary?: Partial<ProductSummary>;
 }
 
+export interface ProductSearchCandidate {
+  product: Product;
+  confidence: number;
+  match_reason: string;
+  matched_text: string;
+}
+
 export interface Promotion {
   id: string;
   title: string;
@@ -107,6 +114,7 @@ export interface AIResponse {
   message: string;
   requires_pharmacist: boolean;
   product: Product | null;
+  product_candidates: ProductSearchCandidate[];
   promotions: Promotion[];
   leaflets: Leaflet[];
   ui_actions: UiAction[];
@@ -171,6 +179,7 @@ export interface ItemListResponse<T> {
 }
 
 export interface ProductSearchResponse extends ItemListResponse<Product> {
+  candidates: ProductSearchCandidate[];
   purchasing_query_id: string | null;
 }
 

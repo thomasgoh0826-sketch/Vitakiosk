@@ -5,6 +5,8 @@ interface TapToSpeakButtonProps {
   state: AvatarState;
   onStart: () => void;
   onStop: () => void;
+  labelOverride?: string | null;
+  helperOverride?: string | null;
   labels?: KioskTranslations;
 }
 
@@ -24,11 +26,13 @@ function TapToSpeakButton({
   state,
   onStart,
   onStop,
+  labelOverride = null,
+  helperOverride = null,
   labels = translations.en,
 }: TapToSpeakButtonProps) {
   const listening = state === "listening";
   const disabled = ["thinking", "speaking", "pharmacist_escalation"].includes(state);
-  const buttonLabel = buttonLabelFor(state, labels);
+  const buttonLabel = labelOverride ?? buttonLabelFor(state, labels);
 
   return (
     <button
@@ -44,7 +48,7 @@ function TapToSpeakButton({
       </span>
       <span>
         <strong>{buttonLabel}</strong>
-        <small>{listening ? labels.listeningSecurely : labels.voiceAssistance}</small>
+        <small>{helperOverride ?? (listening ? labels.listeningSecurely : labels.voiceAssistance)}</small>
       </span>
     </button>
   );

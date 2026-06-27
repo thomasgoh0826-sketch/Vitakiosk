@@ -72,11 +72,23 @@ AI assistant, primary Tap to Speak voice control plus Start/New Customer reset, 
 - Product, poster, pharmacist, and leaflet icon/artwork containers must use stable square/icon-safe sizing with centered content, safe padding, non-shrinking containers, and `object-fit: contain` for image assets so logos and leaflet artwork are not clipped.
 - Product card fact rows and inner text must remain inside the Product panel bounds at the supported landscape QA viewports.
 - The Product panel must grow or compact its own internals instead of clipping stock, branch, shelf, or source facts; at narrower landscape widths the fact row may wrap into a compact grid, but `scrollHeight`/`scrollWidth` clipping and whole-app transform/zoom fixes are not accepted.
+- When the backend returns medium-confidence fuzzy product candidates, the
+  center deck shows a compact futuristic `Do you mean this item?` panel before
+  the Product card. Candidate cards must be touch-friendly, show product name,
+  SKU/code, price, stock, shelf, branch, source, and a simple label such as
+  `Best match`, and must not expose technical fuzzy-match terms to customers.
+- Selecting a candidate updates the Product panel, Shelf Navigation target,
+  Promotion leaflet priority, ERP provenance, and hides the candidate panel
+  without inventing product facts.
 - The Product panel may transform into a concise product summary state when the product section is tapped/clicked or activated by keyboard. This interaction must feel like a futuristic holographic shift/morph, not a cheap 180-degree flip, and must keep the Product header/source badge in normal safe layout.
 - Product summary content must remain safe demo information and must not invent VitaFlow facts, medical advice, diagnosis, stock, price, promotion, or shelf data. The summary state may show localized labels and safe localized text for Ingredient, How to use, Best for, Size, and Description for the currently displayed mock product. Product name, SKU, price, branch, shelf, stock, and `Mock VitaFlow` provenance values remain source-backed and untranslated.
 - Product summary mode must not show the visible wording `Back to product details`; tapping/clicking or keyboard activation on the Product panel toggles between source-backed details and summary without a normal web-card back button.
 - Product summary cards must use responsive auto-fit wrapping so medium and smaller layouts form two or more readable rows instead of shrinking into tiny cards, overlapping, or clipping content.
 - Double-tapping or double-clicking the Product details state opens an enlarged holographic product detail sheet, while double-tapping or double-clicking the Product summary state opens an enlarged holographic product summary sheet. The enlarged Product sheet must render as a top-level floating layer, close on outside click or Escape, keep inside clicks from closing it, avoid a visible X button, and respect reduced-motion users.
+- While the enlarged Product sheet is open, a single click/tap inside the sheet
+  toggles details and summary with a holographic morph/light-sweep treatment,
+  not a normal 180-degree web flip. The same inside click must not close the
+  sheet, and double-tap opening must not trigger messy duplicate toggles.
 - Enlarged Product detail and summary sheets must not create document/body horizontal overflow or a native horizontal scrollbar flash during open, close, or animation. The overlay must stay within viewport bounds, lock page scrolling while open, use transform/opacity or background-position animation rather than width/left/right overflow, and wrap summary/fact cards safely without shrinking the whole kiosk UI.
 - Enlarged leaflet previews must render as a top-level fixed overlay/portal above the entire kiosk UI, not as a big dark modal container, not as a modal box containing another carousel box, and not as a layer visually inserted into the avatar/product/shelf/background panels. The active leaflet image is the centered hero object and touch/mouse/trackpad swipe or drag on the whole floating stage changes the active leaflet.
 - Enlarged leaflet previews must use a Moderately Cylindrical floating deck pattern. The active leaflet is centered, largest, facing the customer, fully readable, and fully visible; previous and next leaflets remain visible on the left/right when they exist, smaller, dimmer, pushed back with noticeable but controlled cylindrical depth, and angled outward away from the center card. Spherical, circular, orbit, wheel, coverflow spin, full 3D carousel, inward-pinched side-card orientation, and hidden single-card replacement carousel motion are not accepted.

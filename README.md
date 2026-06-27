@@ -262,7 +262,7 @@ Consumers depend on interfaces in `services/contracts.py` and `frontend/src/comp
 - OpenAI/Whisper STT adapter for explicit local testing through `STT_PROVIDER=openai_whisper`.
 - Local faster-whisper STT adapter for explicit local testing through `STT_PROVIDER=faster_whisper`, with correction metadata from mock VitaFlow product names and a local pharmacy term lexicon.
 - Ollama local AI adapter for explicit local testing through `AI_PROVIDER=ollama`; OpenAI AI remains a future reviewed placeholder.
-- ElevenLabs TTS adapter as future reviewed work.
+- ElevenLabs TTS adapter for explicit local testing through `TTS_PROVIDER=elevenlabs`; keys stay in local root `.env` only.
 - VitaFlow HTTP API connector as future reviewed work.
 - Rive, Three.js GLB, or Three.js VRM avatar renderer.
   - Lottie is the default.
@@ -286,7 +286,7 @@ Controlled provider mode is per layer:
 | VitaFlow | `VITAFLOW_PROVIDER=mock` | `readonly_api` |
 | Vision | `VISION_PROVIDER=mock` | `barcode_ocr` |
 
-To test a live or local provider locally, edit only one selector in local `.env`, provide only that provider's required key, endpoint, or model settings, and rerun backend safety, non-invention, and source-of-truth tests. The STT adapter can call OpenAI only when `STT_PROVIDER=openai_whisper` is explicitly selected; faster-whisper runs locally and stores model files under the ignored `.models/` path. The Ollama AI adapter can call local Ollama only when `AI_PROVIDER=ollama` is explicitly selected, and it falls back to the mock workflow if the local server is offline or returns invalid/unsafe JSON. The TTS, OpenAI AI, VitaFlow, and vision live classes remain placeholders until separate reviewed tasks implement them.
+To test a live or local provider locally, edit only one selector in local `.env`, provide only that provider's required key, endpoint, or model settings, and rerun backend safety, non-invention, and source-of-truth tests. The STT adapter can call OpenAI only when `STT_PROVIDER=openai_whisper` is explicitly selected; faster-whisper runs locally and stores model files under the ignored `.models/` path. The Ollama AI adapter can call local Ollama only when `AI_PROVIDER=ollama` is explicitly selected, and it falls back to the mock workflow if the local server is offline or returns invalid/unsafe JSON. The ElevenLabs TTS adapter can call ElevenLabs only when `TTS_PROVIDER=elevenlabs` is explicitly selected and local credentials are present. OpenAI AI, VitaFlow, and vision live classes remain placeholders until separate reviewed tasks implement them.
 
 The first VitaFlow live task must use a reviewed read-only API or sanitized copy. It must not write to VitaFlow and must not read the ERP release directory or database directly.
 

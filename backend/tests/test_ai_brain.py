@@ -11,10 +11,15 @@ class CountingVitaFlow(MockVitaFlowAPI):
     def __init__(self) -> None:
         super().__init__()
         self.search_count = 0
+        self.candidate_search_count = 0
 
     def search_products(self, query: str, branch_id: str):  # type: ignore[no-untyped-def]
         self.search_count += 1
         return super().search_products(query, branch_id)
+
+    def search_product_candidates(self, query: str, branch_id: str):  # type: ignore[no-untyped-def]
+        self.candidate_search_count += 1
+        return super().search_product_candidates(query, branch_id)
 
 
 def build_brain(
@@ -121,6 +126,67 @@ def test_unknown_product_creates_one_purchasing_query() -> None:
     assert len(purchasing.items) == 1
     assert result.product is None
     assert "dragon miracle capsule" in purchasing.items[0].query
+
+
+def test_corrected_relief_bomb_returns_authoritative_product_without_purchasing_query() -> None:
+    brain, purchasing, _ = build_brain()
+
+    result = brain.respond("Where is Relief Bomb?", branch_id="SG-001")
+
+    assert result.intent is Intent.SHELF_LOCATION
+    assert result.product is not None
+    assert result.product.id == "MOCK-P001"
+    assert result.product.name == "Relief Balm"
+    assert result.product.shelf_location == "A-03"
+    assert result.purchasing_query_id is None
+    assert len(purchasing.items) == 0
+    assert result.product_candidates == ()
+    assert result.source == "mock_vitaflow"
+
+
+def test_near_product_name_returns_candidate_without_purchasing_query() -> None:
+    brain, purchasing, _ = build_brain()
+
+    result = brain.respond("Where is Relief Barm?", branch_id="SG-001")
+
+    assert result.intent is Intent.PRODUCT_SEARCH
+    assert result.product is None
+    assert result.purchasing_query_id is None
+    assert len(purchasing.items) == 0
+    assert result.product_candidates
+    best = result.product_candidates[0]
+    assert best.product.id == "MOCK-P001"
+    assert best.product.name == "Relief Balm"
+    assert best.product.price == 12.50
+    assert best.product.stock == 18
+    assert best.product.shelf_location == "A-03"
+    assert best.match_reason == "near_name_match"
+    assert "Do you mean Relief Balm?" in result.message
+    assert [leaflet.id for leaflet in result.leaflets] == [
+        "MOCK-LF-PROMO-001",
+        "MOCK-LF-PROMO-002",
+        "MOCK-LF-CAMP-001",
+    ]
+
+
+def test_safety_still_short_circuits_before_fuzzy_candidate_search() -> None:
+    vitaflow = CountingVitaFlow()
+    brain, purchasing, escalations = build_brain(vitaflow=vitaflow)
+
+    result = brain.respond(
+        "I am pregnant. Can I use Relief Bomb?",
+        branch_id="SG-001",
+    )
+
+    assert result.intent is Intent.RED_FLAG
+    assert result.requires_pharmacist is True
+    assert result.escalation_id == escalations.items[0].id
+    assert result.product is None
+    assert result.purchasing_query_id is None
+    assert result.product_candidates == ()
+    assert len(purchasing.items) == 0
+    assert vitaflow.search_count == 0
+    assert vitaflow.candidate_search_count == 0
 
 
 def test_price_response_uses_exact_vitaflow_product_fact() -> None:

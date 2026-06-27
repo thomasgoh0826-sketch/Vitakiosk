@@ -5,6 +5,7 @@ import pytest
 from services.poster_engine import PosterEngine
 from services.leaflet_engine import LeafletEngine
 from services.models import LeafletKind
+from services.models import Product
 from services.product_vision import MockProductVision
 from services.promotion_engine import PromotionEngine
 from services.safety_guardrails import SafetyGuardrails
@@ -38,6 +39,61 @@ def test_unknown_product_is_not_invented(vitaflow: MockVitaFlowAPI) -> None:
 
 def test_product_search_is_branch_scoped(vitaflow: MockVitaFlowAPI) -> None:
     assert vitaflow.search_products("relief balm", "SG-999") == []
+
+
+def test_fuzzy_search_suggests_relief_balm_for_relief_bomb(
+    vitaflow: MockVitaFlowAPI,
+) -> None:
+    candidates = vitaflow.search_product_candidates("Where is Relief Bomb?", "SG-001")
+
+    assert candidates
+    best = candidates[0]
+    assert best.product.id == "MOCK-P001"
+    assert best.product.name == "Relief Balm"
+    assert best.product.price == 12.50
+    assert best.product.stock == 18
+    assert best.product.shelf_location == "A-03"
+    assert best.product.source == "mock_vitaflow"
+    assert 0.80 <= best.confidence < 0.95
+    assert best.match_reason == "near_name_match"
+    assert best.matched_text == "Relief Bomb"
+
+
+def test_fuzzy_search_preserves_branch_scope(vitaflow: MockVitaFlowAPI) -> None:
+    assert vitaflow.search_product_candidates("Where is Relief Bomb?", "SG-999") == []
+
+
+def test_fuzzy_search_sorts_multiple_candidates_by_confidence() -> None:
+    vitaflow = MockVitaFlowAPI(
+        products=(
+            Product(
+                id="MOCK-RELIEF-CREAM",
+                name="Relief Cream",
+                aliases=("relief cream",),
+                branch_id="SG-001",
+                price=9.9,
+                stock=6,
+                shelf_location="A-04",
+            ),
+            Product(
+                id="MOCK-RELIEF-BALM",
+                name="Relief Balm",
+                aliases=("relief balm", "balm"),
+                branch_id="SG-001",
+                price=12.5,
+                stock=18,
+                shelf_location="A-03",
+            ),
+        )
+    )
+
+    candidates = vitaflow.search_product_candidates("relief balm", "SG-001")
+
+    assert [candidate.product.id for candidate in candidates[:2]] == [
+        "MOCK-RELIEF-BALM",
+        "MOCK-RELIEF-CREAM",
+    ]
+    assert candidates[0].confidence > candidates[1].confidence
 
 
 def test_promotion_match_is_active_current_and_branch_aware() -> None:

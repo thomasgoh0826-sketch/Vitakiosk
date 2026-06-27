@@ -8,6 +8,7 @@ import LanguageSelector from "./components/LanguageSelector";
 import LeafletModal from "./components/LeafletModal";
 import PharmacistEscalationPanel from "./components/PharmacistEscalationPanel";
 import ProductCard from "./components/ProductCard";
+import ProductCandidatePanel from "./components/ProductCandidatePanel";
 import PromotionPoster, { type PromotionPanelMode } from "./components/PromotionPoster";
 import RuntimeDiagnostics from "./components/RuntimeDiagnostics";
 import ShelfMap from "./components/ShelfMap";
@@ -19,7 +20,14 @@ import useVoiceInteraction from "./hooks/useVoiceInteraction";
 import type { KioskTranslations } from "./i18n";
 import { getTypedInputConfig } from "./inputConfig";
 import { MOCK_LEAFLETS } from "./mockLeaflets";
-import type { AvatarState, Leaflet, Product, RuntimeStatusResponse, UiAction } from "./types";
+import type {
+  AvatarState,
+  Leaflet,
+  Product,
+  ProductSearchCandidate,
+  RuntimeStatusResponse,
+  UiAction,
+} from "./types";
 import { isApprovedUiAction } from "./uiActions";
 
 const MOCK_PRODUCT: Product = {
@@ -68,8 +76,12 @@ function findLeaflet(leaflets: Leaflet[], action: UiAction) {
 function voiceFeedbackCopy(
   state: AvatarState,
   error: string | null,
+  audioPlaybackBlocked: boolean,
   labels: KioskTranslations,
 ) {
+  if (audioPlaybackBlocked) {
+    return labels.tapToPlayVoice;
+  }
   if (error) {
     return labels.retryOrStart;
   }
@@ -100,6 +112,8 @@ function App() {
   const [providerStatusUnavailable, setProviderStatusUnavailable] = useState(false);
   const [pharmacistConfirmationRequested, setPharmacistConfirmationRequested] =
     useState(false);
+  const [selectedProductCandidate, setSelectedProductCandidate] =
+    useState<ProductSearchCandidate | null>(null);
   const {
     language,
     preferredLanguage,
@@ -116,7 +130,12 @@ function App() {
     serverState: socket.state,
     sendState: socket.sendState,
   });
-  const product = voice.hasResult ? voice.product : MOCK_PRODUCT;
+  const product = voice.hasResult
+    ? selectedProductCandidate?.product ?? voice.product
+    : MOCK_PRODUCT;
+  const productCandidates = selectedProductCandidate
+    ? []
+    : voice.productCandidates ?? [];
   const leaflets = useMemo(
     () => (voice.hasResult ? (voice.leaflets ?? []) : MOCK_LEAFLETS)
       .filter((leaflet) => isLeafletActiveForBranch(leaflet, BRANCH_ID)),
@@ -182,6 +201,7 @@ function App() {
   const startNewCustomer = useCallback(() => {
     setManualEscalationId(null);
     setPharmacistConfirmationRequested(false);
+    setSelectedProductCandidate(null);
     setPromotionPanelMode("idle");
     setSelectedLeafletId(null);
     setModalLeafletId(null);
@@ -191,6 +211,10 @@ function App() {
     socket.sendState("idle");
     setSessionId(createSessionId());
   }, [socket, voice]);
+
+  useEffect(() => {
+    setSelectedProductCandidate(null);
+  }, [voice.resultId]);
 
   const showPromotionGallery = useCallback(() => {
     setPromotionPanelMode("promotion_gallery");
@@ -208,6 +232,23 @@ function App() {
     setSelectedLeafletId(leaflet.id);
     setModalLeafletId(leaflet.id);
   }, []);
+
+  const selectProductCandidate = useCallback((candidate: ProductSearchCandidate) => {
+    setSelectedProductCandidate(candidate);
+    const matchingPromotionLeaflet = leaflets.find((leaflet) =>
+      leaflet.kind === "promotion"
+      && leaflet.product_ids.includes(candidate.product.id),
+    );
+    if (matchingPromotionLeaflet) {
+      setSelectedLeafletId(matchingPromotionLeaflet.id);
+      setPromotionPanelMode("product_promotion");
+      setModalLeafletId(null);
+      return;
+    }
+    setSelectedLeafletId(null);
+    setPromotionPanelMode("product_options");
+    setModalLeafletId(null);
+  }, [leaflets]);
 
   useEffect(() => {
     if (!voice.hasResult) {
@@ -368,12 +409,20 @@ function App() {
           <section className="speak-region" aria-label="Voice assistant controls">
             <TapToSpeakButton
               state={avatarState}
-              onStart={() => void voice.startRecording()}
+              onStart={() => {
+                if (voice.audioPlaybackBlocked) {
+                  void voice.playBlockedAudio();
+                  return;
+                }
+                void voice.startRecording();
+              }}
               onStop={() => void voice.stopRecording()}
+              labelOverride={voice.audioPlaybackBlocked ? t.tapToPlayVoice : null}
+              helperOverride={voice.audioPlaybackBlocked ? t.voiceAssistance : null}
               labels={t}
             />
             <small className="voice-feedback" aria-live="polite">
-              {voiceFeedbackCopy(avatarState, voice.error, t)}
+              {voiceFeedbackCopy(avatarState, voice.error, voice.audioPlaybackBlocked, t)}
             </small>
             <section className="customer-reset" aria-label="New customer reset">
               <span>{t.freshSession}</span>
@@ -395,13 +444,28 @@ function App() {
             responseText={voice.responseText}
             state={avatarState}
             error={voice.error}
+            audioPlaybackBlocked={voice.audioPlaybackBlocked}
             labels={t}
+          />
+          <ProductCandidatePanel
+            candidates={productCandidates}
+            labels={t}
+            onSelect={selectProductCandidate}
           />
           <ProductCard
             product={product}
             purchasingQueryId={voice.purchasingQueryId}
             labels={t}
             language={language}
+            hasActivePromotion={
+              Boolean(
+                product
+                && leaflets.some((leaflet) =>
+                  leaflet.kind === "promotion"
+                  && leaflet.product_ids.includes(product.id),
+                ),
+              )
+            }
           />
           <ShelfMap product={product} labels={t} />
           <TypedInputPanel

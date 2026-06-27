@@ -16,6 +16,15 @@ class Product:
     shelf_location: str | None
     source: str = "mock_vitaflow"
     unavailable_reason: str | None = None
+    productSummary: dict[str, dict[str, str]] | None = None
+
+
+@dataclass(frozen=True)
+class ProductSearchResult:
+    product: Product
+    confidence: float
+    match_reason: str
+    matched_text: str
 
 
 @dataclass(frozen=True)
@@ -138,6 +147,7 @@ class AIResult:
     message: str
     requires_pharmacist: bool
     product: Product | None = None
+    product_candidates: tuple[ProductSearchResult, ...] = ()
     promotions: tuple[Promotion, ...] = ()
     leaflets: tuple[Leaflet, ...] = ()
     ui_actions: tuple[UiAction, ...] = ()
