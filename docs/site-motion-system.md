@@ -10,7 +10,7 @@ The homepage is authored as a small number of immersive scenes, not a normal car
 - The pinned journey currently has nine deterministic steps: five product
   showcase positions, then interactive demo, ERP source, partner corridor, and
   AI split scene.
-- The video carousel owns continuous `orbitRotation`; `activeVideoIndex` is derived from the nearest item.
+- The video carousel owns continuous `orbitalProgress`; `activeVideoIndex` is derived from the nearest item.
 - Page scroll does not mutate the video carousel index.
 - The carousel has no native horizontal overflow or scrollbar.
 - Reduced motion disables pinned scroll choreography and keeps every scene visible.
@@ -75,14 +75,21 @@ VideoViewerModal
 Behavior:
 
 - Cards are positioned with CSS 3D variables: angle, x offset, z depth, scale, opacity, and z index.
-- The carousel stores one continuous `orbitRotation` value.
+- The carousel stores one continuous normalized `orbitalProgress` value.
+- The visible ring is rendered from a 3-copy circular buffer of the seven
+  logical videos, so the stage never reaches a finite-row end state.
 - `activeVideoIndex` is derived from the nearest item on that rotation.
+- Each card's visual position is derived from its virtual index minus
+  `orbitalProgress`; the value wraps with modulo arithmetic instead of
+  resetting at either end.
 - Active card is large and readable.
 - Side cards curve backward in a cylindrical path.
 - Far/back cards remain visible as atmosphere and become pointer targets only
   after rotating closer.
 - The orbit rotates slowly by itself when idle.
-- Hover, touch, drag, keyboard focus, preview playback, and the full viewer pause auto-rotation.
+- Hover, touch, drag, preview playback, and the full viewer pause auto-rotation.
+- Keyboard focus applies a short pause so restored focus after closing the
+  viewer does not permanently stop the display loop.
 - Auto-rotation resumes after a short idle delay once the user leaves or stops interacting.
 - Pointer or touch drag updates orbit rotation continuously before snapping.
 - Release uses damped velocity projection so normal swipes do not jump across

@@ -5,11 +5,16 @@ card row.
 
 ## State Ownership
 
-- `orbitRotation` belongs only to the carousel.
-- `activeVideoIndex` is derived from the nearest item on `orbitRotation`.
+- `orbitalProgress` belongs only to the carousel.
+- `activeVideoIndex` is derived from the nearest item on `orbitalProgress`.
+- The render list uses three virtual copies of the seven logical films. This
+  makes the cylinder a continuous loop with no blank end state or dead zone.
 - Page scroll never overwrites the video index.
 - Hover state only controls preview playback.
-- `isUserInteracting` pauses auto-rotation when hover, touch, focus, drag, preview, or modal state is active.
+- `isUserInteracting` pauses auto-rotation when hover, touch, drag, preview,
+  or modal state is active.
+- Focus events apply a short pause for keyboard accessibility without trapping
+  auto-rotation after the video viewer closes.
 - The full viewer owns its own open/close state and returns focus to the card
   that opened it.
 
@@ -18,7 +23,7 @@ card row.
 - The orbit slowly auto-rotates when idle, like a display installation.
 - Auto-rotation pauses on pointer enter, touch start, drag, preview hover, keyboard focus, or full viewer open.
 - Auto-rotation resumes after a short idle delay once interaction stops.
-- Mouse and touch drag update `orbitRotation` continuously.
+- Mouse and touch drag update `orbitalProgress` continuously.
 - Release projects a damped velocity and snaps to the nearest card.
 - Normal swipes advance predictably; very long or fast swipes can move more
   than one card without creating a bounce or z-index pop.

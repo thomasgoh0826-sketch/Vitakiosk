@@ -1065,40 +1065,42 @@ function ClinicPartnerCorridor() {
 
 function VideoPreviewCard({
   video,
-  index,
+  logicalIndex,
+  virtualIndex,
+  renderKey,
   activeVideoIndex,
-  orbitRotation,
+  orbitalProgress,
   hovered,
   dragging,
   onHover,
   onOpen,
 }: {
   video: (typeof videoHubItems)[number];
-  index: number;
+  logicalIndex: number;
+  virtualIndex: number;
+  renderKey: string;
   activeVideoIndex: number;
-  orbitRotation: number;
+  orbitalProgress: number;
   hovered: boolean;
   dragging: boolean;
-  onHover: (index: number | null) => void;
+  onHover: (key: string | null) => void;
   onOpen: (trigger: HTMLButtonElement) => void;
 }) {
   const videoRef = useRef<HTMLVideoElement | null>(null);
-  const total = videoHubItems.length;
-  const raw = index - orbitRotation;
-  const baseRelative = raw > total / 2 ? raw - total : raw < -total / 2 ? raw + total : raw;
-  const relative = baseRelative;
+  const relative = virtualIndex - orbitalProgress;
   const abs = Math.abs(relative);
-  const isActive = index === activeVideoIndex;
-  const isVisible = abs <= 3.35;
+  const isActive = logicalIndex === activeVideoIndex && abs <= 0.58;
+  const isVisible = abs <= 5.35;
   const isInteractive = abs <= 2.35 && !dragging;
   const shouldLoad = isActive || hovered;
-  const angle = relative * 35;
-  const radians = (angle * Math.PI) / 180;
-  const depth = Math.max(0, Math.cos(radians));
-  const z = 170 + depth * 300 - Math.min(abs, 3.2) * 34;
-  const x = Math.sin(radians) * 520;
-  const scale = Math.max(0.54, 0.62 + depth * 0.38 - Math.min(abs, 3.2) * 0.045);
-  const opacity = isVisible ? Math.max(0.12, 0.22 + depth * 0.74 - Math.min(abs, 3.2) * 0.08) : 0;
+  const pathAngle = relative * 24;
+  const tiltAngle = Math.max(-34, Math.min(34, relative * 8));
+  const radians = (pathAngle * Math.PI) / 180;
+  const depth = (Math.cos(radians) + 1) / 2;
+  const x = Math.sin(radians) * 560;
+  const z = -190 + depth * 640;
+  const scale = Math.max(0.44, 0.54 + depth * 0.48 - Math.min(abs, 5.35) * 0.01);
+  const opacity = isVisible ? Math.max(0.1, 0.18 + depth * 0.8 - Math.min(abs, 5.35) * 0.014) : 0;
 
   useEffect(() => {
     const el = videoRef.current;
@@ -1128,20 +1130,25 @@ function VideoPreviewCard({
     <button
       className={`video-orbit-card ${isActive ? "is-active" : ""}`}
       aria-label={`${video.title} ${video.status}`}
+      aria-hidden={!isInteractive}
       data-active={isActive}
-      onPointerEnter={() => !dragging && onHover(index)}
+      data-logical-index={logicalIndex}
+      data-virtual-index={virtualIndex}
+      data-orbit-slot={renderKey}
+      data-visible={isVisible}
+      onPointerEnter={() => !dragging && onHover(renderKey)}
       onPointerLeave={() => onHover(null)}
-      onFocus={() => onHover(index)}
+      onFocus={() => onHover(renderKey)}
       onBlur={() => onHover(null)}
       onClick={(event) => onOpen(event.currentTarget)}
       tabIndex={isInteractive ? 0 : -1}
       style={{
-        "--orbit-angle": `${angle}deg`,
+        "--orbit-angle": `${tiltAngle}deg`,
         "--orbit-x": `${x}px`,
         "--orbit-z": `${z}px`,
         "--orbit-scale": scale,
         "--orbit-opacity": opacity,
-        "--orbit-index": Math.round(100 - abs * 12),
+        "--orbit-index": Math.round(120 - abs * 14 + depth * 30),
         pointerEvents: isInteractive ? "auto" : "none",
       } as React.CSSProperties}
     >
@@ -1203,11 +1210,12 @@ function VideoViewerModal({
 
 function SphericalVideoCarousel() {
   const initialVideoIndex = 3;
-  const [orbitRotation, setOrbitRotation] = useState(initialVideoIndex);
-  const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
+  const [orbitalProgress, setOrbitalProgress] = useState(initialVideoIndex);
+  const [hoveredCardKey, setHoveredCardKey] = useState<string | null>(null);
   const [openVideo, setOpenVideo] = useState<(typeof videoHubItems)[number] | null>(null);
   const [isDragging, setIsDragging] = useState(false);
   const [isHoveringCarousel, setIsHoveringCarousel] = useState(false);
+  const [isTouching, setIsTouching] = useState(false);
   const [hasFocusWithin, setHasFocusWithin] = useState(false);
   const dragRef = useRef({
     pointerId: -1,
@@ -1228,21 +1236,37 @@ function SphericalVideoCarousel() {
   const lastVideoTrigger = useRef<HTMLButtonElement | null>(null);
   const total = videoHubItems.length;
   const safeClientX = (value: number, fallback = 0) => (Number.isFinite(value) ? value : fallback);
+  const normalizeProgress = (value: number) => {
+    const safe = Number.isFinite(value) ? value : initialVideoIndex;
+    return ((safe % total) + total) % total;
+  };
   const wrapIndex = (index: number) => {
     const safe = Number.isFinite(index) ? Math.round(index) : 0;
     return ((safe % total) + total) % total;
   };
-  const activeVideoIndex = wrapIndex(orbitRotation);
+  const activeVideoIndex = wrapIndex(orbitalProgress);
   const isModalOpen = Boolean(openVideo);
-  const isUserInteracting = isHoveringCarousel || isDragging || hasFocusWithin || hoveredIndex !== null || isModalOpen;
+  const isUserInteracting = isHoveringCarousel || isTouching || isDragging || hoveredCardKey !== null || isModalOpen;
 
-  const setOrbitRotationValue = (value: number) => {
-    const next = Number.isFinite(value) ? value : initialVideoIndex;
+  const orbitSlots = useMemo(() => {
+    const copies = [-1, 0, 1];
+    return copies.flatMap((copy) =>
+      videoHubItems.map((video, logicalIndex) => ({
+        video,
+        logicalIndex,
+        virtualIndex: logicalIndex + copy * total,
+        renderKey: `${copy}:${video.id}`,
+      })),
+    );
+  }, [total]);
+
+  const setOrbitalProgressValue = (value: number) => {
+    const next = normalizeProgress(value);
     rotationRef.current = next;
-    setOrbitRotation(next);
+    setOrbitalProgress(next);
   };
 
-  const pauseAuto = (delay = 3200) => {
+  const pauseAuto = (delay = 2200) => {
     pauseUntilRef.current = performance.now() + delay;
   };
 
@@ -1251,8 +1275,8 @@ function SphericalVideoCarousel() {
   }, [isUserInteracting]);
 
   useEffect(() => {
-    rotationRef.current = orbitRotation;
-  }, [orbitRotation]);
+    rotationRef.current = orbitalProgress;
+  }, [orbitalProgress]);
 
   useEffect(() => {
     const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
@@ -1267,7 +1291,7 @@ function SphericalVideoCarousel() {
       last = now;
       const paused = autoStateRef.current.isUserInteracting || now < pauseUntilRef.current || document.visibilityState === "hidden";
       if (!paused) {
-        setOrbitRotationValue(rotationRef.current + delta * 0.11);
+        setOrbitalProgressValue(rotationRef.current + delta * 0.11);
       }
       frame = window.requestAnimationFrame(tick);
     };
@@ -1277,7 +1301,7 @@ function SphericalVideoCarousel() {
   }, []);
 
   const snapToNearest = (value = rotationRef.current) => {
-    setOrbitRotationValue(Math.round(value));
+    setOrbitalProgressValue(Math.round(value));
   };
 
   const rotateBy = (delta: number) => {
@@ -1340,7 +1364,7 @@ function SphericalVideoCarousel() {
       moved: false,
     };
     setIsDragging(false);
-    setHoveredIndex(null);
+    setHoveredCardKey(null);
     target?.classList.remove("is-dragging");
   };
 
@@ -1357,21 +1381,24 @@ function SphericalVideoCarousel() {
         data-dragging={isDragging}
         data-paused={isUserInteracting}
         data-hovering={isHoveringCarousel}
+        data-touching={isTouching}
         data-focused={hasFocusWithin}
         data-modal-open={isModalOpen}
-        data-hovered-video={hoveredIndex ?? ""}
+        data-hovered-video={hoveredCardKey ?? ""}
+        data-orbital-progress={orbitalProgress.toFixed(3)}
+        data-render-buffer={orbitSlots.length}
         onPointerEnter={() => {
           setIsHoveringCarousel(true);
           pauseAuto();
         }}
         onPointerLeave={() => {
           setIsHoveringCarousel(false);
-          setHoveredIndex(null);
-          pauseAuto(2400);
+          setHoveredCardKey(null);
+          pauseAuto(1800);
         }}
         onFocusCapture={() => {
           setHasFocusWithin(true);
-          pauseAuto();
+          pauseAuto(2400);
         }}
         onBlurCapture={(event) => {
           if (!event.currentTarget.contains(event.relatedTarget as Node | null)) {
@@ -1384,6 +1411,9 @@ function SphericalVideoCarousel() {
             return;
           }
           pauseAuto();
+          if (event.pointerType !== "mouse") {
+            setIsTouching(true);
+          }
           const pointerId = event.pointerId || 1;
           const clientX = safeClientX(event.clientX);
           const now = performance.now();
@@ -1412,7 +1442,7 @@ function SphericalVideoCarousel() {
           drag.lastX = clientX;
           drag.lastTime = now;
           drag.moved = Math.abs(totalDelta) > 5;
-          setOrbitRotationValue(drag.startRotation - totalDelta / 190);
+          setOrbitalProgressValue(drag.startRotation - totalDelta / 190);
           if (drag.moved && typeof event.currentTarget.setPointerCapture === "function") {
             try {
               event.currentTarget.setPointerCapture(pointerId);
@@ -1425,12 +1455,29 @@ function SphericalVideoCarousel() {
             event.currentTarget.classList.add("is-dragging");
           }
           if (drag.moved) {
-            setHoveredIndex(null);
+            setHoveredCardKey(null);
           }
         }}
-        onPointerUp={(event) => endDrag(event.currentTarget)}
-        onPointerCancel={(event) => endDrag(event.currentTarget)}
-        onLostPointerCapture={(event) => endDrag(event.currentTarget)}
+        onPointerUp={(event) => {
+          endDrag(event.currentTarget);
+          if (event.pointerType !== "mouse") {
+            setIsTouching(false);
+            setIsHoveringCarousel(false);
+            setHoveredCardKey(null);
+          }
+        }}
+        onPointerCancel={(event) => {
+          endDrag(event.currentTarget);
+          if (event.pointerType !== "mouse") {
+            setIsTouching(false);
+            setIsHoveringCarousel(false);
+            setHoveredCardKey(null);
+          }
+        }}
+        onLostPointerCapture={(event) => {
+          setIsTouching(false);
+          endDrag(event.currentTarget);
+        }}
         onWheel={(event) => {
           if (Math.abs(event.deltaX) <= Math.abs(event.deltaY) || Math.abs(event.deltaX) < 14) {
             return;
@@ -1445,18 +1492,20 @@ function SphericalVideoCarousel() {
         }}
       >
         <div className="video-orbit" aria-live="polite">
-          {videoHubItems.map((video, index) => (
+          {orbitSlots.map(({ video, logicalIndex, virtualIndex, renderKey }) => (
             <VideoPreviewCard
-              key={video.id}
+              key={renderKey}
               video={video}
-              index={index}
+              logicalIndex={logicalIndex}
+              virtualIndex={virtualIndex}
+              renderKey={renderKey}
               activeVideoIndex={activeVideoIndex}
-              orbitRotation={orbitRotation}
-              hovered={hoveredIndex === index}
+              orbitalProgress={orbitalProgress}
+              hovered={hoveredCardKey === renderKey}
               dragging={isDragging}
               onHover={(nextIndex) => {
-                setHoveredIndex(nextIndex);
-                pauseAuto(nextIndex === null ? 2400 : 3200);
+                setHoveredCardKey(nextIndex);
+                pauseAuto(nextIndex === null ? 1800 : 2600);
               }}
               onOpen={(trigger) => openViewer(video, trigger)}
             />

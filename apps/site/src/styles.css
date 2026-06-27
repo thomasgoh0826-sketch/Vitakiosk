@@ -3291,8 +3291,8 @@ img {
     scale(var(--orbit-scale));
   transform-style: preserve-3d;
   transition:
-    transform 620ms var(--ease-out),
-    opacity 420ms var(--ease-out),
+    transform 120ms linear,
+    opacity 180ms linear,
     border-color 220ms var(--ease-out),
     box-shadow 220ms var(--ease-out);
   pointer-events: auto;
@@ -3300,6 +3300,7 @@ img {
 
 .video-orbit-shell[data-dragging="true"] .video-orbit-card {
   transition:
+    transform 0ms linear,
     opacity 160ms linear,
     border-color 180ms var(--ease-out),
     box-shadow 180ms var(--ease-out);
@@ -3370,24 +3371,6 @@ img {
   box-shadow: var(--shadow-glow), 0 28px 80px rgba(0, 0, 0, 0.46);
   outline: none;
 }
-
-.orbit-arrow {
-  position: absolute;
-  top: 50%;
-  z-index: 18;
-  display: grid;
-  width: 52px;
-  height: 52px;
-  place-items: center;
-  border: 1px solid rgba(53, 244, 232, 0.32);
-  border-radius: 50%;
-  color: var(--text);
-  background: rgba(5, 17, 28, 0.82);
-  cursor: pointer;
-}
-
-.orbit-arrow.left { left: 24px; }
-.orbit-arrow.right { right: 24px; }
 
 .orbit-caption {
   display: grid;
@@ -3812,9 +3795,6 @@ img {
   .video-orbit-card {
     width: min(420px, 82vw);
   }
-
-  .orbit-arrow.left { left: 4px; }
-  .orbit-arrow.right { right: 4px; }
 
   .route-experience-visual {
     min-height: 500px;

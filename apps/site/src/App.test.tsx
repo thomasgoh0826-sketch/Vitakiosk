@@ -31,6 +31,8 @@ describe("VitaKiosk Asia site", () => {
     expect(screen.getByLabelText(/Spherical video carousel/i)).toHaveAttribute("data-auto-rotate", "true");
     expect(screen.queryByRole("button", { name: /Previous video/i })).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: /Next video/i })).not.toBeInTheDocument();
+    expect(document.querySelectorAll(".video-orbit-card")).toHaveLength(videoHubItems.length * 3);
+    expect(document.querySelectorAll('.video-orbit-card[data-visible="true"]').length).toBeGreaterThanOrEqual(9);
   });
 
   it("drives the public VitaKiosk demo without backend devices", async () => {
