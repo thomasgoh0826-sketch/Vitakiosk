@@ -4,7 +4,6 @@ import { ScrollTrigger } from "gsap/ScrollTrigger";
 import {
   ArrowRight,
   CalendarCheck,
-  Camera,
   CheckCircle2,
   ChevronRight,
   CreditCard,
@@ -22,7 +21,14 @@ import {
   X,
 } from "lucide-react";
 import { approvedVitaKioskReference } from "./content/demoAssets";
-import { demoHotspots, demoProduct, demoTranscriptStates, DemoMode } from "./content/interactiveDemoStates";
+import {
+  demoHotspots,
+  demoLanguageLabels,
+  demoProduct,
+  demoTranscriptStates,
+  DemoLanguage,
+  DemoMode,
+} from "./content/interactiveDemoStates";
 import { ShowcaseScene, showcaseScenes } from "./content/showcaseScenes";
 import {
   businessLines,
@@ -670,35 +676,61 @@ function DemoHotspot({
   label,
   onClick,
   className,
+  active,
 }: {
   label: string;
   onClick: () => void;
   className: string;
+  active?: boolean;
 }) {
   return (
-    <button className={`demo-hotspot ${className}`} onClick={onClick} aria-label={label}>
+    <button
+      className={`demo-hotspot ${className}`}
+      data-active={active ? "true" : "false"}
+      onMouseDown={(event) => event.preventDefault()}
+      onClick={onClick}
+      aria-label={label}
+      type="button"
+    >
       <span>{label}</span>
     </button>
   );
 }
 
-function DemoTranscript({ mode }: { mode: DemoMode }) {
+function DemoStateMachine({ mode }: { mode: DemoMode }) {
+  return <span className="sr-only" data-testid="demo-state-machine" data-state={mode}>{mode}</span>;
+}
+
+function DemoCallout({
+  className,
+  children,
+}: {
+  className: string;
+  children: React.ReactNode;
+}) {
+  return <div className={`demo-state-bubble ${className}`}>{children}</div>;
+}
+
+function DemoTranscriptOverlay({ mode, language }: { mode: DemoMode; language: DemoLanguage }) {
+  const labels = demoLanguageLabels[language];
   const text =
     mode === "listening"
       ? demoTranscriptStates.listening
-      : mode === "fuzzy"
-        ? demoTranscriptStates.fuzzy
-        : mode === "scan"
-          ? demoTranscriptStates.scan
-          : mode === "assist"
-            ? demoTranscriptStates.assist
+      : mode === "answering"
+        ? demoTranscriptStates.answering
+        : mode === "fuzzy_match"
+          ? demoTranscriptStates.fuzzy_match
+          : mode === "scan_product"
+            ? demoTranscriptStates.scan_product
+            : mode === "pharmacist_handoff"
+              ? demoTranscriptStates.pharmacist_handoff
             : demoTranscriptStates.idle;
 
   return (
-    <div className={`demo-transcript mode-${mode}`}>
+    <div className={`demo-transcript mode-${mode}`} role="status" aria-live="polite">
       <span>AI subtitle</span>
       <strong>{text}</strong>
-      <small>{mode === "listening" ? "Relief Balm is shown with shelf and promotion information." : "Ready"}</small>
+      <small>{mode === "answering" ? labels.response : labels.ready}</small>
     </div>
   );
 }
@@ -752,12 +784,69 @@ function DemoShelfMap({ enlarged = false }: { enlarged?: boolean }) {
   );
 }
 
-function DemoScanProductOverlay({ onSelect }: { onSelect: () => void }) {
+function DemoProductEnlarge({
+  sheetMode,
+  onToggle,
+}: {
+  sheetMode: "summary" | "detail";
+  onToggle: () => void;
+}) {
+  return (
+    <button
+      className="demo-overlay-content product-overlay"
+      data-view={sheetMode}
+      onMouseDown={(event) => event.preventDefault()}
+      onClick={onToggle}
+      type="button"
+    >
+      <span>{sheetMode === "summary" ? "Product summary" : "Product detail"}</span>
+      <h3>{demoProduct.name}</h3>
+      <p>
+        {sheetMode === "summary"
+          ? demoProduct.summary
+          : "Menthol and camphor demo facts are fictional mock data from the marketing demo."}
+      </p>
+      <strong>{demoProduct.price}</strong>
+      <small>Tap inside sheet to morph summary/detail.</small>
+    </button>
+  );
+}
+
+function DemoPromotionViewer() {
+  return (
+    <div className="demo-overlay-content promotion-overlay">
+      <article className="enlarged-leaflet">
+        <span>VitaKiosk</span>
+        <strong>Relief Balm</strong>
+        <small>Demo Offer</small>
+        <p>Sponsored education must be labelled and reviewed before display.</p>
+      </article>
+    </div>
+  );
+}
+
+function DemoShelfRouteOverlay({ onClose }: { onClose: () => void }) {
+  return (
+    <>
+      <div className="demo-route-overlay" aria-hidden="true">
+        <span />
+        <i />
+      </div>
+      <DemoCallout className="shelf-bubble">
+        <span>Shelf route</span>
+        <strong>Entrance &gt; Aisle 03 &gt; Shelf A-03</strong>
+        <button onClick={onClose} type="button">Close route</button>
+      </DemoCallout>
+    </>
+  );
+}
+
+function DemoScanOverlay({ onSelect }: { onSelect: () => void }) {
   return (
     <div className="demo-overlay-content scan-overlay">
       <ScanLine size={32} />
       <h3>Packaging detected</h3>
-      <p>Select the VitaFlow-backed candidate. No image guessing or medical advice.</p>
+      <p>Best match: Relief Balm</p>
       <button className="button primary" onClick={onSelect}>
         Select Relief Balm
       </button>
@@ -778,37 +867,64 @@ function DemoPharmacistHandoff() {
 function InteractiveVitaKioskDemo() {
   const [mode, setMode] = useState<DemoMode>("idle");
   const [sheetMode, setSheetMode] = useState<"summary" | "detail">("summary");
+  const [language, setLanguage] = useState<DemoLanguage>("en");
+  const [selectedPulse, setSelectedPulse] = useState(false);
+  const demoRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (mode !== "listening") {
-      return;
+    if (demoRef.current) {
+      demoRef.current.scrollTop = 0;
+      demoRef.current.scrollLeft = 0;
     }
-    const responseTimer = window.setTimeout(() => setMode("idle"), 2800);
-    return () => window.clearTimeout(responseTimer);
+  }, [mode]);
+
+  useEffect(() => {
+    if (mode === "listening") {
+      const answerTimer = window.setTimeout(() => setMode("answering"), 800);
+      return () => window.clearTimeout(answerTimer);
+    }
+    if (mode === "answering") {
+      const readyTimer = window.setTimeout(() => {
+        setMode("idle");
+        setSelectedPulse(false);
+      }, 4200);
+      return () => window.clearTimeout(readyTimer);
+    }
   }, [mode]);
 
   const openMode = (next: DemoMode) => {
     setSheetMode("summary");
+    setSelectedPulse(false);
     setMode(next);
   };
 
   const closeOverlay = () => setMode("idle");
+  const selectReliefBalm = () => {
+    setSelectedPulse(true);
+    setMode("answering");
+  };
+  const activeProduct = selectedPulse || ["listening", "answering", "fuzzy_match", "product_enlarged", "scan_product"].includes(mode);
+  const activePromotion = selectedPulse || ["listening", "answering", "fuzzy_match", "promotion_open", "scan_product"].includes(mode);
+  const activeShelf = selectedPulse || ["listening", "answering", "fuzzy_match", "shelf_route", "scan_product"].includes(mode);
+  const activeAssist = mode === "pharmacist_handoff";
 
   return (
-    <div className={`interactive-kiosk-demo mode-${mode}`} id="interactive-demo">
-      <img
-        className="demo-reference-surface"
-        src={approvedVitaKioskReference.src}
-        alt=""
-        aria-hidden="true"
-        loading="eager"
-      />
+    <div ref={demoRef} className={`interactive-kiosk-demo mode-${mode}`} id="interactive-demo" data-demo-state={mode}>
+      <DemoStateMachine mode={mode} />
+      <div className="demo-reference-layer" aria-hidden="true">
+        <img
+          className="demo-reference-surface"
+          src={approvedVitaKioskReference.src}
+          alt=""
+          loading="eager"
+        />
+      </div>
       <div className="demo-screenshot-sheen" aria-hidden="true" />
-      <div className={`demo-area-highlight highlight-product ${["listening", "fuzzy", "product", "scan"].includes(mode) ? "is-active" : ""}`} aria-hidden="true" />
-      <div className={`demo-area-highlight highlight-promotion ${["listening", "fuzzy", "promotion", "scan"].includes(mode) ? "is-active" : ""}`} aria-hidden="true" />
-      <div className={`demo-area-highlight highlight-shelf ${["listening", "fuzzy", "shelf", "scan"].includes(mode) ? "is-active" : ""}`} aria-hidden="true" />
-      <div className={`demo-area-highlight highlight-assist ${mode === "assist" ? "is-active" : ""}`} aria-hidden="true" />
-      <DemoTranscript mode={mode} />
+      <div className={`demo-area-highlight highlight-product ${activeProduct ? "is-active" : ""}`} data-highlight="product" aria-hidden="true" />
+      <div className={`demo-area-highlight highlight-promotion ${activePromotion ? "is-active" : ""}`} data-highlight="promotion" aria-hidden="true" />
+      <div className={`demo-area-highlight highlight-shelf ${activeShelf ? "is-active" : ""}`} data-highlight="shelf" aria-hidden="true" />
+      <div className={`demo-area-highlight highlight-assist ${activeAssist ? "is-active" : ""}`} data-highlight="assist" aria-hidden="true" />
+      <DemoTranscriptOverlay mode={mode} language={language} />
       {mode === "listening" && (
         <div className="demo-voice-pulse" aria-hidden="true">
           <Mic size={24} />
@@ -817,79 +933,62 @@ function InteractiveVitaKioskDemo() {
           </div>
         </div>
       )}
-      {mode === "shelf" && (
-        <div className="demo-route-overlay" aria-hidden="true">
-          <span />
-          <i />
-        </div>
-      )}
+      {mode === "shelf_route" && <DemoShelfRouteOverlay onClose={closeOverlay} />}
       <div className="demo-floating-actions">
-        <button className="tap-to-speak" onClick={() => openMode("listening")}>
-          <Mic size={20} />
-          <span>Tap to Speak</span>
-        </button>
-        <button className="demo-chip" onClick={() => openMode("fuzzy")}>Relief Bomb</button>
-        <button className="demo-chip" onClick={() => openMode("scan")}>
-          <Camera size={15} />
-          Scan Product
-        </button>
+        <span>Try fuzzy search</span>
+        <button className="demo-chip" onClick={() => openMode("fuzzy_match")} type="button">Relief Bomb</button>
       </div>
       <div className="demo-language-rail">
         <Languages size={14} />
-        <button>EN</button>
-        <button>ZH</button>
-        <button>BM</button>
+        <button className={language === "en" ? "is-active" : ""} onClick={() => setLanguage("en")} type="button" aria-label="Language EN">EN</button>
+        <button className={language === "zh" ? "is-active" : ""} onClick={() => setLanguage("zh")} type="button" aria-label="Language 中文">中文</button>
+        <button className={language === "bm" ? "is-active" : ""} onClick={() => setLanguage("bm")} type="button" aria-label="Language BM">BM</button>
+        <small>{demoLanguageLabels[language].selected}</small>
       </div>
       {demoHotspots.map((hotspot) => (
         <DemoHotspot
           key={hotspot.id}
           label={hotspot.label}
           className={`hotspot-${hotspot.id}`}
+          active={
+            (hotspot.id === "product" && activeProduct) ||
+            (hotspot.id === "promotion" && activePromotion) ||
+            (hotspot.id === "shelf" && activeShelf) ||
+            (hotspot.id === "assist" && activeAssist) ||
+            (hotspot.id === "voice" && mode === "listening") ||
+            (hotspot.id === "scan" && mode === "scan_product")
+          }
           onClick={() => openMode(hotspot.mode)}
         />
       ))}
-      {mode === "fuzzy" && (
-        <div className="demo-state-bubble fuzzy-bubble">
+      {mode === "fuzzy_match" && (
+        <DemoCallout className="fuzzy-bubble">
           <span>Do you mean</span>
-          <button onClick={() => setMode("idle")}>Relief Balm</button>
-        </div>
+          <button onClick={selectReliefBalm} type="button">Relief Balm</button>
+        </DemoCallout>
       )}
-      {mode === "shelf" && (
-        <div className="demo-state-bubble shelf-bubble">
-          <span>Shelf route</span>
-          <strong>Entrance &gt; Aisle 03 &gt; Shelf A-03</strong>
-        </div>
+      {mode === "promotion_open" && (
+        <DemoCinematicDialog mode={mode} label="promotion demo state" onClose={closeOverlay}>
+          <DemoPromotionViewer />
+        </DemoCinematicDialog>
       )}
-      {mode !== "idle" && mode !== "listening" && mode !== "fuzzy" && mode !== "shelf" && (
-        <div className="demo-cinematic-overlay" role="dialog" aria-modal="true" aria-label={`${mode} demo state`} onMouseDown={closeOverlay}>
-          <div className={`demo-overlay-sheet state-${mode}`} onMouseDown={(event) => event.stopPropagation()}>
-            <button className="icon-button" onClick={closeOverlay}>
-              <X size={18} />
-              <span className="sr-only">Close demo state</span>
-            </button>
-            {mode === "promotion" && (
-              <div className="demo-overlay-content promotion-overlay">
-                <article className="enlarged-leaflet">
-                  <span>VitaKiosk</span>
-                  <strong>Relief Balm</strong>
-                  <small>Demo Offer</small>
-                  <p>Sponsored education must be labelled and reviewed before display.</p>
-                </article>
-              </div>
-            )}
-            {mode === "product" && (
-              <button className="demo-overlay-content product-overlay" onClick={() => setSheetMode(sheetMode === "summary" ? "detail" : "summary")}>
-                <span>{sheetMode === "summary" ? "Product summary" : "Product detail"}</span>
-                <h3>{demoProduct.name}</h3>
-                <p>{sheetMode === "summary" ? demoProduct.summary : "Menthol and camphor demo facts are fictional mock data from the marketing demo."}</p>
-                <strong>{demoProduct.price}</strong>
-                <small>Tap inside sheet to morph summary/detail.</small>
-              </button>
-            )}
-            {mode === "scan" && <DemoScanProductOverlay onSelect={() => setMode("idle")} />}
-            {mode === "assist" && <DemoPharmacistHandoff />}
-          </div>
-        </div>
+      {mode === "product_enlarged" && (
+        <DemoCinematicDialog mode={mode} label="product demo state" onClose={closeOverlay}>
+          <DemoProductEnlarge
+            sheetMode={sheetMode}
+            onToggle={() => setSheetMode(sheetMode === "summary" ? "detail" : "summary")}
+          />
+        </DemoCinematicDialog>
+      )}
+      {mode === "scan_product" && (
+        <DemoCinematicDialog mode={mode} label="scan demo state" onClose={closeOverlay}>
+          <DemoScanOverlay onSelect={selectReliefBalm} />
+        </DemoCinematicDialog>
+      )}
+      {mode === "pharmacist_handoff" && (
+        <DemoCinematicDialog mode={mode} label="pharmacist assistance demo state" onClose={closeOverlay}>
+          <DemoPharmacistHandoff />
+        </DemoCinematicDialog>
       )}
     </div>
   );
@@ -902,8 +1001,8 @@ function VitaKioskDemoStage() {
         <span>Interactive public demo</span>
         <h2>Click inside the kiosk. It responds.</h2>
         <p>Tap voice, product, shelf, promotion, scan, fuzzy match, or staff handoff. No backend, mic, or camera required.</p>
-        <SmartLink href="http://127.0.0.1:5175" className="button secondary" ariaLabel="Open live local demo">
-          Open Live Local Demo
+        <SmartLink href="http://127.0.0.1:5175" className="demo-dev-link" ariaLabel="Open live local demo if running">
+          Open live local demo, if running
           <ExternalLink size={16} />
         </SmartLink>
       </div>
@@ -999,6 +1098,30 @@ function ImmersiveJourney() {
         );
       }}
     </ScrollSceneController>
+  );
+}
+
+function DemoCinematicDialog({
+  mode,
+  label,
+  onClose,
+  children,
+}: {
+  mode: DemoMode;
+  label: string;
+  onClose: () => void;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="demo-cinematic-overlay" role="dialog" aria-modal="true" aria-label={label} onMouseDown={onClose}>
+      <div className={`demo-overlay-sheet state-${mode}`} onMouseDown={(event) => event.stopPropagation()}>
+        <button className="icon-button" onMouseDown={(event) => event.preventDefault()} onClick={onClose} type="button">
+          <X size={18} />
+          <span className="sr-only">Close demo state</span>
+        </button>
+        {children}
+      </div>
+    </div>
   );
 }
 

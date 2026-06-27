@@ -1,12 +1,16 @@
-export type DemoMode =
+export type DemoState =
   | "idle"
   | "listening"
-  | "fuzzy"
-  | "promotion"
-  | "product"
-  | "shelf"
-  | "scan"
-  | "assist";
+  | "answering"
+  | "fuzzy_match"
+  | "product_enlarged"
+  | "promotion_open"
+  | "shelf_route"
+  | "scan_product"
+  | "pharmacist_handoff";
+
+export type DemoMode = DemoState;
+export type DemoLanguage = "en" | "zh" | "bm";
 
 export const demoProduct = {
   name: "Relief Balm",
@@ -28,17 +32,35 @@ export const demoProduct = {
 export const demoTranscriptStates = {
   idle: "Tap to Speak to ask about products, stock, promotions, or shelf location.",
   listening: "Listening... Where is Relief Balm?",
-  response: "Relief Balm is available at Shelf A-03. Product education only.",
-  fuzzy: "Do you mean Relief Balm?",
-  scan: "Packaging detected. Select a VitaFlow-backed candidate.",
-  assist: "A pharmacist or staff member can assist you.",
+  answering: "Relief Balm is available at Shelf A-03. Product education and pharmacist assistance are available.",
+  fuzzy_match: "Do you mean Relief Balm?",
+  scan_product: "Packaging detected. Best match: Relief Balm.",
+  pharmacist_handoff: "A pharmacist or staff member can assist you.",
+};
+
+export const demoLanguageLabels: Record<DemoLanguage, { ready: string; response: string; selected: string }> = {
+  en: {
+    ready: "Ready",
+    response: "Product education and guidance only.",
+    selected: "EN selected",
+  },
+  zh: {
+    ready: "准备就绪",
+    response: "仅提供产品教育与导购指引。",
+    selected: "中文 selected",
+  },
+  bm: {
+    ready: "Sedia",
+    response: "Pendidikan produk dan panduan sahaja.",
+    selected: "BM selected",
+  },
 };
 
 export const demoHotspots = [
   { id: "voice", label: "Tap to Speak", mode: "listening" as DemoMode },
-  { id: "product", label: "Product panel", mode: "product" as DemoMode },
-  { id: "promotion", label: "Promotion leaflet", mode: "promotion" as DemoMode },
-  { id: "shelf", label: "Shelf map", mode: "shelf" as DemoMode },
-  { id: "scan", label: "Scan Product", mode: "scan" as DemoMode },
-  { id: "assist", label: "Request assistance", mode: "assist" as DemoMode },
+  { id: "product", label: "Product panel", mode: "product_enlarged" as DemoMode },
+  { id: "promotion", label: "Promotion leaflet", mode: "promotion_open" as DemoMode },
+  { id: "shelf", label: "Shelf navigation map", mode: "shelf_route" as DemoMode },
+  { id: "scan", label: "Scan Product", mode: "scan_product" as DemoMode },
+  { id: "assist", label: "Request assistance", mode: "pharmacist_handoff" as DemoMode },
 ];

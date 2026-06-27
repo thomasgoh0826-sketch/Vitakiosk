@@ -2100,6 +2100,7 @@ img {
   padding: clamp(34px, 5vw, 78px) 0;
   opacity: 0;
   pointer-events: none;
+  visibility: hidden;
   transform: translate3d(0, 34px, 0) scale(0.985);
   transition:
     opacity var(--motion-slow) var(--ease-out),
@@ -2112,6 +2113,7 @@ img {
 .journey-scene[data-active="true"] {
   opacity: 1;
   pointer-events: auto;
+  visibility: visible;
   transform: translate3d(0, 0, 0) scale(1);
   filter: blur(0);
   z-index: 2;
@@ -2311,6 +2313,24 @@ img {
   font-size: clamp(44px, 4.2vw, 60px);
 }
 
+.demo-dev-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  width: fit-content;
+  margin-top: 8px;
+  color: #9fb9c4;
+  font-size: 13px;
+  font-weight: 800;
+  text-decoration: none;
+}
+
+.demo-dev-link:hover,
+.demo-dev-link:focus-visible {
+  color: var(--cyan);
+  outline: none;
+}
+
 .interactive-kiosk-demo {
   position: relative;
   display: grid;
@@ -2321,7 +2341,7 @@ img {
   height: min(680px, calc(100vh - 126px));
   min-height: 560px;
   padding: 12px;
-  overflow: hidden;
+  overflow: clip;
   border: 1px solid rgba(53, 244, 232, 0.34);
   border-radius: 20px;
   background:
@@ -2355,11 +2375,6 @@ img {
   object-position: center center;
   opacity: 0.78;
   filter: saturate(1.08) contrast(1.06);
-}
-
-.interactive-kiosk-demo > :not(.demo-reference-surface) {
-  position: relative;
-  z-index: 2;
 }
 
 .demo-status-pill {
@@ -2661,20 +2676,19 @@ img {
   font-weight: 900;
 }
 
-.mode-listening .tap-to-speak,
 .mode-listening .voice-wave,
-.mode-fuzzy .demo-product-panel,
-.mode-scan .demo-chip:last-child,
-.mode-assist .demo-assist-panel {
+.mode-fuzzy_match .demo-chip,
+.mode-scan_product .demo-chip,
+.mode-pharmacist_handoff .hotspot-assist {
   border-color: rgba(53, 244, 232, 0.88);
   box-shadow:
     0 0 34px rgba(53, 244, 232, 0.36),
     inset 0 0 28px rgba(53, 244, 232, 0.12);
 }
 
-.mode-promotion .demo-leaflet-stack article,
-.mode-product .demo-product-panel,
-.mode-shelf .demo-shelf-button {
+.mode-promotion_open .hotspot-promotion,
+.mode-product_enlarged .hotspot-product,
+.mode-shelf_route .hotspot-shelf {
   border-color: rgba(155, 124, 255, 0.86);
   box-shadow:
     0 0 38px rgba(155, 124, 255, 0.32),
@@ -2750,44 +2764,79 @@ img {
 
 .demo-hotspot {
   position: absolute;
-  width: 18px;
-  height: 18px;
-  border: 1px solid var(--cyan);
-  border-radius: 50%;
-  background: rgba(53, 244, 232, 0.22);
-  box-shadow: 0 0 20px rgba(53, 244, 232, 0.8);
+  z-index: 6;
+  display: block;
+  border: 1px solid transparent;
+  border-radius: 18px;
+  background: transparent;
   cursor: pointer;
+  transition: background 180ms var(--ease-out), border-color 180ms var(--ease-out), box-shadow 180ms var(--ease-out);
+}
+
+.demo-hotspot::before,
+.demo-hotspot::after {
+  position: absolute;
+  content: "";
+  pointer-events: none;
 }
 
 .demo-hotspot::before {
-  position: absolute;
-  inset: -6px;
-  content: "";
-  border: 1px solid rgba(53, 244, 232, 0.55);
+  inset: 6px;
+  border: 1px solid rgba(53, 244, 232, 0.16);
   border-radius: inherit;
+  opacity: 0;
+  transition: opacity 180ms ease, border-color 180ms ease;
+}
+
+.demo-hotspot::after {
+  right: 14px;
+  top: 14px;
+  width: 14px;
+  height: 14px;
+  border: 1px solid var(--cyan);
+  border-radius: 50%;
+  background: rgba(53, 244, 232, 0.2);
+  box-shadow: 0 0 20px rgba(53, 244, 232, 0.7);
+  opacity: 0.42;
   animation: hotspotPulse 1.5s infinite alternate;
-  pointer-events: none;
 }
 
 .demo-hotspot span {
   position: absolute;
-  left: 50%;
-  bottom: 140%;
+  left: 16px;
+  top: 12px;
   white-space: nowrap;
-  transform: translateX(-50%);
-  padding: 5px 8px;
+  padding: 6px 9px;
+  border: 1px solid rgba(53, 244, 232, 0.38);
   border-radius: 999px;
-  color: #061216;
-  background: var(--cyan);
+  color: #dffcff;
+  background: rgba(2, 12, 20, 0.86);
   font-size: 11px;
   font-weight: 900;
   opacity: 0;
-  transition: opacity 180ms ease;
+  transform: translateY(5px);
+  transition: opacity 180ms ease, transform 180ms ease;
 }
 
+.demo-hotspot:hover,
+.demo-hotspot:focus-visible,
+.demo-hotspot[data-active="true"] {
+  border-color: rgba(53, 244, 232, 0.52);
+  background: rgba(53, 244, 232, 0.045);
+  box-shadow:
+    0 0 34px rgba(53, 244, 232, 0.2),
+    inset 0 0 36px rgba(53, 244, 232, 0.08);
+  outline: none;
+}
+
+.demo-hotspot:hover::before,
+.demo-hotspot:focus-visible::before,
+.demo-hotspot[data-active="true"]::before,
 .demo-hotspot:hover span,
-.demo-hotspot:focus-visible span {
+.demo-hotspot:focus-visible span,
+.demo-hotspot[data-active="true"] span {
   opacity: 1;
+  transform: translateY(0);
 }
 
 .interactive-kiosk-demo {
@@ -2798,7 +2847,7 @@ img {
   min-height: 0;
   aspect-ratio: 2048 / 994;
   padding: 0;
-  overflow: hidden;
+  overflow: clip;
   background:
     linear-gradient(rgba(53, 244, 232, 0.08) 1px, transparent 1px),
     linear-gradient(90deg, rgba(53, 244, 232, 0.05) 1px, transparent 1px),
@@ -2814,8 +2863,20 @@ img {
     linear-gradient(115deg, rgba(255, 255, 255, 0.08), transparent 22% 82%, rgba(155, 124, 255, 0.07));
 }
 
+.demo-reference-layer {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
 .demo-reference-surface {
   z-index: 0;
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
   object-fit: contain;
   opacity: 1;
   filter: saturate(1.08) contrast(1.04) brightness(1.04);
@@ -2915,30 +2976,32 @@ img {
 
 .demo-floating-actions {
   position: absolute;
-  left: 57%;
+  left: 50%;
   right: auto;
-  bottom: 13.1%;
+  bottom: 2.2%;
   z-index: 5;
   display: flex;
   gap: 10px;
   align-items: center;
   justify-content: center;
-  width: min(520px, 45%);
+  width: min(360px, 36%);
   transform: translateX(-50%);
   pointer-events: auto;
 }
 
-.demo-floating-actions .tap-to-speak,
-.demo-floating-actions .demo-chip {
-  flex: 0 0 auto;
-  min-height: 42px;
-  padding: 0 18px;
-  background: rgba(3, 15, 24, 0.66);
-  backdrop-filter: blur(7px) saturate(1.2);
+.demo-floating-actions span {
+  color: #9fb9c4;
+  font-size: 11px;
+  font-weight: 900;
+  text-transform: uppercase;
 }
 
-.demo-floating-actions .tap-to-speak {
-  min-width: 174px;
+.demo-floating-actions .demo-chip {
+  flex: 0 0 auto;
+  min-height: 34px;
+  padding: 0 14px;
+  background: rgba(3, 15, 24, 0.66);
+  backdrop-filter: blur(7px) saturate(1.2);
 }
 
 .demo-voice-pulse {
@@ -2992,23 +3055,84 @@ img {
   transform: translateY(-50%);
 }
 
-.hotspot-voice { left: 11.9%; bottom: 11.8%; }
-.hotspot-product { left: 46.8%; top: 30.8%; }
-.hotspot-promotion { right: 13.6%; top: 29%; }
-.hotspot-shelf { left: 60.8%; top: 63.2%; }
-.hotspot-scan { right: 14.9%; bottom: 8.3%; }
-.hotspot-assist { right: 6.2%; bottom: 13.2%; }
+.hotspot-voice {
+  left: 1.35%;
+  top: 82.4%;
+  width: 28.5%;
+  height: 12.7%;
+}
+
+.hotspot-product {
+  left: 30.4%;
+  top: 19%;
+  width: 44.6%;
+  height: 26.4%;
+}
+
+.hotspot-promotion {
+  left: 75.6%;
+  top: 4.6%;
+  width: 22.7%;
+  height: 48%;
+}
+
+.hotspot-shelf {
+  left: 30.4%;
+  top: 46.6%;
+  width: 44.8%;
+  height: 34.2%;
+}
+
+.hotspot-scan {
+  left: 67.1%;
+  top: 80.1%;
+  width: 8.6%;
+  height: 9.6%;
+}
+
+.hotspot-assist {
+  left: 75.6%;
+  top: 73.6%;
+  width: 22.7%;
+  height: 23.4%;
+}
 
 .demo-language-rail {
   left: 3%;
   bottom: 2.3%;
-  z-index: 5;
+  z-index: 9;
+  padding: 6px 8px;
+  border: 1px solid rgba(53, 244, 232, 0.16);
+  border-radius: 999px;
+  background: rgba(2, 12, 20, 0.64);
+  backdrop-filter: blur(8px) saturate(1.2);
+}
+
+.demo-language-rail button.is-active {
+  border-color: var(--cyan);
+  color: #061216;
+  background: var(--cyan);
+}
+
+.demo-language-rail small {
+  color: #b8d3de;
+  font-size: 11px;
+  font-weight: 800;
 }
 
 .demo-state-bubble,
 .demo-cinematic-overlay {
   position: absolute;
-  z-index: 8;
+  z-index: 14;
+}
+
+.mode-fuzzy_match .demo-hotspot,
+.mode-product_enlarged .demo-hotspot,
+.mode-promotion_open .demo-hotspot,
+.mode-shelf_route .demo-hotspot,
+.mode-scan_product .demo-hotspot,
+.mode-pharmacist_handoff .demo-hotspot {
+  pointer-events: none;
 }
 
 .fuzzy-bubble {
@@ -3061,7 +3185,17 @@ img {
   margin-top: 6px;
 }
 
+.shelf-bubble button {
+  margin-top: 10px;
+  border: 1px solid rgba(155, 124, 255, 0.5);
+  border-radius: 999px;
+  padding: 8px 12px;
+  color: var(--text);
+  background: rgba(155, 124, 255, 0.16);
+}
+
 .demo-cinematic-overlay {
+  z-index: 18;
   inset: 0;
   display: grid;
   place-items: center;
@@ -3082,16 +3216,16 @@ img {
   animation: overlayMorph 420ms var(--ease-out);
 }
 
-.state-promotion {
+.state-promotion_open {
   perspective: 1300px;
 }
 
-.state-promotion .enlarged-leaflet {
+.state-promotion_open .enlarged-leaflet {
   transform: rotateY(-14deg) translateZ(34px);
   animation: leafletCylinder 680ms var(--ease-out);
 }
 
-.state-product .product-overlay {
+.state-product_enlarged .product-overlay {
   background:
     radial-gradient(circle at 42% 20%, rgba(53, 244, 232, 0.2), transparent 34%),
     linear-gradient(145deg, rgba(7, 24, 35, 0.82), rgba(6, 10, 22, 0.92));
@@ -3106,6 +3240,9 @@ img {
 
 .demo-overlay-content {
   display: grid;
+  width: 100%;
+  height: 100%;
+  box-sizing: border-box;
   min-height: 420px;
   place-items: center;
   padding: 42px;
