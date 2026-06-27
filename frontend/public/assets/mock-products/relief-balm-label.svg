@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 540" role="img" aria-label="Fictional Relief Balm demo label">
+  <rect width="900" height="540" rx="34" fill="#061426"/>
+  <rect x="28" y="28" width="844" height="484" rx="28" fill="none" stroke="#2ff5ff" stroke-width="5" opacity=".7"/>
+  <text x="80" y="112" font-family="Arial, sans-serif" font-size="34" fill="#2ff5ff" font-weight="700" letter-spacing="6">MOCK VITAFLOW</text>
+  <text x="80" y="205" font-family="Arial, sans-serif" font-size="76" fill="#fff" font-weight="800">Relief Balm</text>
+  <text x="80" y="278" font-family="Arial, sans-serif" font-size="40" fill="#d6e8ff">External cooling balm · 30g</text>
+  <text x="80" y="360" font-family="Arial, sans-serif" font-size="32" fill="#b8c7e8">Barcode demo: 9550000000019</text>
+  <rect x="620" y="128" width="180" height="180" rx="36" fill="#12c9bd"/>
+  <path d="M668 212h152c-37 12-70 38-91 74h-61z" fill="#efffff"/>
+  <path d="M756 170c-12 61-52 93-108 94 22-42 58-73 108-94z" fill="#087b77"/>
+</svg>

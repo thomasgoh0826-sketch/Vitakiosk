@@ -79,6 +79,18 @@ def test_provider_factory_returns_mock_bundle_by_default(
     }
 
 
+def test_local_product_scan_vision_requires_explicit_provider_selection(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    clear_provider_env(monkeypatch)
+    monkeypatch.setenv("VISION_PROVIDER", "local_product_scan")
+
+    bundle = create_provider_bundle(Settings.from_environment())
+
+    assert bundle.vision.__class__.__name__ == "LocalProductScanVision"
+    assert bundle.summary["vision"] == "local_product_scan"
+
+
 def test_credentials_do_not_auto_enable_live_providers(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:

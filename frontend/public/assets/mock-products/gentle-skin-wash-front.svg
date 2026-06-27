@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 960" role="img" aria-label="Fictional Gentle Skin Wash demo product front">
+  <defs>
+    <linearGradient id="bg" x1="0" x2="1" y1="0" y2="1">
+      <stop offset="0" stop-color="#082339"/>
+      <stop offset="1" stop-color="#24125e"/>
+    </linearGradient>
+  </defs>
+  <rect width="720" height="960" rx="56" fill="url(#bg)"/>
+  <rect x="58" y="58" width="604" height="844" rx="48" fill="none" stroke="#8a56ff" stroke-width="8" opacity=".74"/>
+  <text x="360" y="142" text-anchor="middle" font-family="Arial, sans-serif" font-size="54" fill="#f5fbff" font-weight="700" letter-spacing="12">VITAKIOSK</text>
+  <circle cx="288" cy="418" r="110" fill="#30d8e9" opacity=".82"/>
+  <circle cx="428" cy="418" r="110" fill="#7b55ff" opacity=".72"/>
+  <path d="M290 600c58 46 142 46 200 0" fill="none" stroke="#30f5ff" stroke-width="18" stroke-linecap="round" opacity=".9"/>
+  <text x="360" y="736" text-anchor="middle" font-family="Arial, sans-serif" font-size="56" fill="#fff" font-weight="800">Gentle Skin</text>
+  <text x="360" y="800" text-anchor="middle" font-family="Arial, sans-serif" font-size="56" fill="#2ff5ff" font-weight="800">Wash</text>
+  <text x="360" y="860" text-anchor="middle" font-family="Arial, sans-serif" font-size="26" fill="#b7c7e8">Fictional mock product · No diagnosis</text>
+</svg>

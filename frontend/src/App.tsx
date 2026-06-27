@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { api } from "./api/client";
 import AvatarAssistant from "./components/AvatarAssistant";
+import CameraScanOverlay from "./components/CameraScanOverlay";
 import ConversationPanel from "./components/ConversationPanel";
 import ErpDataPanel from "./components/ErpDataPanel";
 import LanguageSelector from "./components/LanguageSelector";
@@ -24,6 +25,7 @@ import type {
   AvatarState,
   Leaflet,
   Product,
+  ProductScanResponse,
   ProductSearchCandidate,
   RuntimeStatusResponse,
   UiAction,
@@ -114,6 +116,8 @@ function App() {
     useState(false);
   const [selectedProductCandidate, setSelectedProductCandidate] =
     useState<ProductSearchCandidate | null>(null);
+  const [scanOverlayOpen, setScanOverlayOpen] = useState(false);
+  const [scanProductCandidates, setScanProductCandidates] = useState<ProductSearchCandidate[]>([]);
   const {
     language,
     preferredLanguage,
@@ -135,7 +139,9 @@ function App() {
     : MOCK_PRODUCT;
   const productCandidates = selectedProductCandidate
     ? []
-    : voice.productCandidates ?? [];
+    : scanProductCandidates.length > 0
+      ? scanProductCandidates
+      : voice.productCandidates ?? [];
   const leaflets = useMemo(
     () => (voice.hasResult ? (voice.leaflets ?? []) : MOCK_LEAFLETS)
       .filter((leaflet) => isLeafletActiveForBranch(leaflet, BRANCH_ID)),
@@ -202,6 +208,7 @@ function App() {
     setManualEscalationId(null);
     setPharmacistConfirmationRequested(false);
     setSelectedProductCandidate(null);
+    setScanProductCandidates([]);
     setPromotionPanelMode("idle");
     setSelectedLeafletId(null);
     setModalLeafletId(null);
@@ -214,6 +221,7 @@ function App() {
 
   useEffect(() => {
     setSelectedProductCandidate(null);
+    setScanProductCandidates([]);
   }, [voice.resultId]);
 
   const showPromotionGallery = useCallback(() => {
@@ -235,6 +243,7 @@ function App() {
 
   const selectProductCandidate = useCallback((candidate: ProductSearchCandidate) => {
     setSelectedProductCandidate(candidate);
+    setScanProductCandidates([]);
     const matchingPromotionLeaflet = leaflets.find((leaflet) =>
       leaflet.kind === "promotion"
       && leaflet.product_ids.includes(candidate.product.id),
@@ -249,6 +258,23 @@ function App() {
     setPromotionPanelMode("product_options");
     setModalLeafletId(null);
   }, [leaflets]);
+
+  const handleScanResult = useCallback((result: ProductScanResponse) => {
+    const candidates = result.candidates.map((candidate) => ({
+      product: candidate.product,
+      confidence: candidate.confidence,
+      match_reason: candidate.matchReason,
+      matched_text: candidate.matchedText ?? "",
+    }));
+
+    if (!result.requiresConfirmation && candidates.length === 1) {
+      selectProductCandidate(candidates[0]);
+      return;
+    }
+
+    setSelectedProductCandidate(null);
+    setScanProductCandidates(candidates);
+  }, [selectProductCandidate]);
 
   useEffect(() => {
     if (!voice.hasResult) {
@@ -485,6 +511,21 @@ function App() {
               void voice.submitText(question);
             }}
           />
+          <section className="panel scan-product-rail" aria-label={t.scanProduct}>
+            <div>
+              <span className="eyebrow">{t.mockVitaFlow}</span>
+              <p>{t.scanProductInstruction}</p>
+            </div>
+            <button
+              type="button"
+              className="scan-product-button"
+              onClick={() => setScanOverlayOpen(true)}
+              disabled={avatarState === "pharmacist_escalation"}
+            >
+              <span aria-hidden="true">▣</span>
+              {t.scanProduct}
+            </button>
+          </section>
         </section>
 
         <aside className="retail-safety-rail">
@@ -516,6 +557,15 @@ function App() {
         activeLeafletId={escalationActive ? null : modalLeafletId}
         onClose={() => setModalLeafletId(null)}
         onSelect={setModalLeafletId}
+      />
+
+      <CameraScanOverlay
+        open={scanOverlayOpen}
+        api={api}
+        branchId={BRANCH_ID}
+        labels={t}
+        onClose={() => setScanOverlayOpen(false)}
+        onResult={handleScanResult}
       />
 
       <footer className="kiosk-footer">

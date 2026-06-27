@@ -4,6 +4,7 @@ import type {
   ItemListResponse,
   MockActionResponse,
   Poster,
+  ProductScanResponse,
   ProductSearchResponse,
   Promotion,
   RuntimeStatusResponse,
@@ -36,6 +37,7 @@ export interface VitaKioskApiClient {
   ): Promise<AIResponse>;
   synthesize(sessionId: string, text: string): Promise<Blob>;
   searchProducts(query: string, branchId: string): Promise<ProductSearchResponse>;
+  scanProduct(image: Blob, branchId: string, mode?: string): Promise<ProductScanResponse>;
   matchPromotions(productId: string, branchId: string): Promise<ItemListResponse<Promotion>>;
   idlePosters(branchId: string): Promise<ItemListResponse<Poster>>;
   createPurchasingQuery(query: string, branchId: string): Promise<MockActionResponse>;
@@ -110,6 +112,18 @@ export class VitaKioskApi implements VitaKioskApiClient {
   searchProducts(query: string, branchId: string): Promise<ProductSearchResponse> {
     const params = new URLSearchParams({ query, branch_id: branchId });
     return this.json(`/api/products/search?${params}`);
+  }
+
+  async scanProduct(
+    image: Blob,
+    branchId: string,
+    mode = "auto",
+  ): Promise<ProductScanResponse> {
+    const form = new FormData();
+    form.append("branch_id", branchId);
+    form.append("mode", mode);
+    form.append("image", image, "product-scan.jpg");
+    return this.json("/api/vision/scan-product", { method: "POST", body: form });
   }
 
   matchPromotions(productId: string, branchId: string): Promise<ItemListResponse<Promotion>> {

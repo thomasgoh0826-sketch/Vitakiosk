@@ -6,7 +6,7 @@ Expose typed mock contracts for the kiosk without provider-specific route logic.
 
 ## Endpoints
 
-`GET /health`, three voice/AI POST routes, three catalog GET routes, two action POST routes, and one WebSocket route.
+`GET /health`, three voice/AI POST routes, three catalog GET routes, one local product scan POST route, two action POST routes, and one WebSocket route.
 
 ## Acceptance criteria
 
@@ -20,6 +20,12 @@ Expose typed mock contracts for the kiosk without provider-specific route logic.
 - Product search responses include exact `items`, fuzzy `candidates`, mock
   provenance, and a purchasing-query ID only when neither exact products nor
   candidates are available.
+- `POST /api/vision/scan-product` accepts one uploaded image plus `branch_id`
+  and optional scan `mode`; it returns `provider`, `scanSignals`, candidate
+  products, confirmation requirement, OCR/correction metadata when available,
+  and controlled errors for malformed images or unavailable local scan
+  configuration. The route must not save raw camera frames by default and must
+  return only VitaFlow/mock-backed product facts.
 - AI responses include customer-safe text plus structured `ui_actions`, active
   branch-valid leaflet data, and `product_candidates` when the workflow needs a
   customer to confirm a near product match.

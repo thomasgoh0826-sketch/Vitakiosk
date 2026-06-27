@@ -31,6 +31,12 @@ export interface Product {
   source: "mock_vitaflow";
   unavailable_reason: string | null;
   productSummary?: Partial<ProductSummary>;
+  barcode?: string | null;
+  images?: Array<{
+    url: string;
+    type: string;
+    isPrimary: boolean;
+  }>;
 }
 
 export interface ProductSearchCandidate {
@@ -38,6 +44,29 @@ export interface ProductSearchCandidate {
   confidence: number;
   match_reason: string;
   matched_text: string;
+}
+
+export interface ProductScanCandidate {
+  product: Product;
+  confidence: number;
+  matchReason: string;
+  matchedText: string | null;
+}
+
+export interface ProductScanResponse {
+  ok: boolean;
+  provider: string;
+  scanSignals: {
+    barcode: string | null;
+    imageSimilarity: boolean;
+    ocr: boolean;
+  };
+  candidates: ProductScanCandidate[];
+  requiresConfirmation: boolean;
+  message: string;
+  barcodeResult: string | null;
+  ocrText: string | null;
+  correctedText: string | null;
 }
 
 export interface Promotion {

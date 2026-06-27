@@ -328,6 +328,13 @@ A feature is accepted only when:
 - Assistant waveform acceptance requires state-specific idle/listening/thinking/speaking/error/pharmacist-escalation styling, microphone RMS activity during listening, playback analyser or subtle visual fallback during speaking, reduced-motion support, and no customer-facing debug labels.
 - Futuristic background animation acceptance requires lightweight CSS-only grid drift, scanlines, and glow sweeps that preserve readability and avoid particles, smoke, fog, noisy atmosphere, global zoom, or layout movement.
 - Heavy 3D models are not accepted for the iPad landscape kiosk path.
+- Local product scan acceptance requires an explicit `VISION_PROVIDER=local_product_scan`
+  selector, browser camera access only after the customer taps `Scan Product`,
+  stream cleanup after capture/cancel/close, no raw image persistence by default,
+  barcode exact matches through VitaFlow/mock barcode lookup, OCR/image-similarity
+  matches through the existing product candidate confirmation panel, customer-safe
+  match labels, controlled camera/invalid-image errors, and tests proving CI
+  remains mock-safe without camera hardware or cloud OCR.
 
 ## Test evidence
 

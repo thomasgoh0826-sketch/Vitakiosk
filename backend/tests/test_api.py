@@ -312,3 +312,146 @@ def test_empty_product_query_is_rejected(client: TestClient) -> None:
     )
 
     assert response.status_code == 422
+
+
+def test_scan_product_barcode_exact_match_returns_authoritative_candidate(
+    client: TestClient,
+) -> None:
+    response = client.post(
+        "/api/vision/scan-product",
+        data={"branch_id": "SG-001", "mode": "barcode_first"},
+        files={
+            "image": (
+                "scan.jpg",
+                b"\xff\xd8\xff mock camera frame BARCODE:9550000000019",
+                "image/jpeg",
+            )
+        },
+    )
+
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload["provider"] == "mock"
+    assert payload["scanSignals"]["barcode"] == "9550000000019"
+    assert payload["scanSignals"]["imageSimilarity"] is False
+    assert payload["scanSignals"]["ocr"] is False
+    assert payload["candidates"][0]["product"]["id"] == "MOCK-P001"
+    assert payload["candidates"][0]["product"]["price"] == 12.5
+    assert payload["candidates"][0]["matchReason"] == "barcode_match"
+    assert payload["requiresConfirmation"] is False
+
+
+def test_scan_product_image_similarity_returns_candidate(client: TestClient) -> None:
+    response = client.post(
+        "/api/vision/scan-product",
+        data={"branch_id": "SG-001", "mode": "image_first"},
+        files={
+            "image": (
+                "scan.png",
+                b"\x89PNG\r\n\x1a\n mock product photo IMAGE:MOCK-P001",
+                "image/png",
+            )
+        },
+    )
+
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload["scanSignals"]["barcode"] is None
+    assert payload["scanSignals"]["imageSimilarity"] is True
+    assert payload["candidates"][0]["product"]["id"] == "MOCK-P001"
+    assert payload["candidates"][0]["confidence"] == 0.93
+    assert payload["candidates"][0]["matchReason"] == "product_image_similarity"
+    assert payload["requiresConfirmation"] is True
+
+
+def test_scan_product_ocr_relief_bomb_returns_relief_balm_candidate(
+    client: TestClient,
+) -> None:
+    response = client.post(
+        "/api/vision/scan-product",
+        data={"branch_id": "SG-001", "mode": "ocr_first"},
+        files={
+            "image": (
+                "scan.webp",
+                b"RIFFxxxxWEBP OCR:Where is Relief Bomb?",
+                "image/webp",
+            )
+        },
+    )
+
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload["scanSignals"]["ocr"] is True
+    assert payload["ocrText"] == "Where is Relief Bomb?"
+    assert payload["correctedText"] == "Where is Relief Balm?"
+    assert payload["candidates"][0]["product"]["id"] == "MOCK-P001"
+    assert payload["candidates"][0]["matchReason"] in {
+        "ocr_text_match",
+        "near_name_match",
+    }
+    assert payload["requiresConfirmation"] is True
+
+
+def test_scan_product_unrelated_image_returns_no_candidate(client: TestClient) -> None:
+    response = client.post(
+        "/api/vision/scan-product",
+        data={"branch_id": "SG-001", "mode": "auto"},
+        files={
+            "image": (
+                "scan.jpg",
+                b"\xff\xd8\xff OCR:totally unrelated object",
+                "image/jpeg",
+            )
+        },
+    )
+
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload["ok"] is True
+    assert payload["candidates"] == []
+    assert payload["requiresConfirmation"] is False
+    assert payload["message"] == "Product not found. Please try again or type the product name."
+
+
+def test_scan_product_rejects_malformed_image(client: TestClient) -> None:
+    response = client.post(
+        "/api/vision/scan-product",
+        data={"branch_id": "SG-001", "mode": "auto"},
+        files={"image": ("scan.txt", b"not an image", "text/plain")},
+    )
+
+    assert response.status_code == 422
+    assert response.json() == {
+        "ok": False,
+        "error": "invalid_image",
+        "message": "Image could not be decoded. Please try again.",
+    }
+
+
+def test_scan_product_provider_unavailable_returns_controlled_error(
+    client: TestClient,
+    monkeypatch,
+) -> None:
+    from backend.app.routes import vision
+
+    class UnavailableVision:
+        provider_name = "local_product_scan"
+
+        def scan_product(self, image, content_type, branch_id, mode, vitaflow):
+            del image, content_type, branch_id, mode, vitaflow
+            raise RuntimeError("local_product_image_scan_not_configured")
+
+    monkeypatch.setattr(vision, "vision_adapter", UnavailableVision())
+
+    response = client.post(
+        "/api/vision/scan-product",
+        data={"branch_id": "SG-001", "mode": "auto"},
+        files={"image": ("scan.jpg", b"\xff\xd8\xff mock", "image/jpeg")},
+    )
+
+    assert response.status_code == 503
+    assert response.json() == {
+        "ok": False,
+        "error": "local_product_image_scan_not_configured",
+        "message": "Local product image scan is not configured.",
+    }

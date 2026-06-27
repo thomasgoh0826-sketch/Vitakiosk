@@ -16,7 +16,7 @@ from services.leaflet_engine import LeafletEngine
 from services.ollama_ai import OllamaAIBrain
 from services.openai_stt import OpenAIWhisperSTT
 from services.poster_engine import PosterEngine
-from services.product_vision import BarcodeOCRVision, MockProductVision
+from services.product_vision import BarcodeOCRVision, LocalProductScanVision, MockProductVision
 from services.promotion_engine import PromotionEngine
 from services.safety_guardrails import SafetyGuardrails
 from services.vitaflow_api import MockVitaFlowAPI, ReadOnlyVitaFlowAPI
@@ -193,4 +193,6 @@ def _create_vitaflow(settings: Settings) -> VitaFlowAdapter:
 def _create_vision(settings: Settings) -> ProductVisionAdapter:
     if settings.vision_provider == "mock":
         return MockProductVision()
+    if settings.vision_provider == "local_product_scan":
+        return LocalProductScanVision()
     return BarcodeOCRVision()

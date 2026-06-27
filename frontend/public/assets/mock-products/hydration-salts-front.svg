@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 960" role="img" aria-label="Fictional Hydration Salts demo product front">
+  <defs>
+    <linearGradient id="bg" x1="0" x2="1" y1="0" y2="1">
+      <stop offset="0" stop-color="#05233a"/>
+      <stop offset="1" stop-color="#18235f"/>
+    </linearGradient>
+  </defs>
+  <rect width="720" height="960" rx="56" fill="url(#bg)"/>
+  <rect x="58" y="58" width="604" height="844" rx="48" fill="none" stroke="#36e9ff" stroke-width="8" opacity=".72"/>
+  <text x="360" y="142" text-anchor="middle" font-family="Arial, sans-serif" font-size="54" fill="#f5fbff" font-weight="700" letter-spacing="12">VITAKIOSK</text>
+  <path d="M360 232c72 108 132 204 132 310 0 96-58 166-132 166s-132-70-132-166c0-106 60-202 132-310z" fill="#38d8e9"/>
+  <path d="M360 232c72 108 132 204 132 310 0 96-58 166-132 166" fill="none" stroke="#1b7f9d" stroke-width="34" opacity=".7"/>
+  <text x="360" y="790" text-anchor="middle" font-family="Arial, sans-serif" font-size="56" fill="#fff" font-weight="800">Hydration Salts</text>
+  <text x="360" y="850" text-anchor="middle" font-family="Arial, sans-serif" font-size="34" fill="#2ff5ff" font-weight="700">Fictional mock product</text>
+</svg>

@@ -16,6 +16,11 @@ adapter-backed product facts plus confidence, match reason, and matched text.
 It must not invent price, stock, shelf, promotion, branch, product details, or
 availability.
 
+For local product scan, the adapter also exposes read-only `get_product` and
+`get_product_by_barcode` lookups. Vision/OCR/image-similarity layers may return
+signals and candidate IDs, but VitaFlow/mock remains the only source for product
+name, SKU, price, stock, branch, shelf, source, and availability.
+
 ## Future connector
 
 A live connector must implement `VitaFlowAdapter`, use an approved HTTP API, be selected explicitly, and never inspect an ERP release directory or database directly. The first live option is `VITAFLOW_PROVIDER=readonly_api` only.
@@ -30,6 +35,9 @@ A live connector must implement `VitaFlowAdapter`, use an approved HTTP API, be 
 - `readonly_api` is read-only and cannot write product, stock, promotion, shelf, purchasing, sales, or customer data.
 - Fuzzy product search is branch-aware, read-only, sorted by confidence, and
   returns candidate facts from the adapter only.
+- Barcode product lookup is branch-aware and read-only. Image/OCR matches must
+  resolve product candidates through the adapter rather than returning raw
+  model-invented product facts.
 - Near-match candidates such as `Relief Bomb` -> `Relief Balm` do not create a
   purchasing query until the adapter returns no candidate.
 - Tests must not call VitaFlow ERP or any real ERP database/API.

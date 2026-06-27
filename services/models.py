@@ -6,6 +6,13 @@ from enum import Enum
 
 
 @dataclass(frozen=True)
+class ProductImage:
+    url: str
+    type: str
+    isPrimary: bool = False
+
+
+@dataclass(frozen=True)
 class Product:
     id: str
     name: str
@@ -17,6 +24,8 @@ class Product:
     source: str = "mock_vitaflow"
     unavailable_reason: str | None = None
     productSummary: dict[str, dict[str, str]] | None = None
+    barcode: str | None = None
+    images: tuple[ProductImage, ...] = ()
 
 
 @dataclass(frozen=True)
@@ -25,6 +34,34 @@ class ProductSearchResult:
     confidence: float
     match_reason: str
     matched_text: str
+
+
+@dataclass(frozen=True)
+class ProductScanSignals:
+    barcode: str | None = None
+    imageSimilarity: bool = False
+    ocr: bool = False
+
+
+@dataclass(frozen=True)
+class ProductScanCandidate:
+    product: Product
+    confidence: float
+    matchReason: str
+    matchedText: str | None = None
+
+
+@dataclass(frozen=True)
+class ProductScanResult:
+    ok: bool
+    provider: str
+    scanSignals: ProductScanSignals
+    candidates: tuple[ProductScanCandidate, ...] = ()
+    requiresConfirmation: bool = False
+    message: str = ""
+    barcodeResult: str | None = None
+    ocrText: str | None = None
+    correctedText: str | None = None
 
 
 @dataclass(frozen=True)

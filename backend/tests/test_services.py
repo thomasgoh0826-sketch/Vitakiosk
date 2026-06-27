@@ -308,3 +308,80 @@ def test_safe_product_request_is_allowed() -> None:
 
 def test_product_vision_never_guesses() -> None:
     assert MockProductVision().identify(b"unrecognized image") is None
+
+
+def test_product_scan_barcode_uses_mock_vitaflow_authoritative_facts(
+    vitaflow: MockVitaFlowAPI,
+) -> None:
+    result = MockProductVision().scan_product(
+        b"BARCODE:9550000000019",
+        "application/octet-stream",
+        "SG-001",
+        "auto",
+        vitaflow,
+    )
+
+    assert result.ok is True
+    assert result.requiresConfirmation is False
+    assert result.scanSignals.barcode == "9550000000019"
+    assert result.candidates[0].matchReason == "barcode_match"
+    assert result.candidates[0].product.id == "MOCK-P001"
+    assert result.candidates[0].product.price == 12.50
+    assert result.candidates[0].product.stock == 18
+    assert result.candidates[0].product.shelf_location == "A-03"
+    assert result.candidates[0].product.source == "mock_vitaflow"
+
+
+def test_product_scan_sorts_visual_candidates_by_confidence(
+    vitaflow: MockVitaFlowAPI,
+) -> None:
+    result = MockProductVision().scan_product(
+        b"IMAGE:MOCK-P002 IMAGE:MOCK-P001",
+        "application/octet-stream",
+        "SG-001",
+        "image_first",
+        vitaflow,
+    )
+
+    assert result.requiresConfirmation is True
+    assert [candidate.product.id for candidate in result.candidates[:2]] == [
+        "MOCK-P002",
+        "MOCK-P001",
+    ]
+    assert result.candidates[0].confidence >= result.candidates[1].confidence
+
+
+def test_product_scan_ocr_correction_keeps_confirmation_flow(
+    vitaflow: MockVitaFlowAPI,
+) -> None:
+    result = MockProductVision().scan_product(
+        b"OCR:Relief Bomb",
+        "application/octet-stream",
+        "SG-001",
+        "ocr_first",
+        vitaflow,
+    )
+
+    assert result.requiresConfirmation is True
+    assert result.ocrText == "Relief Bomb"
+    assert result.correctedText == "Relief Balm"
+    assert result.candidates[0].product.name == "Relief Balm"
+    assert result.candidates[0].matchReason == "ocr_text_match"
+
+
+def test_product_scan_does_not_persist_raw_camera_frames(
+    tmp_path,
+    vitaflow: MockVitaFlowAPI,
+) -> None:
+    before = set(tmp_path.iterdir())
+
+    result = MockProductVision().scan_product(
+        b"IMAGE:MOCK-P001",
+        "application/octet-stream",
+        "SG-001",
+        "auto",
+        vitaflow,
+    )
+
+    assert result.candidates[0].product.id == "MOCK-P001"
+    assert set(tmp_path.iterdir()) == before

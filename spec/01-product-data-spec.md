@@ -14,6 +14,12 @@ Candidate identification is only an aid to selection: all displayed facts still
 come from the VitaFlow/mock adapter, and a customer selection is required for
 medium-confidence or ambiguous matches.
 
+Camera product scan can add barcode, OCR, or product image similarity signals
+to the same candidate confirmation flow. Barcode exact matches may select the
+authoritative VitaFlow/mock product directly; OCR and image-similarity matches
+must show confirmation candidates unless the workflow has an exact trusted
+barcode match.
+
 ## Safety constraints
 
 - Never infer missing price, stock, shelf location, or product details.
@@ -30,6 +36,9 @@ medium-confidence or ambiguous matches.
 - Candidate cards show only customer-safe match labels such as `Best match`,
   product facts, branch, shelf, and source; technical scoring terms are not
   shown to customers.
+- Camera scan candidates show customer-safe labels such as `Barcode match`,
+  `Best visual match`, or `Label text match`; all candidate facts are
+  adapter-backed and no raw camera image is stored by default.
 - Missing values display `Unavailable from VitaFlow`.
 
 ## Test evidence

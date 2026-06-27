@@ -10,7 +10,7 @@ ALLOWED_STT_PROVIDERS = frozenset({"mock", "openai_whisper", "faster_whisper"})
 ALLOWED_TTS_PROVIDERS = frozenset({"mock", "elevenlabs"})
 ALLOWED_AI_PROVIDERS = frozenset({"mock", "openai", "ollama"})
 ALLOWED_VITAFLOW_PROVIDERS = frozenset({"mock", "readonly_api"})
-ALLOWED_VISION_PROVIDERS = frozenset({"mock", "barcode_ocr"})
+ALLOWED_VISION_PROVIDERS = frozenset({"mock", "local_product_scan", "barcode_ocr"})
 
 
 def _env_choice(name: str, default: str) -> str:

@@ -33,6 +33,15 @@ FASTER_WHISPER_LANGUAGE=auto
 STT_LOW_CONFIDENCE_THRESHOLD=0.55
 ```
 
+For reviewed local camera product scan testing only, change the vision selector
+in local `.env` to:
+
+```env
+VISION_PROVIDER=local_product_scan
+```
+
+Keep CI and normal demos on `VISION_PROVIDER=mock`.
+
 Keep `TTS_PROVIDER=mock` and `VITAFLOW_PROVIDER=mock` for this demo. Do not add OpenAI, ElevenLabs, VitaFlow, or database credentials.
 
 If the Ollama model is not installed yet:
