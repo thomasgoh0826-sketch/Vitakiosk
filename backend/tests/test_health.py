@@ -29,6 +29,8 @@ def test_health_reports_mock_mode(client: TestClient) -> None:
         "http://localhost:5175",
         "http://127.0.0.1:5173",
         "http://localhost:5173",
+        "http://127.0.0.1:5176",
+        "http://localhost:5176",
     ],
 )
 def test_local_dev_cors_allows_vite_ports(client: TestClient, origin: str) -> None:

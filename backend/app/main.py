@@ -5,7 +5,7 @@ from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 
 from backend.app.config import Settings
-from backend.app.routes import actions, ai, catalog, voice
+from backend.app.routes import actions, ai, catalog, site, voice
 from backend.app.websocket_manager import AVATAR_STATES, manager
 
 
@@ -17,6 +17,8 @@ LOCAL_DEV_CORS_ORIGINS = [
     "http://127.0.0.1:5173",
     "http://localhost:5175",
     "http://127.0.0.1:5175",
+    "http://localhost:5176",
+    "http://127.0.0.1:5176",
 ]
 
 app = FastAPI(title="VitaKiosk API", version="0.1.0")
@@ -31,6 +33,7 @@ app.include_router(voice.router)
 app.include_router(ai.router)
 app.include_router(catalog.router)
 app.include_router(actions.router)
+app.include_router(site.router)
 
 
 @app.get("/health")

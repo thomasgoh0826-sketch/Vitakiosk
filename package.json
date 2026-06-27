@@ -1,0 +1,10 @@
+{
+  "name": "vitakiosk-workspace",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "site:dev": "npm run dev --prefix apps/site -- --host 127.0.0.1 --port 5176 --strictPort",
+    "site:build": "npm run build --prefix apps/site",
+    "site:test": "npm run test:run --prefix apps/site"
+  }
+}
