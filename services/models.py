@@ -10,6 +10,7 @@ class ProductImage:
     url: str
     type: str
     isPrimary: bool = False
+    alt: str | None = None
 
 
 @dataclass(frozen=True)
@@ -25,6 +26,8 @@ class Product:
     unavailable_reason: str | None = None
     productSummary: dict[str, dict[str, str]] | None = None
     barcode: str | None = None
+    imageUrl: str | None = None
+    thumbnailUrl: str | None = None
     images: tuple[ProductImage, ...] = ()
 
 

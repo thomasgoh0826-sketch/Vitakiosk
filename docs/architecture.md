@@ -6,6 +6,20 @@ VitaKiosk uses a mock-first, live-ready split architecture. React owns browser m
 
 VitaFlow ERP is the source of truth for product, stock, price, promotion, and shelf location. The current `MockVitaFlowAPI` supplies fictional records shaped like authoritative data; no live ERP resource is queried.
 
+Product artwork uses the same source-of-truth path:
+
+```text
+VitaFlow/mock adapter -> backend product response -> ProductImage component
+```
+
+The backend product model supports `imageUrl`, `thumbnailUrl`, and `images[]`
+with image type, primary flag, and alt text. The frontend does not import or
+switch on product-specific images; it renders the backend-provided URL when it
+is a safe local/static or HTTP(S) path and falls back to the premium generated
+initials artwork if the image is missing, unsafe, or fails to load. Future
+VitaFlow read-only product images can therefore replace mock artwork without a
+frontend code change.
+
 ## Runtime components
 
 ```text
@@ -85,7 +99,7 @@ The frontend ignores malformed or cross-session events. When WebSocket is unavai
 - `STTAdapter`: audio bytes and content type to a `TranscriptionResult` containing transcript, provider, language, optional confidence, corrected transcript, detected terms, possible product/category matches, and clarification status.
 - `TTSAdapter`: safe text to audio bytes.
 - `AIBrain`: text and branch to typed AI result. `MockAIBrain` is deterministic and default; `OllamaAIBrain` is an explicit local structured wording provider that keeps the deterministic workflow as the fact and safety authority.
-- `VitaFlowAdapter`: query, barcode, product ID, and branch to authoritative product records.
+- `VitaFlowAdapter`: query, barcode, product ID, and branch to authoritative product records, including read-only product image metadata when available.
 - `ProductVisionAdapter`: camera image bytes plus scan mode to barcode/OCR/image-similarity scan signals and VitaFlow-backed product candidates.
 - `AvatarRenderer`: avatar state and normalized audio activity to visual output. Lottie remains the default renderer; `VITE_AVATAR_RENDERER=threejs` lazy-loads the optional Three.js GLB renderer, and `VITE_AVATAR_RENDERER=vrm` lazy-loads the optional self-hosted VRM renderer. `VITE_VRM_MODEL=vita-new` selects `frontend/src/assets/avatar/vita-new.vrm`. Missing env keeps the default renderer; missing/invalid model files, model-load failures, or WebGL unavailability fall back to the abstract hologram without changing backend, WebSocket, provider, or safety contracts.
 

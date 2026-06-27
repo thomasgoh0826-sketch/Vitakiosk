@@ -220,6 +220,19 @@ def test_product_search_returns_mock_product(client: TestClient) -> None:
     assert response.status_code == 200
     payload = response.json()
     assert [product["id"] for product in payload["items"]] == ["MOCK-P001"]
+    product = payload["items"][0]
+    assert product["price"] == 12.5
+    assert product["stock"] == 18
+    assert product["shelf_location"] == "A-03"
+    assert product["source"] == "mock_vitaflow"
+    assert product["imageUrl"] == "/assets/mock-products/relief-balm-front.svg"
+    assert product["thumbnailUrl"] == "/assets/mock-products/relief-balm-front.svg"
+    assert product["images"][0] == {
+        "url": "/assets/mock-products/relief-balm-front.svg",
+        "type": "front_pack",
+        "isPrimary": True,
+        "alt": "Relief Balm product image",
+    }
     assert payload["purchasing_query_id"] is None
 
 
@@ -251,6 +264,10 @@ def test_product_search_returns_fuzzy_candidates_without_purchasing_query(
     assert payload["candidates"][0]["product"]["price"] == 12.5
     assert payload["candidates"][0]["product"]["stock"] == 18
     assert payload["candidates"][0]["product"]["shelf_location"] == "A-03"
+    assert (
+        payload["candidates"][0]["product"]["imageUrl"]
+        == "/assets/mock-products/relief-balm-front.svg"
+    )
     assert payload["candidates"][0]["match_reason"] == "near_name_match"
 
 

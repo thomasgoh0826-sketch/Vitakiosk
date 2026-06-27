@@ -24,6 +24,7 @@ Only the VitaFlow adapter may provide:
 - stock
 - branch
 - shelf location
+- product image metadata
 - source/provenance
 - promotion/campaign eligibility
 
@@ -50,9 +51,12 @@ as:
     {
       "url": "self-hosted-or-approved-static-path",
       "type": "front|label|package|barcode",
-      "isPrimary": true
+      "isPrimary": true,
+      "alt": "customer-safe product image description"
     }
   ],
+  "imageUrl": "primary-backend-controlled-image-path",
+  "thumbnailUrl": "backend-controlled-thumbnail-path",
   "source": "vitaflow_readonly"
 }
 ```
@@ -69,6 +73,7 @@ customer, purchasing, promotion, or shelf data.
 - avoid storing raw customer/product images by default
 - return controlled errors for invalid images or unavailable local libraries
 - use VitaFlow/mock lookups for every product fact
+- use VitaFlow/mock image metadata for display and future similarity indexing
 - keep OCR/image-similarity candidates in the confirmation UI unless an exact
   trusted barcode match is found
 

@@ -7,6 +7,9 @@ By default, the demo does not call OpenAI, ElevenLabs, Ollama, or VitaFlow ERP. 
 ## Safety rules
 
 - VitaFlow ERP is the source of truth for product, stock, price, promotion, and shelf location.
+- Product images are also backend/VitaFlow data: the frontend renders
+  `imageUrl`, `thumbnailUrl`, or `images[]` from the product response and falls
+  back to generated artwork when an image is missing or fails.
 - AI must not diagnose, prescribe, or replace a pharmacist.
 - Red-flag and diagnosis-seeking cases escalate to a pharmacist.
 - Unknown products create a purchasing query; the kiosk does not guess.

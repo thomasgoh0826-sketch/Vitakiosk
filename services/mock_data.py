@@ -13,16 +13,20 @@ MOCK_PRODUCTS: tuple[Product, ...] = (
         stock=18,
         shelf_location="A-03",
         barcode="9550000000019",
+        imageUrl="/assets/mock-products/relief-balm-front.svg",
+        thumbnailUrl="/assets/mock-products/relief-balm-front.svg",
         images=(
             ProductImage(
                 url="/assets/mock-products/relief-balm-front.svg",
                 type="front_pack",
                 isPrimary=True,
+                alt="Relief Balm product image",
             ),
             ProductImage(
                 url="/assets/mock-products/relief-balm-label.svg",
                 type="label_closeup",
                 isPrimary=False,
+                alt="Relief Balm product label",
             ),
         ),
         productSummary={
@@ -62,11 +66,14 @@ MOCK_PRODUCTS: tuple[Product, ...] = (
         stock=24,
         shelf_location="B-07",
         barcode="9550000000026",
+        imageUrl="/assets/mock-products/hydration-salts-front.svg",
+        thumbnailUrl="/assets/mock-products/hydration-salts-front.svg",
         images=(
             ProductImage(
                 url="/assets/mock-products/hydration-salts-front.svg",
                 type="front_pack",
                 isPrimary=True,
+                alt="Hydration Salts product image",
             ),
         ),
         productSummary={
@@ -90,11 +97,14 @@ MOCK_PRODUCTS: tuple[Product, ...] = (
         stock=11,
         shelf_location="C-02",
         barcode="9550000000033",
+        imageUrl="/assets/mock-products/gentle-skin-wash-front.svg",
+        thumbnailUrl="/assets/mock-products/gentle-skin-wash-front.svg",
         images=(
             ProductImage(
                 url="/assets/mock-products/gentle-skin-wash-front.svg",
                 type="front_pack",
                 isPrimary=True,
+                alt="Gentle Skin Wash product image",
             ),
         ),
         productSummary={

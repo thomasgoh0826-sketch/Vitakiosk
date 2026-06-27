@@ -16,6 +16,20 @@ const product: Product = {
   unavailable_reason: null,
 };
 
+const productWithBackendImage = {
+  ...product,
+  imageUrl: "/assets/mock-products/relief-balm-front.svg",
+  thumbnailUrl: "/assets/mock-products/relief-balm-thumb.svg",
+  images: [
+    {
+      url: "/assets/mock-products/relief-balm-front.svg",
+      type: "front_pack",
+      isPrimary: true,
+      alt: "Relief Balm product image",
+    },
+  ],
+} as Product;
+
 function clickAndSettle(element: HTMLElement) {
   fireEvent.click(element);
   act(() => {
@@ -24,6 +38,71 @@ function clickAndSettle(element: HTMLElement) {
 }
 
 describe("ProductCard futuristic summary transform", () => {
+  it("renders the backend product image in the normal product panel when available", () => {
+    render(
+      <ProductCard
+        product={productWithBackendImage}
+        purchasingQueryId={null}
+        labels={translations.en}
+        language="en"
+      />,
+    );
+
+    const panel = screen.getByRole("region", { name: "Product" });
+    const image = within(panel).getByRole("img", { name: "Relief Balm product image" });
+
+    expect(image).toHaveAttribute("src", "/assets/mock-products/relief-balm-front.svg");
+    expect(within(panel).queryByText("RE")).not.toBeInTheDocument();
+  });
+
+  it("falls back to premium initials when the backend product image is missing or fails", () => {
+    render(
+      <ProductCard
+        product={productWithBackendImage}
+        purchasingQueryId={null}
+        labels={translations.en}
+        language="en"
+      />,
+    );
+
+    const panel = screen.getByRole("region", { name: "Product" });
+    fireEvent.error(within(panel).getByRole("img", { name: "Relief Balm product image" }));
+
+    expect(within(panel).queryByRole("img", { name: "Relief Balm product image" })).not.toBeInTheDocument();
+    expect(within(panel).getByText("RE")).toBeInTheDocument();
+  });
+
+  it("uses the same backend product image in enlarged detail and summary views", () => {
+    vi.useFakeTimers();
+    try {
+      render(
+        <ProductCard
+          product={productWithBackendImage}
+          purchasingQueryId={null}
+          labels={translations.en}
+          language="en"
+        />,
+      );
+      const panel = screen.getByRole("region", { name: "Product" });
+
+      fireEvent.doubleClick(panel);
+      let dialog = screen.getByRole("dialog", { name: /enlarged product details/i });
+      expect(within(dialog).getByRole("img", { name: "Relief Balm product image" })).toHaveAttribute(
+        "src",
+        "/assets/mock-products/relief-balm-front.svg",
+      );
+
+      fireEvent.click(within(dialog).getByTestId("product-viewer-stage"));
+      dialog = screen.getByRole("dialog", { name: /enlarged product summary/i });
+      expect(within(dialog).getByRole("img", { name: "Relief Balm product image" })).toHaveAttribute(
+        "src",
+        "/assets/mock-products/relief-balm-front.svg",
+      );
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
   it("toggles from source-backed product facts into a concise summary view", () => {
     vi.useFakeTimers();
     try {

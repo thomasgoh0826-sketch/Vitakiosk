@@ -21,6 +21,12 @@ For local product scan, the adapter also exposes read-only `get_product` and
 signals and candidate IDs, but VitaFlow/mock remains the only source for product
 name, SKU, price, stock, branch, shelf, source, and availability.
 
+Product image metadata is read-only adapter data. Mock and future VitaFlow
+records may expose a primary image URL, thumbnail URL, and multiple image
+entries with type, primary flag, and alt text. These fields support UI display
+and future image-similarity indexing, but they do not authorize any frontend
+hardcoded product image paths or any vision-generated product facts.
+
 ## Future connector
 
 A live connector must implement `VitaFlowAdapter`, use an approved HTTP API, be selected explicitly, and never inspect an ERP release directory or database directly. The first live option is `VITAFLOW_PROVIDER=readonly_api` only.
@@ -38,6 +44,9 @@ A live connector must implement `VitaFlowAdapter`, use an approved HTTP API, be 
 - Barcode product lookup is branch-aware and read-only. Image/OCR matches must
   resolve product candidates through the adapter rather than returning raw
   model-invented product facts.
+- Product image URLs, thumbnails, and image lists are returned only from the
+  adapter/backend response. The frontend must fall back safely if a URL is
+  absent, invalid, unsafe, or fails to load.
 - Near-match candidates such as `Relief Bomb` -> `Relief Balm` do not create a
   purchasing query until the adapter returns no candidate.
 - Tests must not call VitaFlow ERP or any real ERP database/API.

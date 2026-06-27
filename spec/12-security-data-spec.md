@@ -19,6 +19,10 @@ Keep secrets and real business data out of the repository and demo runtime.
   video frames by default. Any temporary diagnostic image capture, if ever
   added for reviewed troubleshooting, must live only under ignored temp paths
   and must not be committed.
+- Product display images must come from backend/VitaFlow metadata and should be
+  local/static or backend-proxied paths. The frontend must reject unsafe image
+  URL schemes and fall back to generated artwork instead of exposing private
+  storage paths, inline scripts, customer images, or patient data.
 - Staged-file safety exits nonzero for a prohibited staged path.
 - Mock mode makes no provider or ERP network call.
 - Live providers are disabled unless explicitly selected in local `.env`; credentials alone never switch a provider out of mock mode.

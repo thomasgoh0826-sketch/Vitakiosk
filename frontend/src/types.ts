@@ -32,10 +32,13 @@ export interface Product {
   unavailable_reason: string | null;
   productSummary?: Partial<ProductSummary>;
   barcode?: string | null;
+  imageUrl?: string | null;
+  thumbnailUrl?: string | null;
   images?: Array<{
     url: string;
     type: string;
     isPrimary: boolean;
+    alt?: string | null;
   }>;
 }
 

@@ -1,6 +1,7 @@
 import type { KioskTranslations } from "../i18n";
 import { translations } from "../i18n";
 import type { ProductSearchCandidate } from "../types";
+import ProductImage from "./ProductImage";
 
 interface ProductCandidatePanelProps {
   candidates: ProductSearchCandidate[];
@@ -64,6 +65,7 @@ function ProductCandidatePanel({
               <span className="candidate-rank">
                 {matchLabel(candidate, index, labels)}
               </span>
+              <ProductImage product={product} className="candidate-product-image" variant="candidate" />
               <strong>{product.name}</strong>
               <span>{product.id}</span>
               <dl>

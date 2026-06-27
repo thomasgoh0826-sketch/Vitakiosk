@@ -245,6 +245,13 @@ A feature is accepted only when:
 - Product, promotion, leaflet, and safety icons are not accepted if inner
   artwork, logos, glyphs, or leaflet images are clipped; image artwork must use
   safe padding and `object-fit: contain`.
+- Backend-driven product image acceptance requires normal Product panel,
+  enlarged Product detail, enlarged Product summary, and candidate cards to use
+  adapter-provided `imageUrl`/`thumbnailUrl`/`images[]` data through the shared
+  `ProductImage` component. The frontend must not hardcode product-specific
+  image paths, and missing, unsafe, or failed images must fall back to the
+  generated premium initials/icon without changing VitaFlow source-of-truth
+  product facts.
 - Leaflet modal acceptance requires a floating holographic leaflet card over the
   existing kiosk UI, not a big dark modal container and not a modal box
   containing a nested carousel box. The whole floating stage must be
