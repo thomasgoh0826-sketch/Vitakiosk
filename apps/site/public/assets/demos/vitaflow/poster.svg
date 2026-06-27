@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="720" viewBox="0 0 1280 720" role="img" aria-label="VitaFlow poster placeholder">
+  <rect width="1280" height="720" fill="#050814"/>
+  <path d="M70 580 C240 420 350 492 520 330 C700 160 850 244 1110 126" fill="none" stroke="#39e6ff" stroke-width="10" stroke-linecap="round" opacity=".65"/>
+  <rect x="142" y="118" width="996" height="484" rx="34" fill="#07131f" stroke="#39e6ff" stroke-opacity=".45" stroke-width="2"/>
+  <text x="206" y="236" font-family="Arial, sans-serif" font-size="56" font-weight="800" fill="#f2f7ff">Source of truth</text>
+  <text x="206" y="304" font-family="Arial, sans-serif" font-size="28" fill="#a7b7d6">Inventory, price, stock, promotion, shelf, purchase, reports</text>
+  <text x="206" y="504" font-family="Arial, sans-serif" font-size="22" fill="#64f3c8">Placeholder poster - replace with approved VitaFlow demo material</text>
+</svg>

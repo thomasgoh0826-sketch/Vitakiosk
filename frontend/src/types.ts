@@ -31,6 +31,11 @@ export interface Product {
   source: "mock_vitaflow";
   unavailable_reason: string | null;
   productSummary?: Partial<ProductSummary>;
+  imageUrl?: string | null;
+  thumbnailUrl?: string | null;
+  images?: string[];
+  image_url?: string | null;
+  thumbnail_url?: string | null;
 }
 
 export interface ProductSearchCandidate {

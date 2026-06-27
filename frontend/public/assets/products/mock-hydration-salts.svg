@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512" role="img" aria-label="Mock Hydration Salts product image">
+  <rect width="512" height="512" rx="92" fill="#061322"/>
+  <circle cx="256" cy="238" r="156" fill="#102135" stroke="#64f3c8" stroke-width="5"/>
+  <path d="M210 132h92l35 275H175l35-275z" fill="#f7fbff"/>
+  <path d="M210 132h92l8 64H202l8-64z" fill="#39e6ff"/>
+  <path d="M203 260c35-24 75-24 115 0v75H203v-75z" fill="#64f3c8"/>
+  <text x="256" y="315" text-anchor="middle" font-family="Arial, sans-serif" font-size="40" font-weight="800" fill="#063142">HS</text>
+  <text x="256" y="474" text-anchor="middle" font-family="Arial, sans-serif" font-size="24" font-weight="800" fill="#e7fbff">MOCK PRODUCT</text>
+</svg>

@@ -2311,6 +2311,21 @@ button:focus-visible {
   object-fit: contain;
 }
 
+.product-art[data-product-media="image"] {
+  background:
+    radial-gradient(circle at 50% 45%, rgba(66, 245, 255, 0.34) 0 18%, rgba(7, 26, 51, 0.96) 72%),
+    var(--deep-panel);
+}
+
+.product-art[data-product-media="image"] img {
+  position: relative;
+  z-index: 2;
+  width: min(78%, 84px);
+  max-width: 78%;
+  max-height: 78%;
+  filter: drop-shadow(0 12px 22px rgba(0, 0, 0, 0.34));
+}
+
 .product-identity {
   min-width: 0;
 }
@@ -5754,6 +5769,14 @@ body.product-expanded {
   box-shadow: inset 0 0 26px rgba(66, 245, 255, 0.16);
   font-size: clamp(2rem, 8dvw, 4.8rem);
   font-weight: 950;
+}
+
+.product-viewer-art img {
+  width: min(78%, 280px);
+  max-width: 78%;
+  max-height: 78%;
+  object-fit: contain;
+  filter: drop-shadow(0 24px 42px rgba(0, 0, 0, 0.42));
 }
 
 .product-viewer-copy {

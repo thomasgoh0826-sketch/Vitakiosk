@@ -98,6 +98,31 @@ function localizedText(field: LocalizedProductText, language: KioskLanguage) {
   return field[language] ?? field.en;
 }
 
+function resolveProductImage(product: Product): string | null {
+  return (
+    product.thumbnailUrl ||
+    product.imageUrl ||
+    product.images?.[0] ||
+    product.thumbnail_url ||
+    product.image_url ||
+    null
+  );
+}
+
+function ProductArtwork({ product, className }: { product: Product; className: string }) {
+  const imageSrc = resolveProductImage(product);
+
+  return (
+    <div className={className} data-product-media={imageSrc ? "image" : "fallback"}>
+      {imageSrc ? (
+        <img src={imageSrc} alt={`${product.name} product image`} draggable={false} />
+      ) : (
+        <span>{product.name.slice(0, 2).toUpperCase()}</span>
+      )}
+    </div>
+  );
+}
+
 function ProductCard({
   product,
   purchasingQueryId,
@@ -309,9 +334,7 @@ function ProductCard({
           >
             {enlargedView === "details" ? (
               <div className="product-viewer-detail">
-                <div className="product-viewer-art" aria-hidden="true">
-                  <span>{product.name.slice(0, 2).toUpperCase()}</span>
-                </div>
+                <ProductArtwork product={product} className="product-viewer-art" />
                 <div className="product-viewer-copy">
                   <span className="eyebrow">{labels.productVerified}</span>
                   <h2>{product.name}</h2>
@@ -372,9 +395,7 @@ function ProductCard({
             ) : (
               <>
                 <div className="product-hero">
-                  <div className="product-art" aria-hidden="true">
-                    <span>{product.name.slice(0, 2).toUpperCase()}</span>
-                  </div>
+                  <ProductArtwork product={product} className="product-art" />
                   <div className="product-identity">
                     <span className="eyebrow">{labels.productVerified}</span>
                     <h3>{product.name}</h3>

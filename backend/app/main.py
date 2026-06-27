@@ -5,7 +5,7 @@ from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 
 from backend.app.config import Settings
-from backend.app.routes import actions, ai, catalog, site, voice
+from backend.app.routes import actions, ai, catalog, site, vision, voice
 from backend.app.websocket_manager import AVATAR_STATES, manager
 
 
@@ -34,6 +34,7 @@ app.include_router(ai.router)
 app.include_router(catalog.router)
 app.include_router(actions.router)
 app.include_router(site.router)
+app.include_router(vision.router)
 
 
 @app.get("/health")

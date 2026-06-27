@@ -40,6 +40,16 @@ data, sales data, or payment data.
 
 ## Notes
 
-The site is separate from the kiosk demo. It imports safe existing kiosk
-evidence screenshots through the asset manifest and does not reset backend
-provider settings or the VRM avatar renderer.
+The site is separate from the kiosk demo. It references safe existing kiosk
+captures copied into `apps/site/public/assets/demos` through the asset manifest
+and does not reset backend provider settings or the VRM avatar renderer.
+
+The local backend also exposes mock-first website and vision readiness routes:
+
+```text
+/api/site/*
+/api/vision/scan-product
+```
+
+Vision scan is a candidate-ranking and purchasing-query framework only. It does
+not call live OCR/barcode providers and does not guess product facts.

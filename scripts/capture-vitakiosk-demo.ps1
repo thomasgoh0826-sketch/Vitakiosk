@@ -54,3 +54,5 @@ foreach ($target in $targets) {
 Write-Host ""
 Write-Host "Use Playwright or the in-app browser to capture these states into $OutDir."
 Write-Host "Store raw screen recordings in tmp/site-video-raw/ and do not commit them."
+Write-Host "Copy approved compressed screenshots into apps/site/public/assets/demos/vitakiosk/ipad/ or apps/site/public/assets/demos/vitakiosk/kiosk/."
+Write-Host "Then update apps/site/src/content/demoAssets.ts replacement notes if filenames change."

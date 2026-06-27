@@ -32,3 +32,12 @@ screen.
 
 Replace the VitaFlow placeholder in `apps/site/src/content/demoAssets.ts` with
 safe captures. Keep the manifest label and notes accurate.
+
+Approved captures should be copied into:
+
+```text
+apps/site/public/assets/demos/vitaflow/
+```
+
+Update the corresponding `replacementPath` entry in the manifest if a filename
+changes. Do not reference files from the protected ERP project directly.

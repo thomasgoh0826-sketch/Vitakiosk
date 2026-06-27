@@ -21,6 +21,8 @@ Use the VitaKiosk Asia site identity:
   guidance, participating pharmacy partner handoff.
 - `ai-academy-workflow.html`: prompt workflow, Codex build, automation board,
   website launch.
+- `device-morph-showcase.html`: abstract slab to iPad to kiosk to ERP board to
+  website/academy split, matching the homepage pinned showcase.
 
 ## Timing
 

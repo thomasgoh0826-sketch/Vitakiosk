@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512" role="img" aria-label="Mock Relief Balm product image">
+  <rect width="512" height="512" rx="92" fill="#061322"/>
+  <circle cx="256" cy="238" r="156" fill="#0d2839" stroke="#42f5ff" stroke-width="5"/>
+  <circle cx="256" cy="238" r="104" fill="#123d4c" opacity=".78"/>
+  <rect x="150" y="166" width="212" height="178" rx="30" fill="#f7fbff"/>
+  <path d="M319 181c26 8 47 26 59 50-29 10-61 6-87-12 5-16 14-29 28-38z" fill="#14a69c"/>
+  <path d="M170 345h172v38c0 21-17 38-38 38h-96c-21 0-38-17-38-38v-38z" fill="#23d5cf"/>
+  <text x="256" y="244" text-anchor="middle" font-family="Arial, sans-serif" font-size="38" font-weight="800" fill="#0c3040">RB</text>
+  <text x="256" y="474" text-anchor="middle" font-family="Arial, sans-serif" font-size="24" font-weight="800" fill="#e7fbff">MOCK PRODUCT</text>
+</svg>

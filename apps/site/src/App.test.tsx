@@ -2,7 +2,7 @@ import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
 import { App } from "./App";
-import { demoAssets, videoHubAssets } from "./content/demoAssets";
+import { demoAssetRoots, demoAssets, videoHubAssets } from "./content/demoAssets";
 import { getPricingByCategory, pricingItems } from "./content/pricing";
 import { createPaymentProvider } from "./lib/payments";
 import { defaultFormValues, sanitizeText, validateSiteForm } from "./lib/forms";
@@ -74,6 +74,24 @@ describe("asset manifest", () => {
     expect(demoAssets.vitakiosk.ipadScreenshots.every((asset) => asset.kind === "real_capture")).toBe(true);
     expect(demoAssets.vitakiosk.largeKioskScreenshots.every((asset) => asset.kind === "real_capture")).toBe(true);
     expect(videoHubAssets.map((asset) => asset.title)).toContain("VitaKiosk in Action");
+  });
+
+  it("keeps demo media under public asset roots instead of importing evidence paths", () => {
+    const roots = Object.values(demoAssetRoots);
+    const allAssets = [
+      ...demoAssets.vitakiosk.ipadScreenshots,
+      ...demoAssets.vitakiosk.largeKioskScreenshots,
+      ...demoAssets.vitaflow.screenshots,
+      ...demoAssets.showcasePosters,
+      ...videoHubAssets,
+    ];
+
+    expect(roots).toContain("/assets/demos/vitakiosk/ipad/");
+    for (const asset of allAssets) {
+      expect(asset.src).toMatch(/^\/assets\//);
+      expect(asset.src).not.toMatch(/reports\/evidence/);
+      expect(asset.replacementPath).toMatch(/^apps\/site\/public\/assets\//);
+    }
   });
 });
 

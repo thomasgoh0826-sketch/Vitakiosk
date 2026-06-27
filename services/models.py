@@ -17,6 +17,9 @@ class Product:
     source: str = "mock_vitaflow"
     unavailable_reason: str | None = None
     productSummary: dict[str, dict[str, str]] | None = None
+    imageUrl: str | None = None
+    thumbnailUrl: str | None = None
+    images: tuple[str, ...] = ()
 
 
 @dataclass(frozen=True)

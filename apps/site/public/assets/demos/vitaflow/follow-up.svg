@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="720" viewBox="0 0 1280 720" role="img" aria-label="VitaFlow customer follow-up placeholder">
+  <rect width="1280" height="720" fill="#050814"/>
+  <rect x="84" y="82" width="1112" height="556" rx="28" fill="#07131f" stroke="#39e6ff" stroke-opacity=".42" stroke-width="2"/>
+  <text x="130" y="154" font-family="Arial, sans-serif" font-size="38" font-weight="800" fill="#f2f7ff">Customer Follow-up</text>
+  <text x="130" y="198" font-family="Arial, sans-serif" font-size="21" fill="#a7b7d6">Placeholder for approved follow-up workflow demo</text>
+  <g fill="#0b2130" stroke="#244b64">
+    <rect x="130" y="258" width="320" height="292" rx="20"/>
+    <rect x="488" y="258" width="320" height="292" rx="20"/>
+    <rect x="846" y="258" width="320" height="292" rx="20"/>
+  </g>
+  <g font-family="Arial, sans-serif" fill="#f2f7ff" font-size="24" font-weight="800">
+    <text x="164" y="330">Queue</text>
+    <text x="522" y="330">Contact</text>
+    <text x="880" y="330">Outcome</text>
+  </g>
+  <text x="130" y="604" font-family="Arial, sans-serif" font-size="16" fill="#64f3c8">Placeholder only - no customer identity or private contact data</text>
+</svg>

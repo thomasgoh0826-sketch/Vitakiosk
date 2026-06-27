@@ -11,7 +11,9 @@ import {
   MessageSquareText,
   Pause,
   ShieldCheck,
+  ShoppingBag,
   Sparkles,
+  Stethoscope,
   X,
 } from "lucide-react";
 import { demoAssets, videoHubAssets } from "./content/demoAssets";
@@ -139,7 +141,38 @@ function Header() {
   );
 }
 
-function HeroScene({ progress }: { progress: number }) {
+function GlobalStageBackground({ progress }: { progress: number }) {
+  return (
+    <div className="global-stage-background" aria-hidden="true">
+      <span className="stage-beam beam-one" style={{ "--beam-offset": progress } as React.CSSProperties} />
+      <span className="stage-beam beam-two" style={{ "--beam-offset": 1 - progress } as React.CSSProperties} />
+      <span className="stage-noise" />
+    </div>
+  );
+}
+
+function OrbitRibbon() {
+  return (
+    <div className="business-orbit" aria-label="VitaKiosk Asia business lines">
+      <svg className="connection-map" viewBox="0 0 1000 220" role="img" aria-label="Animated light path connecting the four business lines">
+        <path d="M80 150 C220 50 360 210 500 110 C640 15 770 185 925 85" />
+      </svg>
+      {businessLines.map((line, index) => (
+        <SmartLink
+          key={line.id}
+          href={line.href}
+          className={`orbit-node orbit-${index + 1}`}
+        >
+          <line.Icon size={20} />
+          <span>{line.title}</span>
+          <small>{line.phrase}</small>
+        </SmartLink>
+      ))}
+    </div>
+  );
+}
+
+function HeroPrologueScene({ progress }: { progress: number }) {
   const heroShift = Math.round(progress * 180);
   return (
     <section className="hero-scene" style={{ "--scroll-shift": `${heroShift}px` } as React.CSSProperties}>
@@ -184,22 +217,7 @@ function HeroScene({ progress }: { progress: number }) {
           ))}
         </div>
       </div>
-      <div className="business-orbit" aria-label="VitaKiosk Asia business lines">
-        <svg className="connection-map" viewBox="0 0 1000 220" role="img" aria-label="Animated light path connecting the four business lines">
-          <path d="M80 150 C220 50 360 210 500 110 C640 15 770 185 925 85" />
-        </svg>
-        {businessLines.map((line, index) => (
-          <SmartLink
-            key={line.id}
-            href={line.href}
-            className={`orbit-node orbit-${index + 1}`}
-          >
-            <line.Icon size={20} />
-            <span>{line.title}</span>
-            <small>{line.phrase}</small>
-          </SmartLink>
-        ))}
-      </div>
+      <OrbitRibbon />
       <div className="scroll-cue">
         <span />
         Scroll into the lab
@@ -268,54 +286,135 @@ function StorySection() {
   );
 }
 
-function ShowcaseSection() {
-  const [activeId, setActiveId] = useState(showcaseItems[0].id);
-  const activeIndex = showcaseItems.findIndex((item) => item.id === activeId);
-  const activeItem = showcaseItems[activeIndex] || showcaseItems[0];
-  const activeMedia = [
-    demoAssets.vitakiosk.ipadScreenshots[0],
-    demoAssets.vitakiosk.largeKioskScreenshots[0],
-    demoAssets.vitaflow.screenshots[0],
-    demoAssets.showcasePosters[0],
-    demoAssets.vitakiosk.ipadScreenshots[1],
-    demoAssets.vitakiosk.ipadScreenshots[4],
-  ][Math.max(activeIndex, 0)];
+const morphScenes = [
+  {
+    id: "slab",
+    mode: "slab",
+    number: "00",
+    title: "A system wakes up.",
+    strap: "Abstract lab slab",
+    description: "The story starts as a single operating layer before splitting into kiosk, ERP, web, and training surfaces.",
+    media: demoAssets.showcasePosters[1],
+  },
+  {
+    id: "ipad",
+    mode: "ipad",
+    number: "01",
+    title: "VitaKiosk iPad",
+    strap: "Before the counter",
+    description: showcaseItems[0].description,
+    media: demoAssets.vitakiosk.ipadScreenshots[0],
+  },
+  {
+    id: "kiosk",
+    mode: "kiosk",
+    number: "02",
+    title: "Large Kiosk",
+    strap: "Waiting-area presence",
+    description: showcaseItems[1].description,
+    media: demoAssets.vitakiosk.largeKioskScreenshots[0],
+  },
+  {
+    id: "erp",
+    mode: "erp",
+    number: "03",
+    title: "VitaFlow ERP Board",
+    strap: "Source-of-truth layer",
+    description: showcaseItems[2].description,
+    media: demoAssets.vitaflow.screenshots[0],
+  },
+  {
+    id: "split",
+    mode: "split",
+    number: "04",
+    title: "Website + Academy Split",
+    strap: "Growth and capability",
+    description: "AI Website Studio captures demand while AI Academy turns the team into practical AI operators.",
+    media: demoAssets.showcasePosters[0],
+  },
+] as const;
+
+function DeviceMorphShell({ scene }: { scene: (typeof morphScenes)[number] }) {
+  return (
+    <div className={`device-morph-shell mode-${scene.mode}`} aria-live="polite">
+      <div className="device-shadow" />
+      <div className="screen-mask">
+        <img src={scene.media.src} alt={scene.media.alt} loading="lazy" />
+        <div className="screen-scan" />
+      </div>
+      <div className="morph-caption">
+        <span>{scene.number} / {scene.media.label}</span>
+        <h3>{scene.title}</h3>
+        <p>{scene.description}</p>
+      </div>
+    </div>
+  );
+}
+
+function PinnedShowcaseStage() {
+  const [activeId, setActiveId] = useState<(typeof morphScenes)[number]["id"]>("slab");
+  const activeScene = morphScenes.find((scene) => scene.id === activeId) || morphScenes[0];
+
+  useEffect(() => {
+    const nodes = Array.from(document.querySelectorAll<HTMLElement>("[data-morph-scene]"));
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const visible = entries
+          .filter((entry) => entry.isIntersecting)
+          .sort((a, b) => b.intersectionRatio - a.intersectionRatio)[0];
+        if (visible?.target instanceof HTMLElement) {
+          setActiveId((visible.target.dataset.morphScene || "slab") as (typeof morphScenes)[number]["id"]);
+        }
+      },
+      { threshold: [0.36, 0.55, 0.72] },
+    );
+    nodes.forEach((node) => observer.observe(node));
+    return () => observer.disconnect();
+  }, []);
 
   return (
-    <section className="spatial-showcase" id="showcase">
+    <section className="pinned-showcase-stage" id="showcase">
       <div className="section-heading">
         <span>See the systems in action</span>
-        <h2>A spatial showcase, not a static feature grid.</h2>
+        <h2>One device surface, five operating states.</h2>
       </div>
-      <div className="showcase-stage">
-        <div className="showcase-device" aria-live="polite">
-          <div className="media-frame">
-            <img src={activeMedia.src} alt={activeMedia.alt} loading="lazy" />
-          </div>
-          <div className="showcase-caption">
-            <span>{activeMedia.label}</span>
-            <h3>{activeItem.title}</h3>
-            <p>{activeItem.description}</p>
+      <div className="morph-stage-grid">
+        <div className="morph-sticky">
+          <DeviceMorphShell scene={activeScene} />
+          <div className="floating-scene-dock" aria-label="Showcase scene selector">
+            {morphScenes.map((scene) => (
+              <button
+                key={scene.id}
+                className={scene.id === activeId ? "is-active" : ""}
+                onClick={() => setActiveId(scene.id)}
+              >
+                <span>{scene.number}</span>
+                {scene.strap}
+              </button>
+            ))}
           </div>
         </div>
-        <div className="showcase-orbit" role="tablist" aria-label="Showcase views">
-          {showcaseItems.map((item, index) => (
-            <button
-              key={item.id}
-              role="tab"
-              aria-selected={item.id === activeId}
-              className={item.id === activeId ? "is-active" : ""}
-              onClick={() => setActiveId(item.id)}
-              style={{ "--orbit-index": index } as React.CSSProperties}
+        <div className="morph-copy-rail">
+          {morphScenes.map((scene) => (
+            <article
+              key={scene.id}
+              data-morph-scene={scene.id}
+              className={scene.id === activeId ? "is-active" : ""}
             >
-              <span>{item.title}</span>
-              <small>{item.strap}</small>
-            </button>
+              <span>{scene.number}</span>
+              <h3>{scene.title}</h3>
+              <p>{scene.description}</p>
+              <small>{scene.media.notes}</small>
+            </article>
           ))}
         </div>
       </div>
     </section>
   );
+}
+
+function ShowcaseSection() {
+  return <PinnedShowcaseStage />;
 }
 
 function BusinessLinesSection() {
@@ -336,10 +435,53 @@ function BusinessLinesSection() {
   );
 }
 
-function VideoHub() {
+function ClinicPartnerCorridor() {
+  return (
+    <section className="clinic-partner-corridor" id="clinic-pharmacy-partners">
+      <div className="corridor-copy">
+        <span>Clinic / pharmacy partner model</span>
+        <h2>Connect product interest to participating pharmacy partners without endorsement claims.</h2>
+        <p>
+          VitaKiosk can support general product education, QR direction,
+          reviewed campaign redemption, availability guidance, and staff
+          escalation while keeping product facts tied to approved data.
+        </p>
+      </div>
+      <div className="corridor-stage" aria-label="Clinic to pharmacy partner flow">
+        <div className="corridor-node clinic">
+          <Stethoscope size={30} />
+          <strong>Clinic waiting area</strong>
+          <small>General product interest appears before the counter.</small>
+        </div>
+        <div className="corridor-line" aria-hidden="true">
+          <span />
+          <span />
+          <span />
+        </div>
+        <div className="corridor-kiosk">
+          <img src={demoAssets.vitakiosk.ipadScreenshots[0].src} alt="VitaKiosk iPad product education screen" loading="lazy" />
+          <strong>VitaKiosk education layer</strong>
+          <small>Reviewed information, QR direction, and staff escalation.</small>
+        </div>
+        <div className="corridor-line" aria-hidden="true">
+          <span />
+          <span />
+          <span />
+        </div>
+        <div className="corridor-node pharmacy">
+          <ShoppingBag size={30} />
+          <strong>Participating pharmacy</strong>
+          <small>Where-to-buy guidance and campaign redemption, clearly labelled.</small>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function VideoFilmStrip() {
   const [active, setActive] = useState<(typeof videoHubAssets)[number] | null>(null);
   return (
-    <section className="video-hub" id="video">
+    <section className="video-hub video-film-strip" id="video">
       <div className="section-heading">
         <span>Video-first content</span>
         <h2>Motion concepts ready for real captures and generated campaign clips.</h2>
@@ -371,7 +513,7 @@ function VideoHub() {
               <span>{active.duration}</span>
               <h3>{active.title}</h3>
               <p>{active.summary}</p>
-              <p className="muted">
+            <p className="muted">
                 Preview loop placeholder. Replace with muted autoplay demo
                 footage or generated campaign video after review.
               </p>
@@ -387,14 +529,18 @@ function VideoHub() {
   );
 }
 
+function VideoHub() {
+  return <VideoFilmStrip />;
+}
+
 function PricingSection() {
   const categories = Object.keys(categoryLabels) as PricingCategory[];
   const [active, setActive] = useState<PricingCategory>("vitakiosk");
   return (
-    <section className="pricing-section" id="pricing">
+    <section className="pricing-section commerce-console" id="pricing">
       <div className="section-heading">
         <span>Mock commerce framework</span>
-        <h2>Pricing, ordering, booking, and deposits are configured in one place.</h2>
+        <h2>A commerce console for subscriptions, deposits, bookings, and quotes.</h2>
       </div>
       <div className="segment-control" role="tablist" aria-label="Pricing categories">
         {categories.map((category) => (
@@ -433,6 +579,10 @@ function PricingSection() {
       </div>
     </section>
   );
+}
+
+function CommerceConsole() {
+  return <PricingSection />;
 }
 
 function LeadConsole({ initialKind = "lead" }: { initialKind?: SiteFormKind }) {
@@ -626,6 +776,54 @@ function SafetyBand() {
   );
 }
 
+function BookingFinale() {
+  return (
+    <section className="booking-finale" id="book">
+      <div className="booking-stage-copy">
+        <span>Booking finale</span>
+        <h2>Choose the first real-world deployment path.</h2>
+        <p>
+          Start with a demo, a pharmacy ERP subscription inquiry, a kiosk
+          placement/order, an AI website project, or practical AI training.
+          The local flow creates mock records only.
+        </p>
+        <div className="booking-paths" aria-label="Booking paths">
+          <SmartLink href="/showcase">Showcase</SmartLink>
+          <SmartLink href="/pricing">Pricing</SmartLink>
+          <SmartLink href="/order">Order</SmartLink>
+          <SmartLink href="/contact">Sales</SmartLink>
+        </div>
+      </div>
+      <LeadConsole initialKind="lead" />
+    </section>
+  );
+}
+
+function LegalShelf() {
+  return (
+    <footer className="site-footer legal-shelf">
+      <div className="brand-lockup">
+        <span className="brand-mark">V</span>
+        <span>
+          <strong>VitaKiosk Asia</strong>
+          <small>VitaKiosk Labs</small>
+        </span>
+      </div>
+      <nav aria-label="Footer">
+        {navLinks.map((link) => (
+          <SmartLink key={link.href} href={link.href}>
+            {link.label}
+          </SmartLink>
+        ))}
+        <SmartLink href="/legal/disclaimer">Disclaimer</SmartLink>
+        <SmartLink href="/legal/privacy">Privacy</SmartLink>
+        <SmartLink href="/legal/terms">Terms</SmartLink>
+      </nav>
+      <p>Mock-first local site. No live payment, no real customer data.</p>
+    </footer>
+  );
+}
+
 function SolutionsBand() {
   return (
     <section className="solutions-band">
@@ -729,36 +927,17 @@ function HomePage() {
   const progress = useScrollProgress();
   return (
     <main className="page-shell" style={{ "--page-progress": progress } as React.CSSProperties}>
+      <GlobalStageBackground progress={progress} />
       <Header />
-      <HeroScene progress={progress} />
+      <HeroPrologueScene progress={progress} />
       <StorySection />
-      <ShowcaseSection />
-      <BusinessLinesSection />
+      <PinnedShowcaseStage />
+      <ClinicPartnerCorridor />
       <VideoHub />
-      <PricingSection />
-      <SolutionsBand />
-      <LeadConsole />
+      <CommerceConsole />
+      <BookingFinale />
       <SafetyBand />
-      <footer className="site-footer">
-        <div className="brand-lockup">
-          <span className="brand-mark">V</span>
-          <span>
-            <strong>VitaKiosk Asia</strong>
-            <small>VitaKiosk Labs</small>
-          </span>
-        </div>
-        <nav aria-label="Footer">
-          {navLinks.map((link) => (
-            <SmartLink key={link.href} href={link.href}>
-              {link.label}
-            </SmartLink>
-          ))}
-          <SmartLink href="/legal/disclaimer">Disclaimer</SmartLink>
-          <SmartLink href="/legal/privacy">Privacy</SmartLink>
-          <SmartLink href="/legal/terms">Terms</SmartLink>
-        </nav>
-        <p>Mock-first local site. No live payment, no real customer data.</p>
-      </footer>
+      <LegalShelf />
     </main>
   );
 }

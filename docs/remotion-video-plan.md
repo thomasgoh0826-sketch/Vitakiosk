@@ -16,10 +16,18 @@ videos.
 
 ## Asset Inputs
 
-- Real VitaKiosk screenshots from `reports/evidence/`.
+- Real VitaKiosk screenshots from `apps/site/public/assets/demos/vitakiosk/`.
 - Replaceable ERP screenshots from a safe demo capture.
 - Poster art from `apps/site/src/content/demoAssets.ts`.
 - No raw videos committed; use `tmp/site-video-raw/` during local production.
+
+## Homepage-Matched Motion Beats
+
+- 0-4s: abstract slab wakes with cyan source path.
+- 4-8s: slab resolves into iPad product education.
+- 8-12s: iPad grows into large kiosk presence.
+- 12-16s: kiosk surface pulls back into VitaFlow ERP board.
+- 16-20s: board splits into AI Website Studio and AI Academy.
 
 ## Render Guidance
 

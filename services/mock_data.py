@@ -39,6 +39,9 @@ MOCK_PRODUCTS: tuple[Product, ...] = (
                 "ms": "Balm rasa sejuk untuk kegunaan luaran. Mudah digunakan.",
             },
         },
+        imageUrl="/assets/products/mock-relief-balm.svg",
+        thumbnailUrl="/assets/products/mock-relief-balm.svg",
+        images=("/assets/products/mock-relief-balm.svg",),
     ),
     Product(
         id="MOCK-P002",
@@ -59,6 +62,9 @@ MOCK_PRODUCTS: tuple[Product, ...] = (
                 "en": "Mock hydration product record. Speak with a pharmacist for advice."
             },
         },
+        imageUrl="/assets/products/mock-hydration-salts.svg",
+        thumbnailUrl="/assets/products/mock-hydration-salts.svg",
+        images=("/assets/products/mock-hydration-salts.svg",),
     ),
     Product(
         id="MOCK-P003",
@@ -77,6 +83,9 @@ MOCK_PRODUCTS: tuple[Product, ...] = (
                 "en": "Mock skin wash product record. Ask the pharmacist for personal advice."
             },
         },
+        imageUrl="/assets/products/mock-gentle-skin-wash.svg",
+        thumbnailUrl="/assets/products/mock-gentle-skin-wash.svg",
+        images=("/assets/products/mock-gentle-skin-wash.svg",),
     ),
 )
 

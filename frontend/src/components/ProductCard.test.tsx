@@ -24,6 +24,29 @@ function clickAndSettle(element: HTMLElement) {
 }
 
 describe("ProductCard futuristic summary transform", () => {
+  it("renders a backend-provided product image before using the fallback initials", () => {
+    render(
+      <ProductCard
+        product={{
+          ...product,
+          imageUrl: "/assets/products/mock-relief-balm.svg",
+          images: ["/assets/products/secondary.svg"],
+        }}
+        purchasingQueryId={null}
+        labels={translations.en}
+        language="en"
+      />,
+    );
+
+    const panel = screen.getByRole("region", { name: "Product" });
+    const productImage = within(panel).getByRole("img", {
+      name: /Relief Balm product image/i,
+    });
+
+    expect(productImage).toHaveAttribute("src", "/assets/products/mock-relief-balm.svg");
+    expect(within(panel).queryByText("RE")).not.toBeInTheDocument();
+  });
+
   it("toggles from source-backed product facts into a concise summary view", () => {
     vi.useFakeTimers();
     try {

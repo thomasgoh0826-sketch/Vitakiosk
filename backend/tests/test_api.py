@@ -117,6 +117,8 @@ def test_ai_response_returns_authoritative_product(client: TestClient) -> None:
     assert payload["intent"] == "price_check"
     assert payload["product"]["id"] == "MOCK-P001"
     assert payload["product"]["price"] == 12.5
+    assert payload["product"]["imageUrl"] == "/assets/products/mock-relief-balm.svg"
+    assert payload["product"]["images"] == ["/assets/products/mock-relief-balm.svg"]
     assert payload["ui_actions"][0] == {
         "type": "SHOW_PRODUCT",
         "productId": "MOCK-P001",
