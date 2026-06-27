@@ -10,14 +10,12 @@ apps/site/src/content/demoAssets.ts
 
 It controls:
 
-- VitaKiosk iPad screenshots
-- VitaKiosk iPad videos
-- VitaKiosk large kiosk screenshots
-- VitaKiosk large kiosk videos
+- the approved VitaKiosk screenshot reference
+- the interactive VitaKiosk demo replacement point
 - VitaFlow ERP screenshots
 - VitaFlow ERP videos
-- showcase posters
-- video hub assets
+- spherical video carousel posters and preview loops
+- showcase scene metadata
 
 Do not hardcode media paths inside components.
 
@@ -26,11 +24,10 @@ Do not hardcode media paths inside components.
 The site bundle reads browser-safe files from:
 
 ```text
-apps/site/public/assets/demos/vitakiosk/ipad/
-apps/site/public/assets/demos/vitakiosk/kiosk/
+apps/site/public/assets/reference/
 apps/site/public/assets/demos/vitaflow/
-apps/site/public/assets/videos/
-apps/site/public/assets/posters/
+apps/site/public/assets/videos/higgsfield/
+apps/site/public/assets/posters/higgsfield/
 apps/site/public/assets/loops/hero/
 ```
 
@@ -62,13 +59,45 @@ Do not commit huge raw videos.
 
 ## Replacement Rules
 
-- Real kiosk screenshots must come from the current mock demo or a reviewed safe
-  capture.
+- The current site uses only `apps/site/public/assets/reference/vitakiosk-demo-approved.png`
+  as the local VitaKiosk UI reference.
+- The public VitaKiosk demo is code-native and interactive; do not replace it
+  with a flat screenshot.
 - ERP assets must use safe demo data only. This repository must not access the
   protected VitaFlow release path.
+- The committed carousel clips are lightweight generated web preview loops.
+  Replace them with approved Higgsfield exports under the same manifest paths
+  when campaign clips are ready.
 - If real captures are unavailable, keep assets labelled as `Placeholder`,
   `Prototype`, or `Internal Lab Build`.
 - No real customer, sales, payment, patient, or protected ERP release data.
+
+## Current Generated Web Assets
+
+Generated preview loops live in:
+
+```text
+apps/site/public/assets/videos/higgsfield/
+```
+
+Generated posters live in:
+
+```text
+apps/site/public/assets/posters/higgsfield/
+```
+
+Current items:
+
+- Clinic Queue Problem
+- Pharmacy Partner Discovery
+- Retail Pharmacy Promotion
+- VitaKiosk Interactive Demo
+- VitaFlow Source of Truth
+- AI Website Studio
+- AI Academy
+
+Keep raw or oversized generated videos in ignored folders such as
+`tmp/site-video-raw/`; do not commit raw source exports.
 
 ## Product Images
 

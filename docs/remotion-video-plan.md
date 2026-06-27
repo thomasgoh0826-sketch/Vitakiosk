@@ -16,9 +16,12 @@ videos.
 
 ## Asset Inputs
 
-- Real VitaKiosk screenshots from `apps/site/public/assets/demos/vitakiosk/`.
+- The approved VitaKiosk visual reference:
+  `apps/site/public/assets/reference/vitakiosk-demo-approved.png`.
+- The code-native interactive site demo in `InteractiveVitaKioskDemo`.
 - Replaceable ERP screenshots from a safe demo capture.
-- Poster art from `apps/site/src/content/demoAssets.ts`.
+- Poster and video paths from `apps/site/src/content/demoAssets.ts` and
+  `apps/site/src/content/videoHub.ts`.
 - No raw videos committed; use `tmp/site-video-raw/` during local production.
 
 ## Homepage-Matched Motion Beats

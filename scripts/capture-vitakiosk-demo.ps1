@@ -54,5 +54,6 @@ foreach ($target in $targets) {
 Write-Host ""
 Write-Host "Use Playwright or the in-app browser to capture these states into $OutDir."
 Write-Host "Store raw screen recordings in tmp/site-video-raw/ and do not commit them."
-Write-Host "Copy approved compressed screenshots into apps/site/public/assets/demos/vitakiosk/ipad/ or apps/site/public/assets/demos/vitakiosk/kiosk/."
-Write-Host "Then update apps/site/src/content/demoAssets.ts replacement notes if filenames change."
+Write-Host "For the public website, keep only apps/site/public/assets/reference/vitakiosk-demo-approved.png as the local VitaKiosk UI reference."
+Write-Host "Use fresh captures as review material unless the user explicitly approves committing a specific compressed asset."
+Write-Host "Then update apps/site/src/content/demoAssets.ts and apps/site/src/content/interactiveDemoStates.ts if approved filenames or demo states change."

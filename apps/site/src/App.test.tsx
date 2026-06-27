@@ -2,7 +2,9 @@ import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
 import { App } from "./App";
-import { demoAssetRoots, demoAssets, videoHubAssets } from "./content/demoAssets";
+import { approvedVitaKioskReference, demoAssetRoots, demoAssets } from "./content/demoAssets";
+import { demoHotspots } from "./content/interactiveDemoStates";
+import { videoHubItems } from "./content/videoHub";
 import { getPricingByCategory, pricingItems } from "./content/pricing";
 import { createPaymentProvider } from "./lib/payments";
 import { defaultFormValues, sanitizeText, validateSiteForm } from "./lib/forms";
@@ -20,16 +22,41 @@ describe("VitaKiosk Asia site", () => {
     expect(screen.getAllByText(/VitaKiosk AI Kiosk/i).length).toBeGreaterThan(0);
     expect(screen.getAllByText(/AI Website Studio/i).length).toBeGreaterThan(0);
     expect(screen.getAllByText(/AI Academy/i).length).toBeGreaterThan(0);
-    expect(screen.getByText(/Scroll into the lab/i)).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: /Click inside the kiosk/i })).toBeInTheDocument();
+    expect(screen.getByLabelText(/Spherical video carousel/i)).toBeInTheDocument();
   });
 
-  it("opens a video hub preview modal", async () => {
+  it("drives the public VitaKiosk demo without backend devices", async () => {
     render(<App />);
+    const user = userEvent.setup();
 
-    await userEvent.click(screen.getByRole("button", { name: /Clinic Queue Problem/i }));
+    await user.click(screen.getAllByRole("button", { name: /Tap to Speak/i })[0]);
+    expect(screen.getAllByText(/Listening/i).length).toBeGreaterThan(0);
+    expect(screen.getByText(/Where is Relief Balm/i)).toBeInTheDocument();
 
-    expect(screen.getByRole("dialog", { name: /Clinic Queue Problem preview/i })).toBeInTheDocument();
-    expect(screen.getByText(/Replace with muted autoplay demo footage/i)).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: /Relief Bomb/i }));
+    expect(screen.getAllByText(/Do you mean/i).length).toBeGreaterThan(0);
+    await user.click(screen.getByRole("button", { name: "Relief Balm" }));
+    expect(screen.queryByText(/Do you mean/i)).not.toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: /Product panel/i }));
+    expect(screen.getByRole("dialog", { name: /product demo state/i })).toBeInTheDocument();
+    expect(screen.getByText(/Tap inside sheet to morph/i)).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: /Close demo state/i }));
+
+    await user.click(screen.getAllByRole("button", { name: /Scan Product/i })[0]);
+    expect(screen.getByRole("dialog", { name: /scan demo state/i })).toBeInTheDocument();
+    expect(screen.getAllByText(/Packaging detected/i).length).toBeGreaterThan(0);
+  });
+
+  it("opens the spherical video carousel viewer", async () => {
+    render(<App />);
+    const user = userEvent.setup();
+
+    await user.click(screen.getByRole("button", { name: /VitaKiosk Interactive Demo Internal Lab Build/i }));
+
+    expect(screen.getByRole("dialog", { name: /VitaKiosk Interactive Demo full video viewer/i })).toBeInTheDocument();
+    expect(screen.getAllByText(/Tap, scan, enlarge/i).length).toBeGreaterThan(0);
   });
 
   it("validates forms before creating records", async () => {
@@ -70,26 +97,46 @@ describe("asset manifest", () => {
     expect(demoAssets.vitaflow.screenshots[0].notes).toMatch(/non-private ERP demo/i);
   });
 
-  it("uses real kiosk demo captures for iPad and large kiosk lanes", () => {
-    expect(demoAssets.vitakiosk.ipadScreenshots.every((asset) => asset.kind === "real_capture")).toBe(true);
-    expect(demoAssets.vitakiosk.largeKioskScreenshots.every((asset) => asset.kind === "real_capture")).toBe(true);
-    expect(videoHubAssets.map((asset) => asset.title)).toContain("VitaKiosk in Action");
+  it("keeps the approved VitaKiosk screenshot as reference only", () => {
+    expect(approvedVitaKioskReference.kind).toBe("approved_reference");
+    expect(approvedVitaKioskReference.channel).toBe("reference");
+    expect(approvedVitaKioskReference.src).toBe("/assets/reference/vitakiosk-demo-approved.png");
+    expect(approvedVitaKioskReference.notes).toMatch(/interactive React UI/i);
+    expect(demoHotspots.map((hotspot) => hotspot.label)).toEqual([
+      "Tap to Speak",
+      "Product panel",
+      "Promotion leaflet",
+      "Shelf map",
+      "Scan Product",
+      "Request assistance",
+    ]);
+  });
+
+  it("uses manifest-driven generated video previews for the spherical carousel", () => {
+    expect(videoHubItems.map((asset) => asset.title)).toContain("VitaKiosk Interactive Demo");
+    expect(videoHubItems).toHaveLength(7);
+    expect(videoHubItems.every((asset) => asset.previewSrc.startsWith("/assets/videos/higgsfield/"))).toBe(true);
+    expect(videoHubItems.every((asset) => asset.fullSrc.startsWith("/assets/videos/higgsfield/"))).toBe(true);
+    expect(videoHubItems.every((asset) => asset.poster.startsWith("/assets/posters/higgsfield/"))).toBe(true);
   });
 
   it("keeps demo media under public asset roots instead of importing evidence paths", () => {
     const roots = Object.values(demoAssetRoots);
     const allAssets = [
-      ...demoAssets.vitakiosk.ipadScreenshots,
-      ...demoAssets.vitakiosk.largeKioskScreenshots,
+      demoAssets.approvedVitaKioskReference,
       ...demoAssets.vitaflow.screenshots,
-      ...demoAssets.showcasePosters,
-      ...videoHubAssets,
+      ...videoHubItems,
     ];
 
-    expect(roots).toContain("/assets/demos/vitakiosk/ipad/");
+    expect(roots).toContain("/assets/reference/");
+    expect(roots).toContain("/assets/videos/higgsfield/");
     for (const asset of allAssets) {
-      expect(asset.src).toMatch(/^\/assets\//);
-      expect(asset.src).not.toMatch(/reports\/evidence/);
+      const mediaPaths = "src" in asset ? [asset.src] : [asset.poster, asset.previewSrc, asset.fullSrc];
+      for (const mediaPath of mediaPaths) {
+        expect(mediaPath).toMatch(/^\/assets\//);
+        expect(mediaPath).not.toMatch(/reports\/evidence/);
+        expect(mediaPath).not.toMatch(/Playground/);
+      }
       expect(asset.replacementPath).toMatch(/^apps\/site\/public\/assets\//);
     }
   });
