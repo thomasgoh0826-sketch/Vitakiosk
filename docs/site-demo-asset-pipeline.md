@@ -61,8 +61,12 @@ Do not commit huge raw videos.
 
 - The current site uses only `apps/site/public/assets/reference/vitakiosk-demo-approved.png`
   as the local VitaKiosk UI reference.
-- The public VitaKiosk demo is code-native and interactive; do not replace it
-  with a flat screenshot.
+- The public VitaKiosk demo uses that approved screenshot as a visual base
+  surface plus interactive React layers. Do not replace the demo with a single
+  static `<img>`.
+- If the approved screenshot changes, replace only
+  `apps/site/public/assets/reference/vitakiosk-demo-approved.png` and keep the
+  hotspot/state layer active.
 - ERP assets must use safe demo data only. This repository must not access the
   protected VitaFlow release path.
 - The committed carousel clips are lightweight generated web preview loops.

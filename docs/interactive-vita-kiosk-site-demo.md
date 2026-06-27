@@ -19,7 +19,11 @@ The only approved local VitaKiosk UI reference is:
 apps/site/public/assets/reference/vitakiosk-demo-approved.png
 ```
 
-This screenshot is a visual reference only. The public demo is rebuilt with React layers and CSS so visitors can click and tap inside it.
+This screenshot is the visible base surface for the website demo, but it is not
+the whole demo. React controls, hotspots, overlays, transcripts, route
+animation, scan state, fuzzy candidate state, and modal sheets sit above it.
+The screenshot keeps the demo visually close to the real product while the
+interactive layer keeps the public website from becoming a flat image.
 
 Do not add screenshots from `reports/evidence`, old capture folders, private ERP folders, temporary screenshots, customer data, or sales data.
 
@@ -41,6 +45,31 @@ Supported states:
 - `shelf`: the shelf map enlarges and animates the route to Shelf A-03.
 - `scan`: a mock camera/scan overlay shows `Packaging detected`.
 - `assist`: safe handoff copy says a pharmacist or staff member can assist.
+
+## Interaction Layer
+
+Visible hotspots and native controls cover the key product regions:
+
+- Tap to Speak
+- Product panel
+- Promotion leaflet
+- Shelf map
+- Scan Product
+- Request assistance
+- Language chips
+
+Hover and focus states glow instead of shifting layout. State transitions use
+the same cyan/violet glass language as the approved screenshot. Promotion uses
+a cylindrical leaflet entrance; product uses a holographic summary/detail
+morph; shelf replay uses an animated route trace.
+
+The component is intentionally simulated:
+
+- no microphone
+- no real camera
+- no backend dependency
+- no ElevenLabs/Ollama/VitaFlow live call
+- no customer or sales data
 
 ## Safety Copy
 

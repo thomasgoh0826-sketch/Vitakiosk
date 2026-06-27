@@ -1,6 +1,6 @@
-import { render, screen } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it } from "vitest";
 import { App } from "./App";
 import { approvedVitaKioskReference, demoAssetRoots, demoAssets } from "./content/demoAssets";
 import { demoHotspots } from "./content/interactiveDemoStates";
@@ -10,9 +10,14 @@ import { createPaymentProvider } from "./lib/payments";
 import { defaultFormValues, sanitizeText, validateSiteForm } from "./lib/forms";
 
 describe("VitaKiosk Asia site", () => {
+  afterEach(() => {
+    window.history.pushState({}, "", "/");
+  });
+
   it("renders the immersive homepage with the four business lines", () => {
     render(<App />);
 
+    expect(screen.getByTestId("fluid-backdrop")).toBeInTheDocument();
     expect(
       screen.getByRole("heading", {
         name: /Build smarter pharmacies, clinics, and AI-powered businesses/i,
@@ -39,7 +44,7 @@ describe("VitaKiosk Asia site", () => {
     await user.click(screen.getByRole("button", { name: "Relief Balm" }));
     expect(screen.queryByText(/Do you mean/i)).not.toBeInTheDocument();
 
-    await user.click(screen.getByRole("button", { name: /Product panel/i }));
+    await user.click(screen.getByRole("button", { name: "Product panel" }));
     expect(screen.getByRole("dialog", { name: /product demo state/i })).toBeInTheDocument();
     expect(screen.getByText(/Tap inside sheet to morph/i)).toBeInTheDocument();
     await user.click(screen.getByRole("button", { name: /Close demo state/i }));
@@ -57,6 +62,37 @@ describe("VitaKiosk Asia site", () => {
 
     expect(screen.getByRole("dialog", { name: /VitaKiosk Interactive Demo full video viewer/i })).toBeInTheDocument();
     expect(screen.getAllByText(/Tap, scan, enlarge/i).length).toBeGreaterThan(0);
+  });
+
+  it("rotates the spherical video carousel by drag instead of click-only navigation", () => {
+    render(<App />);
+
+    const orbit = screen.getByLabelText(/Spherical video carousel/i);
+    expect(screen.getByTestId("orbit-active-title")).toHaveTextContent("VitaKiosk Interactive Demo");
+
+    const dispatchPointer = (type: string, clientX: number) => {
+      const event = new Event(type, { bubbles: true, cancelable: true });
+      Object.defineProperties(event, {
+        clientX: { value: clientX },
+        pointerId: { value: 7 },
+        button: { value: 0 },
+      });
+      fireEvent(orbit, event);
+    };
+
+    dispatchPointer("pointerdown", 520);
+    dispatchPointer("pointermove", 390);
+    dispatchPointer("pointerup", 390);
+
+    expect(screen.getByTestId("orbit-active-title")).toHaveTextContent("VitaFlow Source of Truth");
+  });
+
+  it("renders route pages as authored experiences instead of placeholders", () => {
+    window.history.pushState({}, "", "/vitaflow");
+    render(<App />);
+
+    expect(screen.getByRole("heading", { name: /VitaFlow keeps facts grounded/i })).toBeInTheDocument();
+    expect(screen.queryByText(/Route-ready page/i)).not.toBeInTheDocument();
   });
 
   it("validates forms before creating records", async () => {

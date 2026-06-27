@@ -21,7 +21,7 @@ export const showcaseScenes: ShowcaseScene[] = [
     eyebrow: "VitaKiosk iPad",
     copy: "Tap, search, scan, enlarge, route, and request staff help inside a safe simulated kiosk flow.",
     cta: "Try the demo",
-    href: "#interactive-demo",
+    href: "/vitakiosk#interactive-demo",
     visual: "tablet",
     accent: "cyan",
   },

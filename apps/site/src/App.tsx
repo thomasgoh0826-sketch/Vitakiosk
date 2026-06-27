@@ -22,6 +22,7 @@ import {
   Stethoscope,
   X,
 } from "lucide-react";
+import { approvedVitaKioskReference } from "./content/demoAssets";
 import { demoHotspots, demoProduct, demoTranscriptStates, DemoMode } from "./content/interactiveDemoStates";
 import { ShowcaseScene, showcaseScenes } from "./content/showcaseScenes";
 import {
@@ -65,6 +66,153 @@ const routeTitles: Record<string, string> = {
   "/legal/disclaimer": "Disclaimer",
   "/legal/privacy": "Privacy",
   "/legal/terms": "Terms",
+};
+
+type RouteVisualKind = "showcase" | "solutions" | "vitaflow" | "vitakiosk" | "studio" | "academy" | "commerce" | "contact";
+
+const routeExperiences: Partial<Record<string, {
+  label: string;
+  title: string;
+  copy: string;
+  primaryCta: string;
+  primaryHref: string;
+  secondaryCta: string;
+  secondaryHref: string;
+  visual: RouteVisualKind;
+  pulses: string[];
+}>> = {
+  "/showcase": {
+    label: "Spatial product lab",
+    title: "Move through the systems in action.",
+    copy: "Kiosk, ERP, websites, training, and partner flows staged as one connected operating environment.",
+    primaryCta: "Try kiosk demo",
+    primaryHref: "#interactive-demo",
+    secondaryCta: "View pricing",
+    secondaryHref: "/pricing",
+    visual: "showcase",
+    pulses: ["iPad mode", "Large kiosk", "ERP board", "AI website", "AI lessons"],
+  },
+  "/solutions": {
+    label: "Operating scenes",
+    title: "AI support for queues, shelves, campaigns, and growth.",
+    copy: "Retail pharmacy, clinic-linked pharmacy, partner campaign, and SME growth flows stay connected to safe data rules.",
+    primaryCta: "Book a walkthrough",
+    primaryHref: "/book",
+    secondaryCta: "Contact sales",
+    secondaryHref: "/contact",
+    visual: "solutions",
+    pulses: ["Queue support", "Shelf guidance", "Campaign review", "Lead capture"],
+  },
+  "/vitaflow": {
+    label: "Source of truth",
+    title: "VitaFlow keeps facts grounded.",
+    copy: "Inventory, price, branch, shelf, promotion, purchase, reports, and analytics remain the trusted operational layer.",
+    primaryCta: "Start ERP inquiry",
+    primaryHref: "/order",
+    secondaryCta: "See kiosk link",
+    secondaryHref: "/vitakiosk",
+    visual: "vitaflow",
+    pulses: ["Stock movement", "Branch data", "Price monitor", "Reports"],
+  },
+  "/vitakiosk": {
+    label: "Interactive kiosk",
+    title: "Product education before the counter.",
+    copy: "A simulated public demo with voice, fuzzy match, product sheet, shelf route, scan, promotion, and staff handoff.",
+    primaryCta: "Click the demo",
+    primaryHref: "#interactive-demo",
+    secondaryCta: "Order framework",
+    secondaryHref: "/order",
+    visual: "vitakiosk",
+    pulses: ["Voice", "Scan", "Shelf A-03", "Staff handoff"],
+  },
+  "/clinic-pharmacy-partners": {
+    label: "Clinic / pharmacy corridor",
+    title: "Connect product interest to partner discovery.",
+    copy: "General product education, QR direction, participating pharmacy guidance, and staff escalation without endorsement claims.",
+    primaryCta: "Request partner flow",
+    primaryHref: "/contact",
+    secondaryCta: "View kiosk demo",
+    secondaryHref: "/vitakiosk",
+    visual: "solutions",
+    pulses: ["Clinic queue", "Product education", "QR route", "Pharmacist handoff"],
+  },
+  "/ai-website-studio": {
+    label: "AI Website Studio",
+    title: "Websites that explain, capture, and convert.",
+    copy: "Launch premium websites with chatbot readiness, booking/contact flow, domain setup, lead capture, and maintenance.",
+    primaryCta: "Start website project",
+    primaryHref: "/contact",
+    secondaryCta: "Mock checkout",
+    secondaryHref: "/pricing",
+    visual: "studio",
+    pulses: ["Landing", "Chatbot", "Booking", "Lead dashboard"],
+  },
+  "/ai-academy": {
+    label: "AI Academy",
+    title: "Learn AI as a practical workflow.",
+    copy: "Codex, prompts, automation, content/video, websites, and pharmacy AI operations taught as hands-on business systems.",
+    primaryCta: "Book AI lesson",
+    primaryHref: "/book",
+    secondaryCta: "View packages",
+    secondaryHref: "/pricing",
+    visual: "academy",
+    pulses: ["Prompt flow", "Codex build", "Automation", "Content calendar"],
+  },
+  "/pricing": {
+    label: "Mock commerce",
+    title: "Choose a path without live payment.",
+    copy: "Subscriptions, kiosk orders, lesson bookings, and website deposits stay provider-neutral until payment review.",
+    primaryCta: "Open console",
+    primaryHref: "#pricing",
+    secondaryCta: "Contact sales",
+    secondaryHref: "/contact",
+    visual: "commerce",
+    pulses: ["Mock", "Stripe skeleton", "Billplz skeleton", "Manual transfer"],
+  },
+  "/order": {
+    label: "Order console",
+    title: "Quote, deposit, schedule, install.",
+    copy: "VitaFlow subscriptions, kiosk deployments, lessons, and website projects start with safe mock records.",
+    primaryCta: "Start order",
+    primaryHref: "#contact",
+    secondaryCta: "View pricing",
+    secondaryHref: "/pricing",
+    visual: "commerce",
+    pulses: ["Quote", "Deposit", "Schedule", "Review"],
+  },
+  "/book": {
+    label: "Book a walkthrough",
+    title: "Pick the first deployment path.",
+    copy: "Use the mock form to request a demo, lesson, website project, ERP subscription, or kiosk order.",
+    primaryCta: "Open form",
+    primaryHref: "#contact",
+    secondaryCta: "Explore showcase",
+    secondaryHref: "/showcase",
+    visual: "contact",
+    pulses: ["Demo", "Lesson", "Website", "Kiosk"],
+  },
+  "/contact": {
+    label: "Contact sales",
+    title: "Tell us what you want to launch.",
+    copy: "The form creates a mock local record and keeps payments, customer data, and provider calls disabled.",
+    primaryCta: "Open form",
+    primaryHref: "#contact",
+    secondaryCta: "Book demo",
+    secondaryHref: "/book",
+    visual: "contact",
+    pulses: ["Lead", "Partner", "Project", "Training"],
+  },
+  "/about": {
+    label: "VitaKiosk Labs",
+    title: "AI systems and experience lab.",
+    copy: "We design practical AI systems, websites, and training for pharmacies, clinics, and modern businesses.",
+    primaryCta: "Explore solutions",
+    primaryHref: "/solutions",
+    secondaryCta: "Contact sales",
+    secondaryHref: "/contact",
+    visual: "showcase",
+    pulses: ["Systems", "Experience", "Training", "Growth"],
+  },
 };
 
 function useScrollProgress() {
@@ -157,6 +305,148 @@ function GlobalStageBackground({ progress }: { progress: number }) {
   );
 }
 
+function InteractiveFluidBackdrop({ progress }: { progress: number }) {
+  const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const progressRef = useRef(progress);
+
+  useEffect(() => {
+    progressRef.current = progress;
+  }, [progress]);
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    let context: CanvasRenderingContext2D | null = null;
+    if (typeof navigator !== "undefined" && navigator.userAgent.toLowerCase().includes("jsdom")) {
+      if (canvas) {
+        canvas.dataset.canvasUnsupported = "true";
+      }
+      return;
+    }
+    try {
+      context = canvas?.getContext("2d", { alpha: true }) ?? null;
+    } catch {
+      if (canvas) {
+        canvas.dataset.canvasUnsupported = "true";
+      }
+      return;
+    }
+    if (!canvas || !context) {
+      return;
+    }
+
+    const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+    if (reducedMotion.matches) {
+      canvas.dataset.reducedMotion = "true";
+      return;
+    }
+
+    let frame = 0;
+    let width = 0;
+    let height = 0;
+    let dpr = 1;
+    let lastRipple = 0;
+    const pointer = { x: 0.5, y: 0.45 };
+    const ripples: Array<{ x: number; y: number; radius: number; life: number; hue: number; strength: number }> = [];
+
+    const resize = () => {
+      const rect = canvas.getBoundingClientRect();
+      dpr = Math.min(window.devicePixelRatio || 1, 1.8);
+      width = Math.max(1, Math.round(rect.width * dpr));
+      height = Math.max(1, Math.round(rect.height * dpr));
+      canvas.width = width;
+      canvas.height = height;
+    };
+
+    const addRipple = (clientX: number, clientY: number, strength = 1) => {
+      const now = performance.now();
+      if (now - lastRipple < 42) {
+        return;
+      }
+      lastRipple = now;
+      const rect = canvas.getBoundingClientRect();
+      pointer.x = (clientX - rect.left) / Math.max(rect.width, 1);
+      pointer.y = (clientY - rect.top) / Math.max(rect.height, 1);
+      document.documentElement.style.setProperty("--pointer-x", pointer.x.toFixed(4));
+      document.documentElement.style.setProperty("--pointer-y", pointer.y.toFixed(4));
+      ripples.push({
+        x: pointer.x * width,
+        y: pointer.y * height,
+        radius: 8 * dpr,
+        life: 1,
+        hue: ripples.length % 2 ? 266 : 178,
+        strength,
+      });
+      if (ripples.length > 16) {
+        ripples.shift();
+      }
+    };
+
+    const onPointerMove = (event: PointerEvent) => addRipple(event.clientX, event.clientY, event.pointerType === "touch" ? 0.72 : 1);
+    const onTouchMove = (event: TouchEvent) => {
+      const touch = event.touches[0];
+      if (touch) {
+        addRipple(touch.clientX, touch.clientY, 0.72);
+      }
+    };
+
+    const render = () => {
+      context.clearRect(0, 0, width, height);
+      const depth = 0.35 + progressRef.current * 0.45;
+      const time = performance.now() * 0.00018;
+      const gradient = context.createRadialGradient(
+        pointer.x * width,
+        pointer.y * height,
+        0,
+        pointer.x * width,
+        pointer.y * height,
+        Math.max(width, height) * (0.56 + depth * 0.18),
+      );
+      gradient.addColorStop(0, `rgba(53, 244, 232, ${0.16 + depth * 0.08})`);
+      gradient.addColorStop(0.32, "rgba(155, 124, 255, 0.095)");
+      gradient.addColorStop(1, "rgba(0, 0, 0, 0)");
+      context.fillStyle = gradient;
+      context.fillRect(0, 0, width, height);
+
+      context.save();
+      context.globalCompositeOperation = "screen";
+      for (let index = ripples.length - 1; index >= 0; index -= 1) {
+        const ripple = ripples[index];
+        ripple.radius += (2.2 + depth * 2.1) * dpr;
+        ripple.life -= 0.012 + depth * 0.004;
+        if (ripple.life <= 0) {
+          ripples.splice(index, 1);
+          continue;
+        }
+        const alpha = ripple.life * 0.28 * ripple.strength;
+        context.beginPath();
+        context.arc(ripple.x, ripple.y, ripple.radius + Math.sin(time * 18 + index) * 9 * dpr, 0, Math.PI * 2);
+        context.strokeStyle = `hsla(${ripple.hue}, 96%, 64%, ${alpha})`;
+        context.lineWidth = Math.max(1, 2.2 * dpr * ripple.life);
+        context.shadowBlur = 24 * dpr * ripple.life;
+        context.shadowColor = ripple.hue === 178 ? "rgba(53, 244, 232, 0.7)" : "rgba(155, 124, 255, 0.7)";
+        context.stroke();
+      }
+      context.restore();
+
+      frame = window.requestAnimationFrame(render);
+    };
+
+    resize();
+    frame = window.requestAnimationFrame(render);
+    window.addEventListener("resize", resize);
+    window.addEventListener("pointermove", onPointerMove, { passive: true });
+    window.addEventListener("touchmove", onTouchMove, { passive: true });
+    return () => {
+      window.cancelAnimationFrame(frame);
+      window.removeEventListener("resize", resize);
+      window.removeEventListener("pointermove", onPointerMove);
+      window.removeEventListener("touchmove", onTouchMove);
+    };
+  }, []);
+
+  return <canvas ref={canvasRef} className="interactive-fluid-backdrop" data-testid="fluid-backdrop" aria-hidden="true" />;
+}
+
 function OrbitRibbon() {
   return (
     <div className="business-orbit" aria-label="VitaKiosk Asia business lines">
@@ -231,7 +521,7 @@ function HeroPrologueScene({ progress }: { progress: number }) {
   );
 }
 
-function useJourneySceneController(sceneCount: number) {
+function useScrollSceneController(sceneCount: number) {
   const [activeSceneIndex, setActiveSceneIndex] = useState(0);
 
   useEffect(() => {
@@ -244,8 +534,12 @@ function useJourneySceneController(sceneCount: number) {
 
     gsap.registerPlugin(ScrollTrigger);
     let lastIndex = 0;
-    const updateIndex = (progress: number) => {
-      const next = Math.min(sceneCount - 1, Math.max(0, Math.round(progress * (sceneCount - 1))));
+    let lastProgress = 0;
+    const labels = Array.from({ length: sceneCount }, (_, index) => index / Math.max(sceneCount - 1, 1));
+    const updateIndex = (progress: number, direction: number) => {
+      const raw = progress * Math.max(sceneCount - 1, 1);
+      const rounded = Math.min(sceneCount - 1, Math.max(0, Math.round(raw)));
+      const next = direction >= 0 ? Math.max(lastIndex, rounded) : Math.min(lastIndex, rounded);
       if (next !== lastIndex) {
         lastIndex = next;
         setActiveSceneIndex(next);
@@ -256,15 +550,20 @@ function useJourneySceneController(sceneCount: number) {
     const trigger = ScrollTrigger.create({
       trigger: root,
       start: "top top",
-      end: () => `+=${Math.max(sceneCount, 1) * window.innerHeight}`,
+      end: () => `+=${Math.max(sceneCount - 1, 1) * window.innerHeight * 0.76}`,
       pin: true,
       anticipatePin: 1,
-      scrub: 0.6,
+      scrub: 0.48,
       invalidateOnRefresh: true,
-      onUpdate: (self) => updateIndex(self.progress),
+      onUpdate: (self) => {
+        const direction = self.direction || (self.progress >= lastProgress ? 1 : -1);
+        lastProgress = self.progress;
+        updateIndex(self.progress, direction);
+      },
       snap: {
-        snapTo: (value) => Math.round(value * (sceneCount - 1)) / (sceneCount - 1),
-        duration: { min: 0.16, max: 0.38 },
+        snapTo: (value) =>
+          labels.reduce((closest, label) => (Math.abs(label - value) < Math.abs(closest - value) ? label : closest), labels[0]),
+        duration: { min: 0.12, max: 0.28 },
         delay: 0.02,
         ease: "power2.out",
       },
@@ -287,6 +586,17 @@ function useJourneySceneController(sceneCount: number) {
   }, [sceneCount]);
 
   return activeSceneIndex;
+}
+
+function ScrollSceneController({
+  sceneCount,
+  children,
+}: {
+  sceneCount: number;
+  children: (activeSceneIndex: number) => React.ReactNode;
+}) {
+  const activeSceneIndex = useScrollSceneController(sceneCount);
+  return <>{children(activeSceneIndex)}</>;
 }
 
 function AbstractDeviceVisual({ scene }: { scene: ShowcaseScene }) {
@@ -354,7 +664,7 @@ function DemoHotspot({
   className: string;
 }) {
   return (
-    <button className={`demo-hotspot ${className}`} onClick={onClick}>
+    <button className={`demo-hotspot ${className}`} onClick={onClick} aria-label={`${label} hotspot`}>
       <span>{label}</span>
     </button>
   );
@@ -383,7 +693,7 @@ function DemoTranscript({ mode }: { mode: DemoMode }) {
 
 function DemoProductPanel({ onOpen }: { onOpen: () => void }) {
   return (
-    <button className="demo-product-panel" onClick={onOpen}>
+    <button className="demo-product-panel" onClick={onOpen} aria-label="Product panel">
       <span>Product summary</span>
       <strong>{demoProduct.name}</strong>
       <div className="demo-product-grid">
@@ -400,7 +710,7 @@ function DemoProductPanel({ onOpen }: { onOpen: () => void }) {
 
 function DemoPromotionLeaflet({ onOpen }: { onOpen: () => void }) {
   return (
-    <button className="demo-leaflet-stack" onClick={onOpen}>
+    <button className="demo-leaflet-stack" onClick={onOpen} aria-label="Promotion leaflet">
       <article>
         <span>VitaKiosk</span>
         <strong>Relief Balm</strong>
@@ -474,6 +784,13 @@ function InteractiveVitaKioskDemo() {
 
   return (
     <div className={`interactive-kiosk-demo mode-${mode}`} id="interactive-demo">
+      <img
+        className="demo-reference-surface"
+        src={approvedVitaKioskReference.src}
+        alt=""
+        aria-hidden="true"
+        loading="eager"
+      />
       <div className="demo-status-pill">Connected - Mock mode - No customer data</div>
       <DemoTranscript mode={mode} />
       <div className="demo-avatar-panel">
@@ -490,7 +807,7 @@ function InteractiveVitaKioskDemo() {
       </div>
       <div className="demo-center-panel">
         <DemoProductPanel onOpen={() => openMode("product")} />
-        <button className="demo-shelf-button" onClick={() => openMode("shelf")}>
+        <button className="demo-shelf-button" onClick={() => openMode("shelf")} aria-label="Shelf map">
           <DemoShelfMap />
         </button>
         <div className="demo-input-row">
@@ -514,7 +831,7 @@ function InteractiveVitaKioskDemo() {
           <small>Branch: {demoProduct.branch}</small>
           <small>Shelf: {demoProduct.shelf}</small>
         </div>
-        <button className="demo-assist-panel" onClick={() => openMode("assist")}>
+        <button className="demo-assist-panel" onClick={() => openMode("assist")} aria-label="Request assistance">
           <span>Clinical safety</span>
           <strong>Pharmacist assistance</strong>
           <small>In-store safety handoff only.</small>
@@ -653,32 +970,38 @@ function AISplitScene() {
 function ImmersiveJourney() {
   const showcaseStepCount = showcaseScenes.length;
   const journeyStepCount = showcaseStepCount + 4;
-  const activeSceneIndex = useJourneySceneController(journeyStepCount);
-  const isShowcaseActive = activeSceneIndex < showcaseStepCount;
-  const showcaseIndex = Math.min(activeSceneIndex, showcaseStepCount - 1);
-  const demoIndex = showcaseStepCount;
-  const erpIndex = demoIndex + 1;
-  const partnerIndex = erpIndex + 1;
-  const aiIndex = partnerIndex + 1;
 
   return (
-    <section className="authored-journey" aria-label="VitaKiosk Asia immersive journey">
-      <div className="journey-scene" data-active={isShowcaseActive}>
-        <SystemShowcaseStage activeSceneIndex={showcaseIndex} />
-      </div>
-      <div className="journey-scene" data-active={activeSceneIndex === demoIndex}>
-        <VitaKioskDemoStage />
-      </div>
-      <div className="journey-scene" data-active={activeSceneIndex === erpIndex}>
-        <VitaFlowSourceScene />
-      </div>
-      <div className="journey-scene" data-active={activeSceneIndex === partnerIndex}>
-        <ClinicPartnerCorridor />
-      </div>
-      <div className="journey-scene" data-active={activeSceneIndex === aiIndex}>
-        <AISplitScene />
-      </div>
-    </section>
+    <ScrollSceneController sceneCount={journeyStepCount}>
+      {(activeSceneIndex) => {
+        const isShowcaseActive = activeSceneIndex < showcaseStepCount;
+        const showcaseIndex = Math.min(activeSceneIndex, showcaseStepCount - 1);
+        const demoIndex = showcaseStepCount;
+        const erpIndex = demoIndex + 1;
+        const partnerIndex = erpIndex + 1;
+        const aiIndex = partnerIndex + 1;
+
+        return (
+          <section className="authored-journey" aria-label="VitaKiosk Asia immersive journey">
+            <div className="journey-scene" data-active={isShowcaseActive}>
+              <SystemShowcaseStage activeSceneIndex={showcaseIndex} />
+            </div>
+            <div className="journey-scene" data-active={activeSceneIndex === demoIndex}>
+              <VitaKioskDemoStage />
+            </div>
+            <div className="journey-scene" data-active={activeSceneIndex === erpIndex}>
+              <VitaFlowSourceScene />
+            </div>
+            <div className="journey-scene" data-active={activeSceneIndex === partnerIndex}>
+              <ClinicPartnerCorridor />
+            </div>
+            <div className="journey-scene" data-active={activeSceneIndex === aiIndex}>
+              <AISplitScene />
+            </div>
+          </section>
+        );
+      }}
+    </ScrollSceneController>
   );
 }
 
@@ -747,26 +1070,38 @@ function VideoPreviewCard({
   video,
   index,
   activeIndex,
+  dragProgress,
   hovered,
+  dragging,
   onHover,
   onOpen,
 }: {
   video: (typeof videoHubItems)[number];
   index: number;
   activeIndex: number;
+  dragProgress: number;
   hovered: boolean;
+  dragging: boolean;
   onHover: (index: number | null) => void;
   onOpen: (trigger: HTMLButtonElement) => void;
 }) {
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const total = videoHubItems.length;
   const raw = index - activeIndex;
-  const relative = raw > total / 2 ? raw - total : raw < -total / 2 ? raw + total : raw;
+  const baseRelative = raw > total / 2 ? raw - total : raw < -total / 2 ? raw + total : raw;
+  const relative = baseRelative + dragProgress;
   const abs = Math.abs(relative);
-  const isActive = relative === 0;
-  const isVisible = abs <= 3;
-  const isInteractive = abs <= 2;
+  const isActive = index === activeIndex;
+  const isVisible = abs <= 3.35;
+  const isInteractive = abs <= 2.35 && !dragging;
   const shouldLoad = isActive || hovered;
+  const angle = relative * 35;
+  const radians = (angle * Math.PI) / 180;
+  const depth = Math.max(0, Math.cos(radians));
+  const z = 170 + depth * 300 - Math.min(abs, 3.2) * 34;
+  const x = Math.sin(radians) * 520;
+  const scale = Math.max(0.54, 0.62 + depth * 0.38 - Math.min(abs, 3.2) * 0.045);
+  const opacity = isVisible ? Math.max(0.12, 0.22 + depth * 0.74 - Math.min(abs, 3.2) * 0.08) : 0;
 
   useEffect(() => {
     const el = videoRef.current;
@@ -796,19 +1131,20 @@ function VideoPreviewCard({
     <button
       className={`video-orbit-card ${isActive ? "is-active" : ""}`}
       aria-label={`${video.title} ${video.status}`}
-      onPointerEnter={() => onHover(index)}
+      data-active={isActive}
+      onPointerEnter={() => !dragging && onHover(index)}
       onPointerLeave={() => onHover(null)}
       onFocus={() => onHover(index)}
       onBlur={() => onHover(null)}
       onClick={(event) => onOpen(event.currentTarget)}
       tabIndex={isInteractive ? 0 : -1}
       style={{
-        "--orbit-angle": `${relative * 34}deg`,
-        "--orbit-x": `${relative * 285}px`,
-        "--orbit-z": `${440 - abs * 90}px`,
-        "--orbit-scale": Math.max(0.54, 1 - abs * 0.16),
-        "--orbit-opacity": isVisible ? Math.max(0.18, 1 - abs * 0.22) : 0,
-        "--orbit-index": 20 - abs,
+        "--orbit-angle": `${angle}deg`,
+        "--orbit-x": `${x}px`,
+        "--orbit-z": `${z}px`,
+        "--orbit-scale": scale,
+        "--orbit-opacity": opacity,
+        "--orbit-index": Math.round(100 - abs * 12),
         pointerEvents: isInteractive ? "auto" : "none",
       } as React.CSSProperties}
     >
@@ -872,12 +1208,34 @@ function SphericalVideoCarousel() {
   const [activeIndex, setActiveIndex] = useState(3);
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
   const [openVideo, setOpenVideo] = useState<(typeof videoHubItems)[number] | null>(null);
-  const dragStart = useRef<number | null>(null);
+  const [dragProgress, setDragProgress] = useState(0);
+  const [isDragging, setIsDragging] = useState(false);
+  const dragRef = useRef({
+    pointerId: -1,
+    startX: 0,
+    lastX: 0,
+    lastTime: 0,
+    velocity: 0,
+    progress: 0,
+    moved: false,
+  });
+  const suppressNextClick = useRef(false);
+  const wheelLock = useRef(0);
   const lastVideoTrigger = useRef<HTMLButtonElement | null>(null);
   const total = videoHubItems.length;
-  const change = (delta: number) => setActiveIndex((current) => (current + delta + total) % total);
+  const safeClientX = (value: number, fallback = 0) => (Number.isFinite(value) ? value : fallback);
+  const wrapIndex = (index: number) => {
+    const safe = Number.isFinite(index) ? Math.round(index) : 0;
+    return ((safe % total) + total) % total;
+  };
+  const change = (delta: number) => setActiveIndex((current) => wrapIndex(current + delta));
+  const snapByDragSteps = (steps: number) => setActiveIndex((current) => wrapIndex(current - steps));
 
   const openViewer = (video: (typeof videoHubItems)[number], trigger?: HTMLButtonElement | null) => {
+    if (suppressNextClick.current) {
+      suppressNextClick.current = false;
+      return;
+    }
     lastVideoTrigger.current = trigger ?? null;
     setOpenVideo(video);
   };
@@ -902,27 +1260,110 @@ function SphericalVideoCarousel() {
     }
   }
 
+  const endDrag = (target: HTMLElement | null) => {
+    const drag = dragRef.current;
+    if (drag.pointerId === -1) {
+      return;
+    }
+    const projected = drag.progress + (drag.velocity * 55) / 190;
+    const steps = Number.isFinite(projected) ? Math.max(-3, Math.min(3, Math.round(projected))) : 0;
+    if (Math.abs(drag.startX - drag.lastX) > 8) {
+      suppressNextClick.current = true;
+      window.setTimeout(() => {
+        suppressNextClick.current = false;
+      }, 80);
+    }
+    if (steps !== 0) {
+      snapByDragSteps(steps);
+    }
+    dragRef.current = {
+      pointerId: -1,
+      startX: 0,
+      lastX: 0,
+      lastTime: 0,
+      velocity: 0,
+      progress: 0,
+      moved: false,
+    };
+    setDragProgress(0);
+    setIsDragging(false);
+    setHoveredIndex(null);
+    target?.classList.remove("is-dragging");
+  };
+
   return (
     <section className="video-hub spherical-video-scene" id="video" onKeyDown={handleKeyDown} tabIndex={0}>
       <div className="section-heading">
         <span>Video-first content</span>
-        <h2>A floating media orbit, not a scrolling row.</h2>
+        <h2>Drag the media orbit through the product films.</h2>
       </div>
       <div
         className="video-orbit-shell"
         aria-label="Spherical video carousel"
+        data-dragging={isDragging}
         onPointerDown={(event) => {
-          dragStart.current = event.clientX;
-        }}
-        onPointerUp={(event) => {
-          if (dragStart.current === null) {
+          if (typeof event.button === "number" && event.button !== 0) {
             return;
           }
-          const delta = event.clientX - dragStart.current;
-          dragStart.current = null;
-          if (Math.abs(delta) > 38) {
-            change(delta < 0 ? 1 : -1);
+          const pointerId = event.pointerId || 1;
+          const clientX = safeClientX(event.clientX);
+          const now = performance.now();
+          dragRef.current = {
+            pointerId,
+            startX: clientX,
+            lastX: clientX,
+            lastTime: now,
+            velocity: 0,
+            progress: 0,
+            moved: false,
+          };
+        }}
+        onPointerMove={(event) => {
+          const drag = dragRef.current;
+          const pointerId = event.pointerId || drag.pointerId;
+          if (drag.pointerId !== pointerId) {
+            return;
           }
+          const clientX = safeClientX(event.clientX, drag.lastX);
+          const now = performance.now();
+          const dt = Math.max(now - drag.lastTime, 16);
+          const dx = clientX - drag.lastX;
+          const totalDelta = clientX - drag.startX;
+          drag.velocity = Math.max(-2.4, Math.min(2.4, dx / dt));
+          drag.lastX = clientX;
+          drag.lastTime = now;
+          drag.progress = Math.max(-3, Math.min(3, totalDelta / 190));
+          drag.moved = Math.abs(totalDelta) > 5;
+          if (drag.moved && typeof event.currentTarget.setPointerCapture === "function") {
+            try {
+              event.currentTarget.setPointerCapture(pointerId);
+            } catch {
+              // Drag still works without pointer capture in constrained browser/test environments.
+            }
+          }
+          if (drag.moved) {
+            setIsDragging(true);
+            event.currentTarget.classList.add("is-dragging");
+          }
+          setDragProgress(drag.progress);
+          if (drag.moved) {
+            setHoveredIndex(null);
+          }
+        }}
+        onPointerUp={(event) => endDrag(event.currentTarget)}
+        onPointerCancel={(event) => endDrag(event.currentTarget)}
+        onLostPointerCapture={(event) => endDrag(event.currentTarget)}
+        onWheel={(event) => {
+          if (Math.abs(event.deltaX) <= Math.abs(event.deltaY) || Math.abs(event.deltaX) < 14) {
+            return;
+          }
+          event.preventDefault();
+          const now = performance.now();
+          if (now - wheelLock.current < 280) {
+            return;
+          }
+          wheelLock.current = now;
+          change(event.deltaX > 0 ? 1 : -1);
         }}
       >
         <button className="orbit-arrow left" onClick={() => change(-1)} aria-label="Previous video">
@@ -935,7 +1376,9 @@ function SphericalVideoCarousel() {
               video={video}
               index={index}
               activeIndex={activeIndex}
+              dragProgress={dragProgress}
               hovered={hoveredIndex === index}
+              dragging={isDragging}
               onHover={setHoveredIndex}
               onOpen={(trigger) => openViewer(video, trigger)}
             />
@@ -947,8 +1390,8 @@ function SphericalVideoCarousel() {
       </div>
       <div className="orbit-caption">
         <span>{videoHubItems[activeIndex].status}</span>
-        <strong>{videoHubItems[activeIndex].title}</strong>
-        <small>Hover to preview silently. Click to open the viewer.</small>
+        <strong data-testid="orbit-active-title">{videoHubItems[activeIndex].title}</strong>
+        <small>Drag or swipe to rotate. Hover previews silently. Click opens the viewer.</small>
       </div>
       {openVideo && <VideoViewerModal video={openVideo} onClose={closeViewer} />}
     </section>
@@ -1293,6 +1736,155 @@ function SolutionsBand() {
   );
 }
 
+function RouteExperienceVisual({
+  visual,
+  pulses,
+}: {
+  visual: RouteVisualKind;
+  pulses: string[];
+}) {
+  return (
+    <div className={`route-experience-visual visual-${visual}`} aria-hidden="true">
+      <div className="route-visual-orbit">
+        {pulses.map((pulse, index) => (
+          <span key={pulse} className={`route-pulse pulse-${index + 1}`}>
+            {pulse}
+          </span>
+        ))}
+      </div>
+      {visual === "vitakiosk" ? (
+        <div className="route-kiosk-device">
+          <img src={approvedVitaKioskReference.src} alt="" loading="lazy" />
+          <span className="route-device-scan" />
+        </div>
+      ) : visual === "vitaflow" ? (
+        <div className="route-erp-constellation">
+          <strong>VitaFlow</strong>
+          <span>Product</span>
+          <span>Stock</span>
+          <span>Price</span>
+          <span>Shelf</span>
+        </div>
+      ) : visual === "studio" ? (
+        <div className="route-browser-stack">
+          <span />
+          <strong>AI Website</strong>
+          <small>Lead / booking / chatbot</small>
+        </div>
+      ) : visual === "academy" ? (
+        <div className="route-learning-core">
+          <strong>AI Academy</strong>
+          <span>Prompt</span>
+          <span>Codex</span>
+          <span>Automation</span>
+        </div>
+      ) : visual === "commerce" ? (
+        <div className="route-commerce-core">
+          <CreditCard size={34} />
+          <strong>Mock provider</strong>
+          <small>No live charge</small>
+        </div>
+      ) : (
+        <div className="route-lab-core">
+          <Sparkles size={38} />
+          <strong>VitaKiosk Asia</strong>
+          <small>AI Systems & Experience Lab</small>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function RouteExperienceHero({
+  content,
+}: {
+  content: NonNullable<(typeof routeExperiences)[string]>;
+}) {
+  return (
+    <section className="route-experience-hero">
+      <div className="route-experience-copy">
+        <span>{content.label}</span>
+        <h1>{content.title}</h1>
+        <p>{content.copy}</p>
+        <div className="hero-actions">
+          <SmartLink href={content.primaryHref} className="button primary">
+            {content.primaryCta}
+            <ArrowRight size={16} />
+          </SmartLink>
+          <SmartLink href={content.secondaryHref} className="button secondary">
+            {content.secondaryCta}
+          </SmartLink>
+        </div>
+      </div>
+      <RouteExperienceVisual visual={content.visual} pulses={content.pulses} />
+    </section>
+  );
+}
+
+function RouteExperienceBody({ route, kind }: { route: string; kind: SiteFormKind }) {
+  if (route === "/showcase") {
+    return (
+      <>
+        <SystemShowcaseStage />
+        <VitaKioskDemoStage />
+        <VideoHub />
+      </>
+    );
+  }
+
+  if (route === "/solutions" || route === "/clinic-pharmacy-partners") {
+    return (
+      <>
+        <ClinicPartnerCorridor />
+        <VitaFlowSourceScene />
+        <AISplitScene />
+      </>
+    );
+  }
+
+  if (route === "/vitaflow") {
+    return (
+      <>
+        <VitaFlowSourceScene />
+        <CommerceConsole />
+        <LeadConsole initialKind={kind} />
+      </>
+    );
+  }
+
+  if (route === "/vitakiosk") {
+    return (
+      <>
+        <VitaKioskDemoStage />
+        <ClinicPartnerCorridor />
+        <VideoHub />
+        <LeadConsole initialKind={kind} />
+      </>
+    );
+  }
+
+  if (route === "/ai-website-studio" || route === "/ai-academy") {
+    return (
+      <>
+        <AISplitScene />
+        <CommerceConsole />
+        <LeadConsole initialKind={kind} />
+      </>
+    );
+  }
+
+  if (route === "/pricing" || route === "/order") {
+    return (
+      <>
+        <CommerceConsole />
+        <LeadConsole initialKind={kind} />
+      </>
+    );
+  }
+
+  return <LeadConsole initialKind={kind} />;
+}
+
 function LegalPage({ title }: { title: string }) {
   return (
     <main className="page-shell route-page">
@@ -1352,24 +1944,13 @@ function RoutePage({ route }: { route: string }) {
 
   return (
     <main className="page-shell route-page">
+      <InteractiveFluidBackdrop progress={0.35} />
+      <GlobalStageBackground progress={0.35} />
       <Header />
-      <section className="route-hero">
-        <Sparkles size={36} />
-        <h1>{title}</h1>
-        <p>
-          Route-ready page for the VitaKiosk Asia flagship site. The page uses
-          the same immersive system, central pricing config, demo asset manifest,
-          and mock payment framework as the homepage.
-        </p>
-      </section>
-      {(route === "/showcase" || route === "/solutions") && <ShowcaseSection />}
-      {(route === "/vitaflow" || route === "/vitakiosk" || route === "/ai-website-studio" || route === "/ai-academy") && (
-        <BusinessLinesSection />
-      )}
-      {(route === "/pricing" || route === "/order") && <PricingSection />}
-      <SolutionsBand />
-      <LeadConsole initialKind={kind} />
+      <RouteExperienceHero content={routeExperiences[route] || routeExperiences["/about"]!} />
+      <RouteExperienceBody route={route} kind={kind} />
       <SafetyBand />
+      <LegalShelf />
     </main>
   );
 }
@@ -1378,6 +1959,7 @@ function HomePage() {
   const progress = useScrollProgress();
   return (
     <main className="page-shell" style={{ "--page-progress": progress } as React.CSSProperties}>
+      <InteractiveFluidBackdrop progress={progress} />
       <GlobalStageBackground progress={progress} />
       <Header />
       <HeroPrologueScene progress={progress} />

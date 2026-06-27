@@ -4,8 +4,9 @@ The homepage is authored as a small number of immersive scenes, not a normal car
 
 ## Architecture
 
+- `InteractiveFluidBackdrop` owns the global pointer/touch liquid field.
 - GSAP ScrollTrigger owns homepage journey progress.
-- `activeSceneIndex` is derived from one scroll controller in `useJourneySceneController`.
+- `activeSceneIndex` is derived from one scroll controller in `ScrollSceneController`.
 - The pinned journey currently has nine deterministic steps: five product
   showcase positions, then interactive demo, ERP source, partner corridor, and
   AI split scene.
@@ -13,6 +14,24 @@ The homepage is authored as a small number of immersive scenes, not a normal car
 - Page scroll does not mutate the video carousel index.
 - The carousel has no native horizontal overflow or scrollbar.
 - Reduced motion disables pinned scroll choreography and keeps every scene visible.
+
+## Fluid Backdrop
+
+Component:
+
+```text
+InteractiveFluidBackdrop
+```
+
+Behavior:
+
+- A fixed canvas sits behind the whole site and never blocks pointer input.
+- Pointer and touch movement create subtle cyan/violet ripple rings.
+- The page also updates `--pointer-x` and `--pointer-y` so foreground glass
+  panels receive a soft light bend from the same pointer source.
+- Scroll progress changes the depth/intensity of the canvas field.
+- In test or reduced-motion environments, the component falls back to a static
+  gradient and does not start the animation loop.
 
 ## Homepage Journey
 
@@ -31,8 +50,11 @@ The current homepage sequence is:
 ## Scroll Stability Rules
 
 - One ScrollTrigger controls `activeSceneIndex`.
+- Direction-aware index updates prevent scroll-down progress from flickering
+  backward at label boundaries.
 - No IntersectionObserver competes for the same active scene state.
 - No native horizontal scrolling is nested inside pinned sections.
+- Pinned duration is bounded to avoid huge empty spacer gaps.
 - Scene height is stable before ScrollTrigger calculates.
 - `invalidateOnRefresh` and a delayed refresh run after media/image load.
 - Cleanup kills the ScrollTrigger on unmount.
@@ -54,6 +76,11 @@ Behavior:
 - Side cards curve backward in a cylindrical path.
 - Far/back cards remain visible as atmosphere and become pointer targets only
   after rotating closer.
+- Pointer or touch drag updates orbit progress continuously before snapping.
+- Release uses damped velocity projection so normal swipes do not jump across
+  too many cards.
+- Horizontal trackpad wheel can rotate the orbit, but there is no native
+  horizontal scrollbar.
 - Pointer hover loads and plays only that muted preview.
 - Pointer leave pauses and resets the preview.
 - Click or Enter opens the full viewer.
