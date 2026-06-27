@@ -85,16 +85,18 @@ Behavior:
 
 - Cards are positioned with CSS 3D variables: angle, x offset, z depth, scale, opacity, and z index.
 - The carousel stores one continuous normalized `orbitalProgress` value.
-- The visible ring is rendered from a 3-copy circular buffer of the seven
-  logical videos, so the stage never reaches a finite-row end state.
+- The visible ring renders the seven logical videos once; each card computes a
+  wrapped relative offset from `orbitalProgress`, so the loop is continuous
+  without stacking duplicate cards in the visible active area.
 - `activeVideoIndex` is derived from the nearest item on that rotation.
-- Each card's visual position is derived from its virtual index minus
-  `orbitalProgress`; the value wraps with modulo arithmetic instead of
+- Each card's visual position is derived from its logical index minus
+  `orbitalProgress`, wrapped into the shortest circular distance instead of
   resetting at either end.
-- Active card is large and readable.
-- Side cards curve backward in a cylindrical path.
-- Far/back cards remain visible as atmosphere and become pointer targets only
-  after rotating closer.
+- Active card is large, readable, and has the highest z-depth.
+- Side cards curve backward in a cylindrical path with generous spacing and no
+  overlap with the active card footprint.
+- Far/back cards become dim atmosphere; far text is hidden so it cannot bleed
+  into the center card.
 - The orbit rotates slowly by itself when idle.
 - Hover, touch, drag, preview playback, and the full viewer pause auto-rotation.
 - Keyboard focus applies a short pause so restored focus after closing the

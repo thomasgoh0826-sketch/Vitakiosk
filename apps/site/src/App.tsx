@@ -1269,10 +1269,9 @@ function ClinicPartnerCorridor() {
 function VideoPreviewCard({
   video,
   logicalIndex,
-  virtualIndex,
-  renderKey,
   activeVideoIndex,
   orbitalProgress,
+  total,
   hovered,
   dragging,
   onHover,
@@ -1280,30 +1279,32 @@ function VideoPreviewCard({
 }: {
   video: (typeof videoHubItems)[number];
   logicalIndex: number;
-  virtualIndex: number;
-  renderKey: string;
   activeVideoIndex: number;
   orbitalProgress: number;
+  total: number;
   hovered: boolean;
   dragging: boolean;
-  onHover: (key: string | null) => void;
+  onHover: (id: string | null) => void;
   onOpen: (trigger: HTMLButtonElement) => void;
 }) {
   const videoRef = useRef<HTMLVideoElement | null>(null);
-  const relative = virtualIndex - orbitalProgress;
+  const relative = (((logicalIndex - orbitalProgress + total / 2) % total) + total) % total - total / 2;
   const abs = Math.abs(relative);
-  const isActive = logicalIndex === activeVideoIndex && abs <= 0.58;
-  const isVisible = abs <= 5.35;
-  const isInteractive = abs <= 2.35 && !dragging;
+  const isActive = logicalIndex === activeVideoIndex;
+  const isVisible = abs <= 2.28;
+  const isInteractive = abs <= 1.34 && !dragging;
   const shouldLoad = isActive || hovered;
-  const pathAngle = relative * 24;
-  const tiltAngle = Math.max(-34, Math.min(34, relative * 8));
-  const radians = (pathAngle * Math.PI) / 180;
-  const depth = (Math.cos(radians) + 1) / 2;
-  const x = Math.sin(radians) * 560;
-  const z = -190 + depth * 640;
-  const scale = Math.max(0.44, 0.54 + depth * 0.48 - Math.min(abs, 5.35) * 0.01);
-  const opacity = isVisible ? Math.max(0.1, 0.18 + depth * 0.8 - Math.min(abs, 5.35) * 0.014) : 0;
+  const direction = relative === 0 ? 0 : relative > 0 ? 1 : -1;
+  const positionAbs = isActive ? Math.min(abs, 0.08) : Math.max(abs, 1.08);
+  const travelStart = 0.18;
+  const travel = Math.max(0, (positionAbs - travelStart) / (2.28 - travelStart));
+  const easedTravel = Math.pow(Math.min(1, travel), 0.56);
+  const x = isActive ? direction * abs * 42 : direction * (positionAbs * 126 + easedTravel * 1090);
+  const z = isActive ? 140 : -120 - Math.min(positionAbs, 2.28) * 150;
+  const scale = isActive ? 1 : Math.max(0.44, 1 - Math.min(positionAbs, 2.28) * 0.25);
+  const tiltAngle = isActive ? direction * abs * 3 : direction * Math.min(58, positionAbs * 18 + easedTravel * 32);
+  const opacity = isVisible ? (isActive ? 1 : Math.max(0.1, 1 - Math.min(positionAbs, 2.28) * 0.38)) : 0;
+  const orbitDistance = isActive ? "center" : abs <= 1.44 ? "side" : abs <= 2.28 ? "far" : "hidden";
 
   useEffect(() => {
     const el = videoRef.current;
@@ -1336,12 +1337,13 @@ function VideoPreviewCard({
       aria-hidden={!isInteractive}
       data-active={isActive}
       data-logical-index={logicalIndex}
-      data-virtual-index={virtualIndex}
-      data-orbit-slot={renderKey}
+      data-orbit-slot={video.id}
+      data-orbit-relative={relative.toFixed(3)}
+      data-orbit-distance={orbitDistance}
       data-visible={isVisible}
-      onPointerEnter={() => !dragging && onHover(renderKey)}
+      onPointerEnter={() => !dragging && onHover(video.id)}
       onPointerLeave={() => onHover(null)}
-      onFocus={() => onHover(renderKey)}
+      onFocus={() => onHover(video.id)}
       onBlur={() => onHover(null)}
       onClick={(event) => onOpen(event.currentTarget)}
       tabIndex={isInteractive ? 0 : -1}
@@ -1351,7 +1353,7 @@ function VideoPreviewCard({
         "--orbit-z": `${z}px`,
         "--orbit-scale": scale,
         "--orbit-opacity": opacity,
-        "--orbit-index": Math.round(120 - abs * 14 + depth * 30),
+        "--orbit-index": Math.round((isActive ? 160 : 90) - abs * 20),
         pointerEvents: isInteractive ? "auto" : "none",
       } as React.CSSProperties}
     >
@@ -1449,19 +1451,8 @@ function SphericalVideoCarousel() {
   };
   const activeVideoIndex = wrapIndex(orbitalProgress);
   const isModalOpen = Boolean(openVideo);
-  const isUserInteracting = isHoveringCarousel || isTouching || isDragging || hoveredCardKey !== null || isModalOpen;
-
-  const orbitSlots = useMemo(() => {
-    const copies = [-1, 0, 1];
-    return copies.flatMap((copy) =>
-      videoHubItems.map((video, logicalIndex) => ({
-        video,
-        logicalIndex,
-        virtualIndex: logicalIndex + copy * total,
-        renderKey: `${copy}:${video.id}`,
-      })),
-    );
-  }, [total]);
+  const isUserInteracting =
+    isHoveringCarousel || isTouching || isDragging || hoveredCardKey !== null || isModalOpen;
 
   const setOrbitalProgressValue = (value: number) => {
     const next = normalizeProgress(value);
@@ -1548,14 +1539,26 @@ function SphericalVideoCarousel() {
     if (drag.pointerId === -1) {
       return;
     }
+    const didMove = drag.moved || Math.abs(drag.startX - drag.lastX) > 8;
     const projected = rotationRef.current - (drag.velocity * 55) / 190;
-    if (Math.abs(drag.startX - drag.lastX) > 8) {
+    if (didMove) {
       suppressNextClick.current = true;
       window.setTimeout(() => {
         suppressNextClick.current = false;
       }, 80);
     }
-    snapToNearest(projected);
+    if (target && typeof target.releasePointerCapture === "function") {
+      try {
+        if (typeof target.hasPointerCapture !== "function" || target.hasPointerCapture(drag.pointerId)) {
+          target.releasePointerCapture(drag.pointerId);
+        }
+      } catch {
+        // Some browsers release capture automatically on pointerup.
+      }
+    }
+    if (didMove) {
+      snapToNearest(projected);
+    }
     pauseAuto();
     dragRef.current = {
       pointerId: -1,
@@ -1589,7 +1592,7 @@ function SphericalVideoCarousel() {
         data-modal-open={isModalOpen}
         data-hovered-video={hoveredCardKey ?? ""}
         data-orbital-progress={orbitalProgress.toFixed(3)}
-        data-render-buffer={orbitSlots.length}
+        data-render-buffer={videoHubItems.length}
         onPointerEnter={() => {
           setIsHoveringCarousel(true);
           pauseAuto();
@@ -1695,16 +1698,15 @@ function SphericalVideoCarousel() {
         }}
       >
         <div className="video-orbit" aria-live="polite">
-          {orbitSlots.map(({ video, logicalIndex, virtualIndex, renderKey }) => (
+          {videoHubItems.map((video, logicalIndex) => (
             <VideoPreviewCard
-              key={renderKey}
+              key={video.id}
               video={video}
               logicalIndex={logicalIndex}
-              virtualIndex={virtualIndex}
-              renderKey={renderKey}
               activeVideoIndex={activeVideoIndex}
               orbitalProgress={orbitalProgress}
-              hovered={hoveredCardKey === renderKey}
+              total={total}
+              hovered={hoveredCardKey === video.id}
               dragging={isDragging}
               onHover={(nextIndex) => {
                 setHoveredCardKey(nextIndex);

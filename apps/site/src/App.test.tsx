@@ -29,10 +29,19 @@ describe("VitaKiosk Asia site", () => {
     expect(screen.getAllByText(/AI Academy/i).length).toBeGreaterThan(0);
     expect(document.querySelector("#interactive-demo")).toBeInTheDocument();
     expect(screen.getByLabelText(/Spherical video carousel/i)).toHaveAttribute("data-auto-rotate", "true");
+    expect(screen.getByLabelText(/Spherical video carousel/i)).toHaveAttribute(
+      "data-render-buffer",
+      String(videoHubItems.length),
+    );
     expect(screen.queryByRole("button", { name: /Previous video/i })).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: /Next video/i })).not.toBeInTheDocument();
-    expect(document.querySelectorAll(".video-orbit-card")).toHaveLength(videoHubItems.length * 3);
-    expect(document.querySelectorAll('.video-orbit-card[data-visible="true"]').length).toBeGreaterThanOrEqual(9);
+    const orbitCards = Array.from(document.querySelectorAll(".video-orbit-card"));
+    expect(orbitCards).toHaveLength(videoHubItems.length);
+    expect(new Set(orbitCards.map((card) => card.getAttribute("data-logical-index"))).size).toBe(
+      videoHubItems.length,
+    );
+    expect(document.querySelectorAll('.video-orbit-card[data-visible="true"]').length).toBeLessThanOrEqual(5);
+    expect(document.querySelectorAll('.video-orbit-card[data-orbit-distance="far"]').length).toBeGreaterThan(0);
   });
 
   it("drives the public VitaKiosk demo without backend devices", async () => {
