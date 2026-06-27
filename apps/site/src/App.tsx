@@ -2,7 +2,6 @@ import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import {
-  ArrowLeft,
   ArrowRight,
   CalendarCheck,
   Camera,
@@ -305,7 +304,7 @@ function GlobalStageBackground({ progress }: { progress: number }) {
   );
 }
 
-function InteractiveFluidBackdrop({ progress }: { progress: number }) {
+function GlobalLiquidBackdrop({ progress }: { progress: number }) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const progressRef = useRef(progress);
 
@@ -341,6 +340,7 @@ function InteractiveFluidBackdrop({ progress }: { progress: number }) {
     }
 
     let frame = 0;
+    let paused = document.visibilityState === "hidden";
     let width = 0;
     let height = 0;
     let dpr = 1;
@@ -388,8 +388,18 @@ function InteractiveFluidBackdrop({ progress }: { progress: number }) {
         addRipple(touch.clientX, touch.clientY, 0.72);
       }
     };
+    const onVisibilityChange = () => {
+      paused = document.visibilityState === "hidden";
+      if (!paused && frame === 0) {
+        frame = window.requestAnimationFrame(render);
+      }
+    };
 
     const render = () => {
+      if (paused) {
+        frame = 0;
+        return;
+      }
       context.clearRect(0, 0, width, height);
       const depth = 0.35 + progressRef.current * 0.45;
       const time = performance.now() * 0.00018;
@@ -401,8 +411,8 @@ function InteractiveFluidBackdrop({ progress }: { progress: number }) {
         pointer.y * height,
         Math.max(width, height) * (0.56 + depth * 0.18),
       );
-      gradient.addColorStop(0, `rgba(53, 244, 232, ${0.16 + depth * 0.08})`);
-      gradient.addColorStop(0.32, "rgba(155, 124, 255, 0.095)");
+      gradient.addColorStop(0, `rgba(53, 244, 232, ${0.2 + depth * 0.1})`);
+      gradient.addColorStop(0.3, "rgba(155, 124, 255, 0.12)");
       gradient.addColorStop(1, "rgba(0, 0, 0, 0)");
       context.fillStyle = gradient;
       context.fillRect(0, 0, width, height);
@@ -417,7 +427,7 @@ function InteractiveFluidBackdrop({ progress }: { progress: number }) {
           ripples.splice(index, 1);
           continue;
         }
-        const alpha = ripple.life * 0.28 * ripple.strength;
+        const alpha = ripple.life * 0.36 * ripple.strength;
         context.beginPath();
         context.arc(ripple.x, ripple.y, ripple.radius + Math.sin(time * 18 + index) * 9 * dpr, 0, Math.PI * 2);
         context.strokeStyle = `hsla(${ripple.hue}, 96%, 64%, ${alpha})`;
@@ -436,15 +446,17 @@ function InteractiveFluidBackdrop({ progress }: { progress: number }) {
     window.addEventListener("resize", resize);
     window.addEventListener("pointermove", onPointerMove, { passive: true });
     window.addEventListener("touchmove", onTouchMove, { passive: true });
+    document.addEventListener("visibilitychange", onVisibilityChange);
     return () => {
       window.cancelAnimationFrame(frame);
       window.removeEventListener("resize", resize);
       window.removeEventListener("pointermove", onPointerMove);
       window.removeEventListener("touchmove", onTouchMove);
+      document.removeEventListener("visibilitychange", onVisibilityChange);
     };
   }, []);
 
-  return <canvas ref={canvasRef} className="interactive-fluid-backdrop" data-testid="fluid-backdrop" aria-hidden="true" />;
+  return <canvas ref={canvasRef} className="global-liquid-backdrop" data-testid="global-liquid-backdrop" aria-hidden="true" />;
 }
 
 function OrbitRibbon() {
@@ -664,7 +676,7 @@ function DemoHotspot({
   className: string;
 }) {
   return (
-    <button className={`demo-hotspot ${className}`} onClick={onClick} aria-label={`${label} hotspot`}>
+    <button className={`demo-hotspot ${className}`} onClick={onClick} aria-label={label}>
       <span>{label}</span>
     </button>
   );
@@ -686,7 +698,7 @@ function DemoTranscript({ mode }: { mode: DemoMode }) {
     <div className={`demo-transcript mode-${mode}`}>
       <span>AI subtitle</span>
       <strong>{text}</strong>
-      <small>{mode === "listening" ? "Speaking animation active" : "Ready"}</small>
+      <small>{mode === "listening" ? "Relief Balm is shown with shelf and promotion information." : "Ready"}</small>
     </div>
   );
 }
@@ -791,50 +803,35 @@ function InteractiveVitaKioskDemo() {
         aria-hidden="true"
         loading="eager"
       />
-      <div className="demo-status-pill">Connected - Mock mode - No customer data</div>
+      <div className="demo-screenshot-sheen" aria-hidden="true" />
+      <div className={`demo-area-highlight highlight-product ${["listening", "fuzzy", "product", "scan"].includes(mode) ? "is-active" : ""}`} aria-hidden="true" />
+      <div className={`demo-area-highlight highlight-promotion ${["listening", "fuzzy", "promotion", "scan"].includes(mode) ? "is-active" : ""}`} aria-hidden="true" />
+      <div className={`demo-area-highlight highlight-shelf ${["listening", "fuzzy", "shelf", "scan"].includes(mode) ? "is-active" : ""}`} aria-hidden="true" />
+      <div className={`demo-area-highlight highlight-assist ${mode === "assist" ? "is-active" : ""}`} aria-hidden="true" />
       <DemoTranscript mode={mode} />
-      <div className="demo-avatar-panel">
-        <span>VitaKiosk Labs</span>
-        <h3>AI Pharmacy Assistant</h3>
-        <div className="avatar-hologram">
-          <div className="avatar-core" />
-          <div className="avatar-wave" />
+      {mode === "listening" && (
+        <div className="demo-voice-pulse" aria-hidden="true">
+          <Mic size={24} />
+          <div className="voice-wave">
+            {Array.from({ length: 18 }).map((_, index) => <i key={index} />)}
+          </div>
         </div>
-        <div className="voice-wave" aria-hidden="true">
-          {Array.from({ length: 18 }).map((_, index) => <i key={index} />)}
+      )}
+      {mode === "shelf" && (
+        <div className="demo-route-overlay" aria-hidden="true">
+          <span />
+          <i />
         </div>
-        <strong>{mode === "listening" ? "LISTENING" : "READY"}</strong>
-      </div>
-      <div className="demo-center-panel">
-        <DemoProductPanel onOpen={() => openMode("product")} />
-        <button className="demo-shelf-button" onClick={() => openMode("shelf")} aria-label="Shelf map">
-          <DemoShelfMap />
+      )}
+      <div className="demo-floating-actions">
+        <button className="tap-to-speak" onClick={() => openMode("listening")}>
+          <Mic size={20} />
+          <span>Tap to Speak</span>
         </button>
-        <div className="demo-input-row">
-          <button className="tap-to-speak" onClick={() => openMode("listening")}>
-            <Mic size={23} />
-            <span>Tap to Speak</span>
-          </button>
-          <button className="demo-chip" onClick={() => openMode("fuzzy")}>Relief Bomb</button>
-          <button className="demo-chip" onClick={() => openMode("scan")}>
-            <Camera size={16} />
-            Scan Product
-          </button>
-        </div>
-      </div>
-      <div className="demo-right-rail">
-        <DemoPromotionLeaflet onOpen={() => openMode("promotion")} />
-        <div className="demo-provenance">
-          <span>System provenance</span>
-          <strong>VitaFlow ERP</strong>
-          <small>Source: {demoProduct.source}</small>
-          <small>Branch: {demoProduct.branch}</small>
-          <small>Shelf: {demoProduct.shelf}</small>
-        </div>
-        <button className="demo-assist-panel" onClick={() => openMode("assist")} aria-label="Request assistance">
-          <span>Clinical safety</span>
-          <strong>Pharmacist assistance</strong>
-          <small>In-store safety handoff only.</small>
+        <button className="demo-chip" onClick={() => openMode("fuzzy")}>Relief Bomb</button>
+        <button className="demo-chip" onClick={() => openMode("scan")}>
+          <Camera size={15} />
+          Scan Product
         </button>
       </div>
       <div className="demo-language-rail">
@@ -857,7 +854,13 @@ function InteractiveVitaKioskDemo() {
           <button onClick={() => setMode("idle")}>Relief Balm</button>
         </div>
       )}
-      {mode !== "idle" && mode !== "listening" && mode !== "fuzzy" && (
+      {mode === "shelf" && (
+        <div className="demo-state-bubble shelf-bubble">
+          <span>Shelf route</span>
+          <strong>Entrance &gt; Aisle 03 &gt; Shelf A-03</strong>
+        </div>
+      )}
+      {mode !== "idle" && mode !== "listening" && mode !== "fuzzy" && mode !== "shelf" && (
         <div className="demo-cinematic-overlay" role="dialog" aria-modal="true" aria-label={`${mode} demo state`} onMouseDown={closeOverlay}>
           <div className={`demo-overlay-sheet state-${mode}`} onMouseDown={(event) => event.stopPropagation()}>
             <button className="icon-button" onClick={closeOverlay}>
@@ -882,12 +885,6 @@ function InteractiveVitaKioskDemo() {
                 <strong>{demoProduct.price}</strong>
                 <small>Tap inside sheet to morph summary/detail.</small>
               </button>
-            )}
-            {mode === "shelf" && (
-              <div className="demo-overlay-content shelf-overlay">
-                <h3>Shelf navigation</h3>
-                <DemoShelfMap enlarged />
-              </div>
             )}
             {mode === "scan" && <DemoScanProductOverlay onSelect={() => setMode("idle")} />}
             {mode === "assist" && <DemoPharmacistHandoff />}
@@ -1069,8 +1066,8 @@ function ClinicPartnerCorridor() {
 function VideoPreviewCard({
   video,
   index,
-  activeIndex,
-  dragProgress,
+  activeVideoIndex,
+  orbitRotation,
   hovered,
   dragging,
   onHover,
@@ -1078,8 +1075,8 @@ function VideoPreviewCard({
 }: {
   video: (typeof videoHubItems)[number];
   index: number;
-  activeIndex: number;
-  dragProgress: number;
+  activeVideoIndex: number;
+  orbitRotation: number;
   hovered: boolean;
   dragging: boolean;
   onHover: (index: number | null) => void;
@@ -1087,11 +1084,11 @@ function VideoPreviewCard({
 }) {
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const total = videoHubItems.length;
-  const raw = index - activeIndex;
+  const raw = index - orbitRotation;
   const baseRelative = raw > total / 2 ? raw - total : raw < -total / 2 ? raw + total : raw;
-  const relative = baseRelative + dragProgress;
+  const relative = baseRelative;
   const abs = Math.abs(relative);
-  const isActive = index === activeIndex;
+  const isActive = index === activeVideoIndex;
   const isVisible = abs <= 3.35;
   const isInteractive = abs <= 2.35 && !dragging;
   const shouldLoad = isActive || hovered;
@@ -1205,20 +1202,27 @@ function VideoViewerModal({
 }
 
 function SphericalVideoCarousel() {
-  const [activeIndex, setActiveIndex] = useState(3);
+  const initialVideoIndex = 3;
+  const [orbitRotation, setOrbitRotation] = useState(initialVideoIndex);
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
   const [openVideo, setOpenVideo] = useState<(typeof videoHubItems)[number] | null>(null);
-  const [dragProgress, setDragProgress] = useState(0);
   const [isDragging, setIsDragging] = useState(false);
+  const [isHoveringCarousel, setIsHoveringCarousel] = useState(false);
+  const [hasFocusWithin, setHasFocusWithin] = useState(false);
   const dragRef = useRef({
     pointerId: -1,
     startX: 0,
     lastX: 0,
     lastTime: 0,
     velocity: 0,
-    progress: 0,
+    startRotation: initialVideoIndex,
     moved: false,
   });
+  const rotationRef = useRef(initialVideoIndex);
+  const autoStateRef = useRef({
+    isUserInteracting: false,
+  });
+  const pauseUntilRef = useRef(0);
   const suppressNextClick = useRef(false);
   const wheelLock = useRef(0);
   const lastVideoTrigger = useRef<HTMLButtonElement | null>(null);
@@ -1228,35 +1232,87 @@ function SphericalVideoCarousel() {
     const safe = Number.isFinite(index) ? Math.round(index) : 0;
     return ((safe % total) + total) % total;
   };
-  const change = (delta: number) => setActiveIndex((current) => wrapIndex(current + delta));
-  const snapByDragSteps = (steps: number) => setActiveIndex((current) => wrapIndex(current - steps));
+  const activeVideoIndex = wrapIndex(orbitRotation);
+  const isModalOpen = Boolean(openVideo);
+  const isUserInteracting = isHoveringCarousel || isDragging || hasFocusWithin || hoveredIndex !== null || isModalOpen;
+
+  const setOrbitRotationValue = (value: number) => {
+    const next = Number.isFinite(value) ? value : initialVideoIndex;
+    rotationRef.current = next;
+    setOrbitRotation(next);
+  };
+
+  const pauseAuto = (delay = 3200) => {
+    pauseUntilRef.current = performance.now() + delay;
+  };
+
+  useEffect(() => {
+    autoStateRef.current.isUserInteracting = isUserInteracting;
+  }, [isUserInteracting]);
+
+  useEffect(() => {
+    rotationRef.current = orbitRotation;
+  }, [orbitRotation]);
+
+  useEffect(() => {
+    const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+    if (reducedMotion.matches) {
+      return;
+    }
+
+    let frame = 0;
+    let last = performance.now();
+    const tick = (now: number) => {
+      const delta = Math.min(72, Math.max(0, now - last)) / 1000;
+      last = now;
+      const paused = autoStateRef.current.isUserInteracting || now < pauseUntilRef.current || document.visibilityState === "hidden";
+      if (!paused) {
+        setOrbitRotationValue(rotationRef.current + delta * 0.11);
+      }
+      frame = window.requestAnimationFrame(tick);
+    };
+
+    frame = window.requestAnimationFrame(tick);
+    return () => window.cancelAnimationFrame(frame);
+  }, []);
+
+  const snapToNearest = (value = rotationRef.current) => {
+    setOrbitRotationValue(Math.round(value));
+  };
+
+  const rotateBy = (delta: number) => {
+    pauseAuto();
+    snapToNearest(rotationRef.current + delta);
+  };
 
   const openViewer = (video: (typeof videoHubItems)[number], trigger?: HTMLButtonElement | null) => {
     if (suppressNextClick.current) {
       suppressNextClick.current = false;
       return;
     }
+    pauseAuto(999999);
     lastVideoTrigger.current = trigger ?? null;
     setOpenVideo(video);
   };
 
   const closeViewer = () => {
     setOpenVideo(null);
+    pauseAuto();
     window.setTimeout(() => lastVideoTrigger.current?.focus(), 0);
   };
 
   function handleKeyDown(event: React.KeyboardEvent<HTMLElement>) {
     if (event.key === "ArrowRight") {
       event.preventDefault();
-      change(1);
+      rotateBy(1);
     }
     if (event.key === "ArrowLeft") {
       event.preventDefault();
-      change(-1);
+      rotateBy(-1);
     }
     if (event.key === "Enter") {
       event.preventDefault();
-      openViewer(videoHubItems[activeIndex], document.activeElement as HTMLButtonElement | null);
+      openViewer(videoHubItems[activeVideoIndex], document.activeElement as HTMLButtonElement | null);
     }
   }
 
@@ -1265,27 +1321,24 @@ function SphericalVideoCarousel() {
     if (drag.pointerId === -1) {
       return;
     }
-    const projected = drag.progress + (drag.velocity * 55) / 190;
-    const steps = Number.isFinite(projected) ? Math.max(-3, Math.min(3, Math.round(projected))) : 0;
+    const projected = rotationRef.current - (drag.velocity * 55) / 190;
     if (Math.abs(drag.startX - drag.lastX) > 8) {
       suppressNextClick.current = true;
       window.setTimeout(() => {
         suppressNextClick.current = false;
       }, 80);
     }
-    if (steps !== 0) {
-      snapByDragSteps(steps);
-    }
+    snapToNearest(projected);
+    pauseAuto();
     dragRef.current = {
       pointerId: -1,
       startX: 0,
       lastX: 0,
       lastTime: 0,
       velocity: 0,
-      progress: 0,
+      startRotation: rotationRef.current,
       moved: false,
     };
-    setDragProgress(0);
     setIsDragging(false);
     setHoveredIndex(null);
     target?.classList.remove("is-dragging");
@@ -1300,11 +1353,37 @@ function SphericalVideoCarousel() {
       <div
         className="video-orbit-shell"
         aria-label="Spherical video carousel"
+        data-auto-rotate="true"
         data-dragging={isDragging}
+        data-paused={isUserInteracting}
+        data-hovering={isHoveringCarousel}
+        data-focused={hasFocusWithin}
+        data-modal-open={isModalOpen}
+        data-hovered-video={hoveredIndex ?? ""}
+        onPointerEnter={() => {
+          setIsHoveringCarousel(true);
+          pauseAuto();
+        }}
+        onPointerLeave={() => {
+          setIsHoveringCarousel(false);
+          setHoveredIndex(null);
+          pauseAuto(2400);
+        }}
+        onFocusCapture={() => {
+          setHasFocusWithin(true);
+          pauseAuto();
+        }}
+        onBlurCapture={(event) => {
+          if (!event.currentTarget.contains(event.relatedTarget as Node | null)) {
+            setHasFocusWithin(false);
+            pauseAuto(2400);
+          }
+        }}
         onPointerDown={(event) => {
           if (typeof event.button === "number" && event.button !== 0) {
             return;
           }
+          pauseAuto();
           const pointerId = event.pointerId || 1;
           const clientX = safeClientX(event.clientX);
           const now = performance.now();
@@ -1314,7 +1393,7 @@ function SphericalVideoCarousel() {
             lastX: clientX,
             lastTime: now,
             velocity: 0,
-            progress: 0,
+            startRotation: rotationRef.current,
             moved: false,
           };
         }}
@@ -1332,8 +1411,8 @@ function SphericalVideoCarousel() {
           drag.velocity = Math.max(-2.4, Math.min(2.4, dx / dt));
           drag.lastX = clientX;
           drag.lastTime = now;
-          drag.progress = Math.max(-3, Math.min(3, totalDelta / 190));
           drag.moved = Math.abs(totalDelta) > 5;
+          setOrbitRotationValue(drag.startRotation - totalDelta / 190);
           if (drag.moved && typeof event.currentTarget.setPointerCapture === "function") {
             try {
               event.currentTarget.setPointerCapture(pointerId);
@@ -1345,7 +1424,6 @@ function SphericalVideoCarousel() {
             setIsDragging(true);
             event.currentTarget.classList.add("is-dragging");
           }
-          setDragProgress(drag.progress);
           if (drag.moved) {
             setHoveredIndex(null);
           }
@@ -1363,34 +1441,31 @@ function SphericalVideoCarousel() {
             return;
           }
           wheelLock.current = now;
-          change(event.deltaX > 0 ? 1 : -1);
+          rotateBy(event.deltaX > 0 ? 1 : -1);
         }}
       >
-        <button className="orbit-arrow left" onClick={() => change(-1)} aria-label="Previous video">
-          <ArrowLeft size={20} />
-        </button>
         <div className="video-orbit" aria-live="polite">
           {videoHubItems.map((video, index) => (
             <VideoPreviewCard
               key={video.id}
               video={video}
               index={index}
-              activeIndex={activeIndex}
-              dragProgress={dragProgress}
+              activeVideoIndex={activeVideoIndex}
+              orbitRotation={orbitRotation}
               hovered={hoveredIndex === index}
               dragging={isDragging}
-              onHover={setHoveredIndex}
+              onHover={(nextIndex) => {
+                setHoveredIndex(nextIndex);
+                pauseAuto(nextIndex === null ? 2400 : 3200);
+              }}
               onOpen={(trigger) => openViewer(video, trigger)}
             />
           ))}
         </div>
-        <button className="orbit-arrow right" onClick={() => change(1)} aria-label="Next video">
-          <ArrowRight size={20} />
-        </button>
       </div>
       <div className="orbit-caption">
-        <span>{videoHubItems[activeIndex].status}</span>
-        <strong data-testid="orbit-active-title">{videoHubItems[activeIndex].title}</strong>
+        <span>{videoHubItems[activeVideoIndex].status}</span>
+        <strong data-testid="orbit-active-title">{videoHubItems[activeVideoIndex].title}</strong>
         <small>Drag or swipe to rotate. Hover previews silently. Click opens the viewer.</small>
       </div>
       {openVideo && <VideoViewerModal video={openVideo} onClose={closeViewer} />}
@@ -1888,6 +1963,8 @@ function RouteExperienceBody({ route, kind }: { route: string; kind: SiteFormKin
 function LegalPage({ title }: { title: string }) {
   return (
     <main className="page-shell route-page">
+      <GlobalLiquidBackdrop progress={0.2} />
+      <GlobalStageBackground progress={0.2} />
       <Header />
       <section className="route-hero compact-route">
         <h1>{title}</h1>
@@ -1920,6 +1997,8 @@ function RoutePage({ route }: { route: string }) {
   if (route === "/checkout/success" || route === "/checkout/cancel") {
     return (
       <main className="page-shell route-page">
+        <GlobalLiquidBackdrop progress={0.2} />
+        <GlobalStageBackground progress={0.2} />
         <Header />
         <section className="route-hero checkout-state">
           {route === "/checkout/success" ? (
@@ -1944,7 +2023,7 @@ function RoutePage({ route }: { route: string }) {
 
   return (
     <main className="page-shell route-page">
-      <InteractiveFluidBackdrop progress={0.35} />
+      <GlobalLiquidBackdrop progress={0.35} />
       <GlobalStageBackground progress={0.35} />
       <Header />
       <RouteExperienceHero content={routeExperiences[route] || routeExperiences["/about"]!} />
@@ -1959,7 +2038,7 @@ function HomePage() {
   const progress = useScrollProgress();
   return (
     <main className="page-shell" style={{ "--page-progress": progress } as React.CSSProperties}>
-      <InteractiveFluidBackdrop progress={progress} />
+      <GlobalLiquidBackdrop progress={progress} />
       <GlobalStageBackground progress={progress} />
       <Header />
       <HeroPrologueScene progress={progress} />

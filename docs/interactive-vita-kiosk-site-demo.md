@@ -19,11 +19,13 @@ The only approved local VitaKiosk UI reference is:
 apps/site/public/assets/reference/vitakiosk-demo-approved.png
 ```
 
-This screenshot is the visible base surface for the website demo, but it is not
-the whole demo. React controls, hotspots, overlays, transcripts, route
-animation, scan state, fuzzy candidate state, and modal sheets sit above it.
-The screenshot keeps the demo visually close to the real product while the
-interactive layer keeps the public website from becoming a flat image.
+This screenshot is the visible high-fidelity base surface for the website demo,
+but it is not the whole demo. React controls, transparent hotspots, lightweight
+highlights, transcripts, route animation, scan state, fuzzy candidate state, and
+modal sheets sit above it.
+The screenshot stays sharp, full opacity, and readable. The interactive layer is
+kept lightweight so the public website does not become a flat image or a fake
+redrawn wireframe.
 
 Do not add screenshots from `reports/evidence`, old capture folders, private ERP folders, temporary screenshots, customer data, or sales data.
 
@@ -42,7 +44,7 @@ Supported states:
 - `fuzzy`: the `Relief Bomb` chip opens `Do you mean Relief Balm?`.
 - `promotion`: the leaflet enlarges into a cinematic glass sheet.
 - `product`: the product sheet morphs between summary and detail.
-- `shelf`: the shelf map enlarges and animates the route to Shelf A-03.
+- `shelf`: the approved screenshot stays visible while an animated route overlay and target pulse highlight Shelf A-03.
 - `scan`: a mock camera/scan overlay shows `Packaging detected`.
 - `assist`: safe handoff copy says a pharmacist or staff member can assist.
 
@@ -61,7 +63,7 @@ Visible hotspots and native controls cover the key product regions:
 Hover and focus states glow instead of shifting layout. State transitions use
 the same cyan/violet glass language as the approved screenshot. Promotion uses
 a cylindrical leaflet entrance; product uses a holographic summary/detail
-morph; shelf replay uses an animated route trace.
+morph; shelf replay uses an animated route trace over the real screenshot.
 
 The component is intentionally simulated:
 

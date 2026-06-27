@@ -5,20 +5,25 @@ card row.
 
 ## State Ownership
 
-- `activeVideoIndex` belongs only to the carousel.
+- `orbitRotation` belongs only to the carousel.
+- `activeVideoIndex` is derived from the nearest item on `orbitRotation`.
 - Page scroll never overwrites the video index.
 - Hover state only controls preview playback.
+- `isUserInteracting` pauses auto-rotation when hover, touch, focus, drag, preview, or modal state is active.
 - The full viewer owns its own open/close state and returns focus to the card
   that opened it.
 
 ## Drag / Swipe Behavior
 
-- Mouse and touch drag update `dragProgress` continuously.
+- The orbit slowly auto-rotates when idle, like a display installation.
+- Auto-rotation pauses on pointer enter, touch start, drag, preview hover, keyboard focus, or full viewer open.
+- Auto-rotation resumes after a short idle delay once interaction stops.
+- Mouse and touch drag update `orbitRotation` continuously.
 - Release projects a damped velocity and snaps to the nearest card.
 - Normal swipes advance predictably; very long or fast swipes can move more
   than one card without creating a bounce or z-index pop.
 - Trackpad horizontal wheel gestures rotate the orbit with a short lockout.
-- Arrows remain secondary controls.
+- Visible previous/next arrow buttons are removed.
 - There is no native horizontal scrollbar.
 
 ## Video Loading

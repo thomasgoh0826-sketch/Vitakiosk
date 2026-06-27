@@ -17,7 +17,7 @@ describe("VitaKiosk Asia site", () => {
   it("renders the immersive homepage with the four business lines", () => {
     render(<App />);
 
-    expect(screen.getByTestId("fluid-backdrop")).toBeInTheDocument();
+    expect(screen.getByTestId("global-liquid-backdrop")).toBeInTheDocument();
     expect(
       screen.getByRole("heading", {
         name: /Build smarter pharmacies, clinics, and AI-powered businesses/i,
@@ -28,7 +28,9 @@ describe("VitaKiosk Asia site", () => {
     expect(screen.getAllByText(/AI Website Studio/i).length).toBeGreaterThan(0);
     expect(screen.getAllByText(/AI Academy/i).length).toBeGreaterThan(0);
     expect(screen.getByRole("heading", { name: /Click inside the kiosk/i })).toBeInTheDocument();
-    expect(screen.getByLabelText(/Spherical video carousel/i)).toBeInTheDocument();
+    expect(screen.getByLabelText(/Spherical video carousel/i)).toHaveAttribute("data-auto-rotate", "true");
+    expect(screen.queryByRole("button", { name: /Previous video/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /Next video/i })).not.toBeInTheDocument();
   });
 
   it("drives the public VitaKiosk demo without backend devices", async () => {
