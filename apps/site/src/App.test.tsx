@@ -17,7 +17,10 @@ describe("VitaKiosk Asia site", () => {
   it("renders the immersive homepage with the four business lines", () => {
     render(<App />);
 
-    expect(screen.getByTestId("global-liquid-backdrop")).toBeInTheDocument();
+    const glowBackdrop = screen.getByTestId("global-glow-backdrop");
+    expect(glowBackdrop).toBeInTheDocument();
+    expect(glowBackdrop).toHaveAttribute("data-effect", "pointer-glow");
+    expect(document.querySelector("canvas.global-liquid-backdrop")).not.toBeInTheDocument();
     expect(
       screen.getByRole("heading", {
         name: /Build smarter pharmacies, clinics, and AI-powered businesses/i,

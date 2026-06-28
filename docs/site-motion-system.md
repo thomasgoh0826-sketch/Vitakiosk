@@ -4,7 +4,7 @@ The homepage is authored as a small number of immersive scenes, not a normal car
 
 ## Architecture
 
-- `GlobalLiquidBackdrop` owns the global pointer/touch liquid field.
+- `GlobalGlowBackdrop` owns the global pointer/touch glow field.
 - GSAP ScrollTrigger owns homepage journey progress.
 - `activeSceneIndex` is derived from one scroll controller in `ScrollSceneController`.
 - The pinned journey currently has nine deterministic steps: five product
@@ -15,35 +15,29 @@ The homepage is authored as a small number of immersive scenes, not a normal car
 - The carousel has no native horizontal overflow or scrollbar.
 - Reduced motion disables pinned scroll choreography and keeps every scene visible.
 
-## Fluid Backdrop
+## Glow Backdrop
 
 Component:
 
 ```text
-GlobalLiquidBackdrop
+GlobalGlowBackdrop
 ```
 
 Behavior:
 
-- A fixed canvas is mounted once per site page at the root layout layer, above
+- A fixed CSS glow layer is mounted once per site page at the root layout layer, above
   the static background and behind all content.
 - It uses `pointer-events: none` and never blocks buttons, cards, forms, or videos.
-- Pointer and touch movement create cyan/violet liquid wakes rather than
-  tap-style ripple rings.
-- The canvas stores the previous pointer position, derives velocity, and adds
-  elongated blurred wake strokes along the movement vector.
-- Faster movement creates a longer, brighter smear; slow movement creates a
-  shorter soft trail.
-- When direction changes, low-opacity elliptical eddies appear along the path
-  and fade as the field settles.
-- When the pointer stops, no new wake is created; existing strokes decay through
-  the animation loop.
+- Pointer and touch movement softly shift a cyan/violet ambient spotlight.
+- The component does not render water, ripples, canvas wakes, circular pulses,
+  fluid distortion, or tap explosions.
+- Pointer movement only changes CSS variables for glow position and subtle
+  intensity; when the pointer stops, the glow calmly settles.
 - The page also updates `--pointer-x` and `--pointer-y` so foreground glass
   panels receive a soft light bend from the same pointer source.
-- Scroll progress changes the depth/intensity of the canvas field.
+- Scroll progress changes the depth/intensity of the glow field.
 - The animation loop pauses when the tab is hidden.
-- In test or reduced-motion environments, the component falls back to a static
-  gradient and does not start the animation loop.
+- In reduced-motion environments, the component falls back to a static gradient.
 
 ## Homepage Journey
 
@@ -97,16 +91,18 @@ Behavior:
   overlap with the active card footprint.
 - Far/back cards become dim atmosphere; far text is hidden so it cannot bleed
   into the center card.
-- The orbit rotates slowly by itself when idle.
-- Hover, touch, drag, preview playback, and the full viewer pause auto-rotation.
-- Keyboard focus applies a short pause so restored focus after closing the
-  viewer does not permanently stop the display loop.
-- Auto-rotation resumes after a short idle delay once the user leaves or stops interacting.
+- The orbit rotates slowly by itself with constant delta-time velocity when idle;
+  it does not snap, pause, or wait at each centered card.
+- Hover, touch, drag, keyboard focus, preview playback, and the full viewer pause
+  auto-rotation.
+- Auto-rotation resumes immediately on pointer leave, and after a short idle
+  delay for touch/drag/viewer close when the pointer is no longer inside.
 - Pointer or touch drag updates orbit rotation continuously before snapping.
 - Release uses damped velocity projection so normal swipes do not jump across
   too many cards.
-- Horizontal trackpad wheel can rotate the orbit, but there is no native
-  horizontal scrollbar.
+- Wheel/trackpad movement inside the orbit frame is captured by the frame and
+  converted to damped orbit velocity; page scrolling remains normal outside the
+  orbit frame.
 - Visible previous/next arrow buttons are intentionally removed.
 - Pointer hover loads and plays only that muted preview.
 - Pointer leave pauses and resets the preview.

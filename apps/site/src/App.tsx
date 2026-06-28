@@ -310,8 +310,8 @@ function GlobalStageBackground({ progress }: { progress: number }) {
   );
 }
 
-function GlobalLiquidBackdrop({ progress }: { progress: number }) {
-  const canvasRef = useRef<HTMLCanvasElement | null>(null);
+function GlobalGlowBackdrop({ progress }: { progress: number }) {
+  const layerRef = useRef<HTMLDivElement | null>(null);
   const progressRef = useRef(progress);
 
   useEffect(() => {
@@ -319,119 +319,42 @@ function GlobalLiquidBackdrop({ progress }: { progress: number }) {
   }, [progress]);
 
   useEffect(() => {
-    const canvas = canvasRef.current;
-    let context: CanvasRenderingContext2D | null = null;
-    if (typeof navigator !== "undefined" && navigator.userAgent.toLowerCase().includes("jsdom")) {
-      if (canvas) {
-        canvas.dataset.canvasUnsupported = "true";
-      }
-      return;
-    }
-    try {
-      context = canvas?.getContext("2d", { alpha: true }) ?? null;
-    } catch {
-      if (canvas) {
-        canvas.dataset.canvasUnsupported = "true";
-      }
-      return;
-    }
-    if (!canvas || !context) {
+    const layer = layerRef.current;
+    if (!layer) {
       return;
     }
 
-    canvas.dataset.effect = "liquid-wake";
+    layer.dataset.effect = "pointer-glow";
     const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
     if (reducedMotion.matches) {
-      canvas.dataset.reducedMotion = "true";
+      layer.dataset.reducedMotion = "true";
       return;
     }
 
     let frame = 0;
     let paused = document.visibilityState === "hidden";
-    let width = 0;
-    let height = 0;
-    let dpr = 1;
-    let lastWake = 0;
-    let lastFrameTime = performance.now();
-    const pointer = { x: 0.5, y: 0.45 };
-    const previousPointer = { x: 0, y: 0, initialized: false };
-    type LiquidWake = {
-      x: number;
-      y: number;
-      previousX: number;
-      previousY: number;
-      angle: number;
-      length: number;
-      width: number;
-      life: number;
-      intensity: number;
-      hue: number;
-      curl: number;
-    };
-    const wakes: LiquidWake[] = [];
+    const target = { x: 0.5, y: 0.42, intensity: 0.28 };
+    const current = { x: 0.5, y: 0.42, intensity: 0.18 };
     const clamp = (value: number, min: number, max: number) => Math.min(max, Math.max(min, value));
 
-    const resize = () => {
-      const rect = canvas.getBoundingClientRect();
-      dpr = Math.min(window.devicePixelRatio || 1, 1.8);
-      width = Math.max(1, Math.round(rect.width * dpr));
-      height = Math.max(1, Math.round(rect.height * dpr));
-      canvas.width = width;
-      canvas.height = height;
+    const setTargetFromPoint = (clientX: number, clientY: number, strength = 1) => {
+      const width = Math.max(window.innerWidth, 1);
+      const height = Math.max(window.innerHeight, 1);
+      const nextX = clamp(clientX / width, 0, 1);
+      const nextY = clamp(clientY / height, 0, 1);
+      const speed = Math.hypot(nextX - target.x, nextY - target.y);
+      target.x = nextX;
+      target.y = nextY;
+      target.intensity = clamp(0.16 + speed * 5.2 * strength, 0.16, 0.46);
+      document.documentElement.style.setProperty("--pointer-x", target.x.toFixed(4));
+      document.documentElement.style.setProperty("--pointer-y", target.y.toFixed(4));
     };
 
-    const addLiquidWake = (clientX: number, clientY: number, strength = 1) => {
-      const now = performance.now();
-      if (now - lastWake < 20) {
-        return;
-      }
-      lastWake = now;
-      const rect = canvas.getBoundingClientRect();
-      pointer.x = (clientX - rect.left) / Math.max(rect.width, 1);
-      pointer.y = (clientY - rect.top) / Math.max(rect.height, 1);
-      document.documentElement.style.setProperty("--pointer-x", pointer.x.toFixed(4));
-      document.documentElement.style.setProperty("--pointer-y", pointer.y.toFixed(4));
-      const x = pointer.x * width;
-      const y = pointer.y * height;
-      if (!previousPointer.initialized) {
-        previousPointer.x = x;
-        previousPointer.y = y;
-        previousPointer.initialized = true;
-        return;
-      }
-      const dx = x - previousPointer.x;
-      const dy = y - previousPointer.y;
-      const speed = Math.hypot(dx, dy);
-      previousPointer.x = x;
-      previousPointer.y = y;
-      if (speed < 1.2 * dpr) {
-        return;
-      }
-      const angle = Math.atan2(dy, dx);
-      const intensity = clamp((speed / (42 * dpr)) * strength, 0.14, 1);
-      wakes.push({
-        x,
-        y,
-        previousX: x - dx * 0.58,
-        previousY: y - dy * 0.58,
-        angle,
-        length: clamp(speed * 5.4, 42 * dpr, 190 * dpr),
-        width: clamp(speed * 1.55, 20 * dpr, 76 * dpr),
-        life: 1,
-        intensity,
-        hue: wakes.length % 2 ? 266 : 178,
-        curl: (Math.sin(now * 0.006 + wakes.length) * 0.42 + Math.cos(angle * 2.4) * 0.22) * dpr,
-      });
-      if (wakes.length > 34) {
-        wakes.splice(0, wakes.length - 34);
-      }
-    };
-
-    const onPointerMove = (event: PointerEvent) => addLiquidWake(event.clientX, event.clientY, event.pointerType === "touch" ? 0.78 : 1);
+    const onPointerMove = (event: PointerEvent) => setTargetFromPoint(event.clientX, event.clientY, event.pointerType === "touch" ? 0.78 : 1);
     const onTouchMove = (event: TouchEvent) => {
       const touch = event.touches[0];
       if (touch) {
-        addLiquidWake(touch.clientX, touch.clientY, 0.78);
+        setTargetFromPoint(touch.clientX, touch.clientY, 0.78);
       }
     };
     const onVisibilityChange = () => {
@@ -446,103 +369,32 @@ function GlobalLiquidBackdrop({ progress }: { progress: number }) {
         frame = 0;
         return;
       }
-      const now = performance.now();
-      const delta = Math.min(32, now - lastFrameTime);
-      lastFrameTime = now;
-      context.globalCompositeOperation = "source-over";
-      context.fillStyle = `rgba(0, 4, 11, ${0.17 + progressRef.current * 0.032})`;
-      context.fillRect(0, 0, width, height);
-      const depth = 0.35 + progressRef.current * 0.45;
-      const time = now * 0.00024;
-      const ambient = context.createLinearGradient(0, height * 0.18, width, height * 0.82);
-      ambient.addColorStop(0, `rgba(53, 244, 232, ${0.035 + depth * 0.018})`);
-      ambient.addColorStop(0.5, "rgba(155, 124, 255, 0.045)");
-      ambient.addColorStop(1, "rgba(53, 244, 232, 0)");
-      context.fillStyle = ambient;
-      context.fillRect(0, 0, width, height);
-
-      context.save();
-      context.globalCompositeOperation = "screen";
-      context.lineCap = "round";
-      context.lineJoin = "round";
-      for (let index = wakes.length - 1; index >= 0; index -= 1) {
-        const wake = wakes[index];
-        wake.life -= (0.013 + depth * 0.0045) * (delta / 16.67);
-        wake.length *= 0.997;
-        wake.width *= 0.992;
-        wake.x += Math.cos(wake.angle + Math.PI / 2) * wake.curl * (1 - wake.life) * 0.52;
-        wake.y += Math.sin(wake.angle + Math.PI / 2) * wake.curl * (1 - wake.life) * 0.52;
-        if (wake.life <= 0.02) {
-          wakes.splice(index, 1);
-          continue;
-        }
-
-        const tailX = wake.x - Math.cos(wake.angle) * wake.length;
-        const tailY = wake.y - Math.sin(wake.angle) * wake.length;
-        const sideX = Math.cos(wake.angle + Math.PI / 2);
-        const sideY = Math.sin(wake.angle + Math.PI / 2);
-        const alpha = wake.life * wake.intensity;
-        const smear = context.createLinearGradient(tailX, tailY, wake.x, wake.y);
-        smear.addColorStop(0, `hsla(${wake.hue}, 96%, 62%, 0)`);
-        smear.addColorStop(0.46, `hsla(${wake.hue}, 96%, 62%, ${0.045 * alpha})`);
-        smear.addColorStop(1, `hsla(${wake.hue === 178 ? 178 : 266}, 96%, 68%, ${0.16 * alpha})`);
-
-        context.save();
-        context.filter = `blur(${clamp(wake.width * 0.16, 4 * dpr, 13 * dpr)}px)`;
-        context.shadowBlur = (32 + wake.width * 0.7) * wake.life;
-        context.shadowColor = wake.hue === 178 ? "rgba(53, 244, 232, 0.72)" : "rgba(155, 124, 255, 0.62)";
-        context.strokeStyle = smear;
-        context.lineWidth = Math.max(10 * dpr, wake.width * wake.life * 0.82);
-        context.beginPath();
-        context.moveTo(tailX, tailY);
-        context.bezierCurveTo(
-          wake.previousX + sideX * wake.width * Math.sin(time + index),
-          wake.previousY + sideY * wake.width * Math.cos(time * 1.4 + index),
-          wake.x - Math.cos(wake.angle) * wake.length * 0.22 + sideX * wake.curl * 14,
-          wake.y - Math.sin(wake.angle) * wake.length * 0.22 + sideY * wake.curl * 14,
-          wake.x,
-          wake.y,
-        );
-        context.stroke();
-        context.restore();
-
-        const eddyAlpha = Math.max(0, (1 - Math.abs(wake.life - 0.45) * 1.7) * wake.intensity * 0.065);
-        if (eddyAlpha > 0.01) {
-          context.save();
-          context.filter = `blur(${clamp(wake.width * 0.12, 4 * dpr, 10 * dpr)}px)`;
-          context.translate(wake.x - Math.cos(wake.angle) * wake.length * 0.32, wake.y - Math.sin(wake.angle) * wake.length * 0.32);
-          context.rotate(wake.angle + Math.sin(time + index) * 0.55);
-          const eddy = context.createRadialGradient(0, 0, 0, 0, 0, wake.width * 1.9);
-          eddy.addColorStop(0, `hsla(${wake.hue}, 96%, 68%, ${eddyAlpha})`);
-          eddy.addColorStop(0.58, `hsla(${wake.hue}, 96%, 62%, ${eddyAlpha * 0.32})`);
-          eddy.addColorStop(1, "rgba(0, 0, 0, 0)");
-          context.scale(1.9, 0.42);
-          context.fillStyle = eddy;
-          context.fillRect(-wake.width * 2, -wake.width * 2, wake.width * 4, wake.width * 4);
-          context.restore();
-        }
-      }
-      context.restore();
-
+      const ease = 0.075 + progressRef.current * 0.015;
+      current.x += (target.x - current.x) * ease;
+      current.y += (target.y - current.y) * ease;
+      current.intensity += (target.intensity - current.intensity) * 0.055;
+      target.intensity += (0.16 - target.intensity) * 0.018;
+      layer.style.setProperty("--glow-x", `${(current.x * 100).toFixed(2)}%`);
+      layer.style.setProperty("--glow-y", `${(current.y * 100).toFixed(2)}%`);
+      layer.style.setProperty("--glow-inverse-x", `${((1 - current.x) * 100).toFixed(2)}%`);
+      layer.style.setProperty("--glow-secondary-y", `${((0.32 + current.y * 0.36) * 100).toFixed(2)}%`);
+      layer.style.setProperty("--glow-intensity", current.intensity.toFixed(4));
       frame = window.requestAnimationFrame(render);
     };
 
-    resize();
     frame = window.requestAnimationFrame(render);
-    window.addEventListener("resize", resize);
     window.addEventListener("pointermove", onPointerMove, { passive: true });
     window.addEventListener("touchmove", onTouchMove, { passive: true });
     document.addEventListener("visibilitychange", onVisibilityChange);
     return () => {
       window.cancelAnimationFrame(frame);
-      window.removeEventListener("resize", resize);
       window.removeEventListener("pointermove", onPointerMove);
       window.removeEventListener("touchmove", onTouchMove);
       document.removeEventListener("visibilitychange", onVisibilityChange);
     };
   }, []);
 
-  return <canvas ref={canvasRef} className="global-liquid-backdrop" data-testid="global-liquid-backdrop" aria-hidden="true" />;
+  return <div ref={layerRef} className="global-glow-backdrop" data-testid="global-glow-backdrop" aria-hidden="true" />;
 }
 
 function OrbitRibbon() {
@@ -1285,7 +1137,7 @@ function VideoPreviewCard({
   hovered: boolean;
   dragging: boolean;
   onHover: (id: string | null) => void;
-  onOpen: (trigger: HTMLButtonElement) => void;
+  onOpen: (trigger: HTMLButtonElement | null) => void;
 }) {
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const relative = (((logicalIndex - orbitalProgress + total / 2) % total) + total) % total - total / 2;
@@ -1295,15 +1147,13 @@ function VideoPreviewCard({
   const isInteractive = abs <= 1.34 && !dragging;
   const shouldLoad = isActive || hovered;
   const direction = relative === 0 ? 0 : relative > 0 ? 1 : -1;
-  const positionAbs = isActive ? Math.min(abs, 0.08) : Math.max(abs, 1.08);
-  const travelStart = 0.18;
-  const travel = Math.max(0, (positionAbs - travelStart) / (2.28 - travelStart));
-  const easedTravel = Math.pow(Math.min(1, travel), 0.56);
-  const x = isActive ? direction * abs * 42 : direction * (positionAbs * 126 + easedTravel * 1090);
-  const z = isActive ? 140 : -120 - Math.min(positionAbs, 2.28) * 150;
-  const scale = isActive ? 1 : Math.max(0.44, 1 - Math.min(positionAbs, 2.28) * 0.25);
-  const tiltAngle = isActive ? direction * abs * 3 : direction * Math.min(58, positionAbs * 18 + easedTravel * 32);
-  const opacity = isVisible ? (isActive ? 1 : Math.max(0.1, 1 - Math.min(positionAbs, 2.28) * 0.38)) : 0;
+  const positionAbs = Math.min(abs, 2.28);
+  const sidePush = Math.max(0, positionAbs - 0.72) * 180;
+  const x = direction * (Math.pow(positionAbs, 0.9) * 620 + sidePush);
+  const z = 150 - positionAbs * 210;
+  const scale = Math.max(0.45, 1 - positionAbs * 0.36);
+  const tiltAngle = direction * Math.min(54, positionAbs * 24);
+  const opacity = isVisible ? Math.max(0.1, 1 - positionAbs * 0.34) : 0;
   const orbitDistance = isActive ? "center" : abs <= 1.44 ? "side" : abs <= 2.28 ? "far" : "hidden";
 
   useEffect(() => {
@@ -1345,7 +1195,13 @@ function VideoPreviewCard({
       onPointerLeave={() => onHover(null)}
       onFocus={() => onHover(video.id)}
       onBlur={() => onHover(null)}
-      onClick={(event) => onOpen(event.currentTarget)}
+      onClick={(event) => {
+        const isKeyboardClick = event.detail === 0;
+        if (!isKeyboardClick) {
+          event.currentTarget.blur();
+        }
+        onOpen(isKeyboardClick ? event.currentTarget : null);
+      }}
       tabIndex={isInteractive ? 0 : -1}
       style={{
         "--orbit-angle": `${tiltAngle}deg`,
@@ -1422,6 +1278,7 @@ function SphericalVideoCarousel() {
   const [isHoveringCarousel, setIsHoveringCarousel] = useState(false);
   const [isTouching, setIsTouching] = useState(false);
   const [hasFocusWithin, setHasFocusWithin] = useState(false);
+  const shellRef = useRef<HTMLDivElement | null>(null);
   const dragRef = useRef({
     pointerId: -1,
     startX: 0,
@@ -1435,9 +1292,10 @@ function SphericalVideoCarousel() {
   const autoStateRef = useRef({
     isUserInteracting: false,
   });
+  const pointerInsideRef = useRef(false);
+  const wheelVelocityRef = useRef(0);
   const pauseUntilRef = useRef(0);
   const suppressNextClick = useRef(false);
-  const wheelLock = useRef(0);
   const lastVideoTrigger = useRef<HTMLButtonElement | null>(null);
   const total = videoHubItems.length;
   const safeClientX = (value: number, fallback = 0) => (Number.isFinite(value) ? value : fallback);
@@ -1452,7 +1310,7 @@ function SphericalVideoCarousel() {
   const activeVideoIndex = wrapIndex(orbitalProgress);
   const isModalOpen = Boolean(openVideo);
   const isUserInteracting =
-    isHoveringCarousel || isTouching || isDragging || hoveredCardKey !== null || isModalOpen;
+    isHoveringCarousel || isTouching || isDragging || hasFocusWithin || hoveredCardKey !== null || isModalOpen;
 
   const setOrbitalProgressValue = (value: number) => {
     const next = normalizeProgress(value);
@@ -1473,6 +1331,10 @@ function SphericalVideoCarousel() {
   }, [orbitalProgress]);
 
   useEffect(() => {
+    pointerInsideRef.current = isHoveringCarousel || isTouching;
+  }, [isHoveringCarousel, isTouching]);
+
+  useEffect(() => {
     const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
     if (reducedMotion.matches) {
       return;
@@ -1484,8 +1346,17 @@ function SphericalVideoCarousel() {
       const delta = Math.min(72, Math.max(0, now - last)) / 1000;
       last = now;
       const paused = autoStateRef.current.isUserInteracting || now < pauseUntilRef.current || document.visibilityState === "hidden";
+      const wheelVelocity = wheelVelocityRef.current;
+      const wheelDelta = Math.abs(wheelVelocity) > 0.0004 ? wheelVelocity * delta * 60 : 0;
       if (!paused) {
-        setOrbitalProgressValue(rotationRef.current + delta * 0.11);
+        setOrbitalProgressValue(rotationRef.current + delta * 0.11 + wheelDelta);
+      } else if (wheelDelta) {
+        setOrbitalProgressValue(rotationRef.current + wheelDelta);
+      }
+      if (Math.abs(wheelVelocity) > 0.0004) {
+        wheelVelocityRef.current *= Math.pow(0.86, delta * 60);
+      } else {
+        wheelVelocityRef.current = 0;
       }
       frame = window.requestAnimationFrame(tick);
     };
@@ -1493,6 +1364,32 @@ function SphericalVideoCarousel() {
     frame = window.requestAnimationFrame(tick);
     return () => window.cancelAnimationFrame(frame);
   }, []);
+
+  useEffect(() => {
+    const shell = shellRef.current;
+    if (!shell) {
+      return;
+    }
+
+    const handleWheel = (event: WheelEvent) => {
+      if (!pointerInsideRef.current || isModalOpen) {
+        return;
+      }
+      event.preventDefault();
+      event.stopPropagation();
+      const rawDelta =
+        Math.abs(event.deltaY) >= Math.abs(event.deltaX)
+          ? event.deltaY
+          : event.deltaX;
+      const clampedDelta = Math.max(-110, Math.min(110, rawDelta));
+      wheelVelocityRef.current += clampedDelta * 0.00085;
+      wheelVelocityRef.current = Math.max(-0.55, Math.min(0.55, wheelVelocityRef.current));
+      pauseAuto(600);
+    };
+
+    shell.addEventListener("wheel", handleWheel, { passive: false });
+    return () => shell.removeEventListener("wheel", handleWheel);
+  }, [isModalOpen]);
 
   const snapToNearest = (value = rotationRef.current) => {
     setOrbitalProgressValue(Math.round(value));
@@ -1558,6 +1455,9 @@ function SphericalVideoCarousel() {
     }
     if (didMove) {
       snapToNearest(projected);
+      if (target?.contains(document.activeElement)) {
+        (document.activeElement as HTMLElement | null)?.blur();
+      }
     }
     pauseAuto();
     dragRef.current = {
@@ -1581,6 +1481,7 @@ function SphericalVideoCarousel() {
         <h2>Drag the media orbit through the product films.</h2>
       </div>
       <div
+        ref={shellRef}
         className="video-orbit-shell"
         aria-label="Spherical video carousel"
         data-auto-rotate="true"
@@ -1598,9 +1499,12 @@ function SphericalVideoCarousel() {
           pauseAuto();
         }}
         onPointerLeave={() => {
+          pointerInsideRef.current = false;
           setIsHoveringCarousel(false);
           setHoveredCardKey(null);
-          pauseAuto(1800);
+          if (!isDragging && !isModalOpen) {
+            pauseAuto(0);
+          }
         }}
         onFocusCapture={() => {
           setHasFocusWithin(true);
@@ -1616,6 +1520,7 @@ function SphericalVideoCarousel() {
           if (typeof event.button === "number" && event.button !== 0) {
             return;
           }
+          pointerInsideRef.current = true;
           pauseAuto();
           if (event.pointerType !== "mouse") {
             setIsTouching(true);
@@ -1667,6 +1572,7 @@ function SphericalVideoCarousel() {
         onPointerUp={(event) => {
           endDrag(event.currentTarget);
           if (event.pointerType !== "mouse") {
+            pointerInsideRef.current = false;
             setIsTouching(false);
             setIsHoveringCarousel(false);
             setHoveredCardKey(null);
@@ -1675,26 +1581,16 @@ function SphericalVideoCarousel() {
         onPointerCancel={(event) => {
           endDrag(event.currentTarget);
           if (event.pointerType !== "mouse") {
+            pointerInsideRef.current = false;
             setIsTouching(false);
             setIsHoveringCarousel(false);
             setHoveredCardKey(null);
           }
         }}
         onLostPointerCapture={(event) => {
+          pointerInsideRef.current = false;
           setIsTouching(false);
           endDrag(event.currentTarget);
-        }}
-        onWheel={(event) => {
-          if (Math.abs(event.deltaX) <= Math.abs(event.deltaY) || Math.abs(event.deltaX) < 14) {
-            return;
-          }
-          event.preventDefault();
-          const now = performance.now();
-          if (now - wheelLock.current < 280) {
-            return;
-          }
-          wheelLock.current = now;
-          rotateBy(event.deltaX > 0 ? 1 : -1);
         }}
       >
         <div className="video-orbit" aria-live="polite">
@@ -2217,7 +2113,7 @@ function RouteExperienceBody({ route, kind }: { route: string; kind: SiteFormKin
 function LegalPage({ title }: { title: string }) {
   return (
     <main className="page-shell route-page">
-      <GlobalLiquidBackdrop progress={0.2} />
+      <GlobalGlowBackdrop progress={0.2} />
       <GlobalStageBackground progress={0.2} />
       <Header />
       <section className="route-hero compact-route">
@@ -2251,7 +2147,7 @@ function RoutePage({ route }: { route: string }) {
   if (route === "/checkout/success" || route === "/checkout/cancel") {
     return (
       <main className="page-shell route-page">
-        <GlobalLiquidBackdrop progress={0.2} />
+        <GlobalGlowBackdrop progress={0.2} />
         <GlobalStageBackground progress={0.2} />
         <Header />
         <section className="route-hero checkout-state">
@@ -2277,7 +2173,7 @@ function RoutePage({ route }: { route: string }) {
 
   return (
     <main className="page-shell route-page">
-      <GlobalLiquidBackdrop progress={0.35} />
+      <GlobalGlowBackdrop progress={0.35} />
       <GlobalStageBackground progress={0.35} />
       <Header />
       <RouteExperienceHero content={routeExperiences[route] || routeExperiences["/about"]!} />
@@ -2292,7 +2188,7 @@ function HomePage() {
   const progress = useScrollProgress();
   return (
     <main className="page-shell" style={{ "--page-progress": progress } as React.CSSProperties}>
-      <GlobalLiquidBackdrop progress={progress} />
+      <GlobalGlowBackdrop progress={progress} />
       <GlobalStageBackground progress={progress} />
       <Header />
       <HeroPrologueScene progress={progress} />
