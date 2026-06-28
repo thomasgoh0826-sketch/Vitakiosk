@@ -3244,12 +3244,22 @@ img {
   }
 
   .mini-kiosk-layout {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(260px, 0.42fr) minmax(0, 1fr);
+    grid-template-areas:
+      "assistant deck"
+      "rail rail";
+    align-items: start;
   }
 
   .mini-left-column {
-    grid-template-columns: minmax(220px, 0.8fr) minmax(220px, 1fr);
+    grid-area: assistant;
+    grid-template-columns: 1fr;
     align-items: start;
+    align-content: start;
+  }
+
+  .mini-center-deck {
+    grid-area: deck;
   }
 
   .mini-avatar-panel {
@@ -3261,10 +3271,11 @@ img {
   }
 
   .mini-language-chips {
-    grid-column: 1 / -1;
+    grid-column: auto;
   }
 
   .mini-right-rail {
+    grid-area: rail;
     grid-template-columns: minmax(280px, 1fr) minmax(220px, 0.8fr);
     grid-template-rows: auto auto;
   }
@@ -3332,6 +3343,16 @@ img {
   .mini-map-data,
   .mini-input-zone {
     grid-template-columns: 1fr;
+  }
+
+  .mini-kiosk-layout {
+    grid-template-areas: none;
+  }
+
+  .mini-left-column,
+  .mini-center-deck,
+  .mini-right-rail {
+    grid-area: auto;
   }
 
   .mini-kiosk-header {

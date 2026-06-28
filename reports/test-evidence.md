@@ -115,6 +115,7 @@ Automated evidence uses fictional mock data and no live provider credential.
 | Responsive scaling | Kiosk should adapt across iPad landscape, laptop, desktop, and narrow tablet without horizontal overflow | Browser measurements and screenshots cover 1024x768, 1280x720, 1366x768, 1440x900, 1920x1080, and 768x1024; landscape viewports fit without document scrolling, portrait stacks with vertical scroll only | Matched |
 | Voice permission | Browser microphone permission was not granted during QA | Error path and `Try Again` state verified; real listening path remains covered by code contract and automated MediaRecorder tests only | Intentional evidence limitation |
 | Site mini app voice action | Tap to Speak should behave like a compact action button, not a stretched empty panel | Browser QA on `/vitakiosk?avatar=approved` measured `.mini-tap-button` at 360x86 with no horizontal overflow; clicking it entered `listening` and showed `Where is Relief Balm?` | Matched |
+| Site mini app logical medium layout | Tablet/narrow desktop layout should keep assistant controls together and avoid a stranded voice button in empty space | Browser QA on `/vitakiosk?avatar=approved` at 912x1270 showed avatar, Tap to Speak, and language chips stacked in the left assistant column; subtitle, product, shelf, input, and support panels fill the right/bottom areas with no horizontal overflow; clicking Tap to Speak entered `listening` | Matched |
 
 Concept: `docs/superpowers/specs/2026-06-21-dark-neon-cinematic-kiosk-design.md` and the approved visual companion B direction.
 
