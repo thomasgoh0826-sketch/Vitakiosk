@@ -2683,7 +2683,15 @@ img {
 .mini-tap-button {
   display: grid;
   grid-template-columns: 58px 1fr;
+  grid-template-rows: min-content min-content;
+  width: min(100%, 360px);
+  height: 86px;
+  min-height: 86px;
+  max-height: 86px;
   align-items: center;
+  align-content: center;
+  align-self: start;
+  justify-self: start;
   column-gap: 12px;
   padding: 14px;
   text-align: left;
@@ -3241,7 +3249,7 @@ img {
 
   .mini-left-column {
     grid-template-columns: minmax(220px, 0.8fr) minmax(220px, 1fr);
-    align-items: stretch;
+    align-items: start;
   }
 
   .mini-avatar-panel {
@@ -3410,6 +3418,14 @@ img {
   .mini-kiosk-fullscreen .mini-input-zone,
   .mini-kiosk-fullscreen .mini-tap-button {
     margin: 12px;
+  }
+
+  .mini-kiosk-fullscreen .mini-tap-button {
+    width: calc(100% - 24px);
+    max-width: 420px;
+    height: 82px;
+    min-height: 82px;
+    max-height: 82px;
   }
 
   .mini-kiosk-fullscreen .interactive-kiosk-mini-app[data-mobile-panel="scan"] .mini-input-zone {
