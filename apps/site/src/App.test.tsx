@@ -19,7 +19,9 @@ describe("VitaKiosk Asia site", () => {
 
     const glowBackdrop = screen.getByTestId("global-glow-backdrop");
     expect(glowBackdrop).toBeInTheDocument();
-    expect(glowBackdrop).toHaveAttribute("data-effect", "pointer-glow");
+    expect(glowBackdrop).toHaveAttribute("data-effect", "pointer-glow-ripple");
+    expect(glowBackdrop).toHaveAttribute("data-ripple-throttle-ms");
+    expect(glowBackdrop).toHaveAttribute("data-max-ripples");
     expect(document.querySelector("canvas.global-liquid-backdrop")).not.toBeInTheDocument();
     expect(
       screen.getByRole("heading", {
@@ -45,6 +47,36 @@ describe("VitaKiosk Asia site", () => {
     );
     expect(document.querySelectorAll('.video-orbit-card[data-visible="true"]').length).toBeLessThanOrEqual(5);
     expect(document.querySelectorAll('.video-orbit-card[data-orbit-distance="far"]').length).toBeGreaterThan(0);
+  });
+
+  it("keeps the global glow ripple effect lightweight and bounded", async () => {
+    render(<App />);
+    const glowBackdrop = screen.getByTestId("global-glow-backdrop");
+    const maxRipples = Number(glowBackdrop.getAttribute("data-max-ripples"));
+    const rippleThrottleMs = Number(glowBackdrop.getAttribute("data-ripple-throttle-ms"));
+
+    expect(rippleThrottleMs).toBeGreaterThanOrEqual(120);
+    expect(rippleThrottleMs).toBeLessThanOrEqual(180);
+    expect(maxRipples).toBeGreaterThanOrEqual(12);
+    expect(maxRipples).toBeLessThanOrEqual(18);
+
+    fireEvent.pointerMove(window, { clientX: 220, clientY: 180, pointerType: "mouse" });
+    fireEvent.pointerDown(window, { clientX: 260, clientY: 210, pointerType: "mouse" });
+
+    await waitFor(() => {
+      expect(glowBackdrop.querySelector(".global-ripple")).toBeInTheDocument();
+    });
+
+    for (let index = 0; index < maxRipples + 8; index += 1) {
+      fireEvent.pointerDown(window, {
+        clientX: 100 + index,
+        clientY: 120 + index,
+        pointerType: "mouse",
+      });
+    }
+
+    expect(glowBackdrop.querySelectorAll(".global-ripple").length).toBeLessThanOrEqual(maxRipples);
+    expect(document.querySelector("canvas.global-liquid-backdrop")).not.toBeInTheDocument();
   });
 
   it("drives the public VitaKiosk demo without backend devices", async () => {

@@ -28,16 +28,30 @@ Behavior:
 - A fixed CSS glow layer is mounted once per site page at the root layout layer, above
   the static background and behind all content.
 - It uses `pointer-events: none` and never blocks buttons, cards, forms, or videos.
-- Pointer and touch movement softly shift a cyan/violet ambient spotlight.
-- The component does not render water, ripples, canvas wakes, circular pulses,
-  fluid distortion, or tap explosions.
-- Pointer movement only changes CSS variables for glow position and subtle
-  intensity; when the pointer stops, the glow calmly settles.
+- Pointer and touch movement softly shift a cyan/violet ambient spotlight by
+  updating CSS variables only.
+- The component renders lightweight CSS ripple elements for movement and click
+  feedback. It does not use WebGL, canvas repaint loops, full-page
+  `backdrop-filter`, React state updates per pointer move, heavy blur filters, or
+  unbounded DOM effects.
+- Pointer movement ripples are throttled to 150ms on standard devices and 180ms
+  on low-performance devices.
+- Active ripple elements are capped at 16 on standard devices and 12 on
+  low-performance devices; the oldest ripple is removed before a new one is
+  inserted when the cap is reached.
+- Movement ripples animate for about 1.75s, while click/tap splash ripples
+  animate for about 2.05s. The CSS keyframes animate only `transform` and
+  `opacity`.
+- Low-performance devices reduce opacity, ripple count, throttle rate, and skip
+  the delayed secondary click splash.
 - The page also updates `--pointer-x` and `--pointer-y` so foreground glass
   panels receive a soft light bend from the same pointer source.
 - Scroll progress changes the depth/intensity of the glow field.
-- The animation loop pauses when the tab is hidden.
-- In reduced-motion environments, the component falls back to a static gradient.
+- There is no continuous JavaScript animation loop for the glow; pointer writes
+  are batched with `requestAnimationFrame`.
+- Pointer handling pauses when the tab is hidden.
+- In reduced-motion environments, ripples are disabled and the component falls
+  back to a static gradient.
 
 ## Homepage Journey
 
@@ -112,6 +126,11 @@ Behavior:
 
 ## Performance
 
+- Global backdrop effects are CSS-variable and DOM-keyframe driven. No
+  full-screen canvas, WebGL fluid simulation, or React render loop is used for
+  pointer movement.
+- Ripple nodes self-remove on `animationend` with a timeout fallback, and the
+  active ripple list is bounded.
 - Posters render first.
 - Video sources lazy-load only for active or hovered cards.
 - Preview video is muted, inline, metadata-preloaded, and looped.

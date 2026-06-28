@@ -117,39 +117,91 @@ img {
   z-index: 1;
   width: 100vw;
   height: 100vh;
+  overflow: hidden;
   pointer-events: none;
   --glow-x: 50%;
   --glow-y: 42%;
   --glow-inverse-x: 50%;
   --glow-secondary-y: 47%;
-  --glow-intensity: 0.18;
-  opacity: 0.72;
+  --glow-intensity: 0.12;
+  --glow-depth: 0.2;
+  opacity: 0.42;
   mix-blend-mode: screen;
   background:
     radial-gradient(
-      ellipse 44vw 34vh at var(--glow-x) var(--glow-y),
-      rgba(53, 244, 232, calc(var(--glow-intensity) * 0.28)),
-      rgba(155, 124, 255, calc(var(--glow-intensity) * 0.13)) 38%,
+      ellipse 36vw 28vh at var(--glow-x) var(--glow-y),
+      rgba(53, 244, 232, calc(var(--glow-intensity) * 0.22)),
+      rgba(155, 124, 255, calc(var(--glow-intensity) * 0.09)) 38%,
       transparent 72%
     ),
     radial-gradient(
-      ellipse 62vw 48vh at var(--glow-inverse-x) var(--glow-secondary-y),
-      rgba(155, 124, 255, 0.07),
+      ellipse 48vw 38vh at var(--glow-inverse-x) var(--glow-secondary-y),
+      rgba(155, 124, 255, calc(0.025 + var(--glow-depth) * 0.018)),
       transparent 68%
     ),
-    linear-gradient(120deg, rgba(53, 244, 232, 0.035), transparent 44%, rgba(155, 124, 255, 0.035));
-  filter: blur(8px) saturate(1.06);
+    linear-gradient(120deg, rgba(53, 244, 232, 0.018), transparent 44%, rgba(155, 124, 255, 0.02));
   transform: translateZ(0);
   transition: opacity 260ms var(--ease-out);
+  contain: strict;
 }
 
 .global-glow-backdrop[data-reduced-motion="true"] {
-  opacity: 0.3;
+  opacity: 0.22;
   background:
-    linear-gradient(115deg, rgba(53, 244, 232, 0.16), transparent 42%, rgba(155, 124, 255, 0.13)),
-    radial-gradient(ellipse at 28% 32%, rgba(53, 244, 232, 0.12), transparent 34%),
-    radial-gradient(ellipse at 72% 26%, rgba(155, 124, 255, 0.1), transparent 36%);
-  filter: blur(12px);
+    linear-gradient(115deg, rgba(53, 244, 232, 0.08), transparent 42%, rgba(155, 124, 255, 0.06)),
+    radial-gradient(ellipse at 28% 32%, rgba(53, 244, 232, 0.05), transparent 34%),
+    radial-gradient(ellipse at 72% 26%, rgba(155, 124, 255, 0.045), transparent 36%);
+}
+
+.global-glow-backdrop[data-performance="low"] {
+  opacity: 0.32;
+}
+
+.global-ripple {
+  position: absolute;
+  left: var(--ripple-x);
+  top: var(--ripple-y);
+  width: var(--ripple-size);
+  height: var(--ripple-size);
+  margin: calc(var(--ripple-size) / -2) 0 0 calc(var(--ripple-size) / -2);
+  border: 1px solid rgba(53, 244, 232, 0.24);
+  border-radius: 999px;
+  opacity: 0;
+  transform: translate3d(0, 0, 0) scale(0.12);
+  animation: lightweight-ripple 1.75s var(--ease-out) forwards;
+  will-change: transform, opacity;
+}
+
+.global-ripple.is-splash,
+.global-ripple.is-splash-secondary {
+  border-color: rgba(155, 124, 255, 0.2);
+  animation-duration: 2.05s;
+}
+
+.global-ripple.is-splash-secondary {
+  border-color: rgba(53, 244, 232, 0.16);
+  animation-delay: 80ms;
+}
+
+@keyframes lightweight-ripple {
+  0% {
+    opacity: var(--ripple-opacity);
+    transform: translate3d(0, 0, 0) scale(0.16);
+  }
+
+  58% {
+    opacity: calc(var(--ripple-opacity) * 0.45);
+  }
+
+  100% {
+    opacity: 0;
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+}
+
+.global-glow-backdrop[data-reduced-motion="true"] .global-ripple {
+  display: none;
+  animation: none;
 }
 
 .site-header {

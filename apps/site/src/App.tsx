@@ -312,10 +312,13 @@ function GlobalStageBackground({ progress }: { progress: number }) {
 
 function GlobalGlowBackdrop({ progress }: { progress: number }) {
   const layerRef = useRef<HTMLDivElement | null>(null);
+  const activeRipplesRef = useRef<HTMLSpanElement[]>([]);
+  const rippleTimersRef = useRef<number[]>([]);
   const progressRef = useRef(progress);
 
   useEffect(() => {
     progressRef.current = progress;
+    layerRef.current?.style.setProperty("--glow-depth", progress.toFixed(3));
   }, [progress]);
 
   useEffect(() => {
@@ -324,8 +327,17 @@ function GlobalGlowBackdrop({ progress }: { progress: number }) {
       return;
     }
 
-    layer.dataset.effect = "pointer-glow";
+    layer.dataset.effect = "pointer-glow-ripple";
     const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const lowPerformance =
+      (navigator.hardwareConcurrency !== undefined && navigator.hardwareConcurrency <= 4) ||
+      ("deviceMemory" in navigator && Number((navigator as Navigator & { deviceMemory?: number }).deviceMemory) <= 4);
+    const maxRipples = lowPerformance ? 12 : 16;
+    const moveRippleThrottleMs = lowPerformance ? 180 : 150;
+    layer.dataset.performance = lowPerformance ? "low" : "standard";
+    layer.dataset.maxRipples = String(maxRipples);
+    layer.dataset.rippleThrottleMs = String(moveRippleThrottleMs);
+    layer.style.setProperty("--glow-depth", progressRef.current.toFixed(3));
     if (reducedMotion.matches) {
       layer.dataset.reducedMotion = "true";
       return;
@@ -333,64 +345,118 @@ function GlobalGlowBackdrop({ progress }: { progress: number }) {
 
     let frame = 0;
     let paused = document.visibilityState === "hidden";
-    const target = { x: 0.5, y: 0.42, intensity: 0.28 };
-    const current = { x: 0.5, y: 0.42, intensity: 0.18 };
+    let lastMoveRipple = 0;
+    const pendingPointer = { x: 0.5, y: 0.42, intensity: 0.18, dirty: false };
     const clamp = (value: number, min: number, max: number) => Math.min(max, Math.max(min, value));
 
-    const setTargetFromPoint = (clientX: number, clientY: number, strength = 1) => {
+    const removeRipple = (ripple: HTMLSpanElement) => {
+      ripple.remove();
+      activeRipplesRef.current = activeRipplesRef.current.filter((item) => item !== ripple);
+    };
+
+    const registerTimer = (callback: () => void, delay: number) => {
+      const timer = window.setTimeout(() => {
+        rippleTimersRef.current = rippleTimersRef.current.filter((item) => item !== timer);
+        callback();
+      }, delay);
+      rippleTimersRef.current.push(timer);
+    };
+
+    const addRipple = (clientX: number, clientY: number, kind: "move" | "splash" | "splash-secondary") => {
+      while (activeRipplesRef.current.length >= maxRipples) {
+        removeRipple(activeRipplesRef.current[0]);
+      }
+      const ripple = document.createElement("span");
+      ripple.className = `global-ripple is-${kind}`;
+      ripple.style.setProperty("--ripple-x", `${clientX.toFixed(1)}px`);
+      ripple.style.setProperty("--ripple-y", `${clientY.toFixed(1)}px`);
+      ripple.style.setProperty("--ripple-size", kind === "move" ? (lowPerformance ? "72px" : "82px") : "164px");
+      ripple.style.setProperty("--ripple-opacity", kind === "move" ? (lowPerformance ? "0.11" : "0.14") : "0.2");
+      ripple.addEventListener("animationend", () => removeRipple(ripple), { once: true });
+      registerTimer(() => {
+        if (ripple.isConnected) {
+          removeRipple(ripple);
+        }
+      }, kind === "move" ? 2100 : 2500);
+      activeRipplesRef.current.push(ripple);
+      layer.appendChild(ripple);
+    };
+
+    const flushPointer = () => {
+      frame = 0;
+      if (!pendingPointer.dirty || paused) {
+        return;
+      }
+      pendingPointer.dirty = false;
+      layer.style.setProperty("--glow-x", `${(pendingPointer.x * 100).toFixed(2)}%`);
+      layer.style.setProperty("--glow-y", `${(pendingPointer.y * 100).toFixed(2)}%`);
+      layer.style.setProperty("--glow-inverse-x", `${((1 - pendingPointer.x) * 100).toFixed(2)}%`);
+      layer.style.setProperty("--glow-secondary-y", `${((0.32 + pendingPointer.y * 0.36) * 100).toFixed(2)}%`);
+      layer.style.setProperty("--glow-intensity", pendingPointer.intensity.toFixed(4));
+    };
+
+    const getEventPoint = (event: PointerEvent) => {
+      const fallbackX = pendingPointer.x * Math.max(window.innerWidth, 1);
+      const fallbackY = pendingPointer.y * Math.max(window.innerHeight, 1);
+      return {
+        clientX: Number.isFinite(event.clientX) ? event.clientX : fallbackX,
+        clientY: Number.isFinite(event.clientY) ? event.clientY : fallbackY,
+      };
+    };
+
+    const queuePointer = (clientX: number, clientY: number, strength = 1) => {
+      if (paused) {
+        return;
+      }
       const width = Math.max(window.innerWidth, 1);
       const height = Math.max(window.innerHeight, 1);
       const nextX = clamp(clientX / width, 0, 1);
       const nextY = clamp(clientY / height, 0, 1);
-      const speed = Math.hypot(nextX - target.x, nextY - target.y);
-      target.x = nextX;
-      target.y = nextY;
-      target.intensity = clamp(0.16 + speed * 5.2 * strength, 0.16, 0.46);
-      document.documentElement.style.setProperty("--pointer-x", target.x.toFixed(4));
-      document.documentElement.style.setProperty("--pointer-y", target.y.toFixed(4));
+      const speed = Math.hypot(nextX - pendingPointer.x, nextY - pendingPointer.y);
+      pendingPointer.x = nextX;
+      pendingPointer.y = nextY;
+      pendingPointer.intensity = clamp(0.11 + speed * 2.4 * strength, 0.11, lowPerformance ? 0.23 : 0.3);
+      pendingPointer.dirty = true;
+      document.documentElement.style.setProperty("--pointer-x", pendingPointer.x.toFixed(4));
+      document.documentElement.style.setProperty("--pointer-y", pendingPointer.y.toFixed(4));
+      if (frame === 0) {
+        frame = window.requestAnimationFrame(flushPointer);
+      }
     };
 
-    const onPointerMove = (event: PointerEvent) => setTargetFromPoint(event.clientX, event.clientY, event.pointerType === "touch" ? 0.78 : 1);
-    const onTouchMove = (event: TouchEvent) => {
-      const touch = event.touches[0];
-      if (touch) {
-        setTargetFromPoint(touch.clientX, touch.clientY, 0.78);
+    const onPointerMove = (event: PointerEvent) => {
+      const { clientX, clientY } = getEventPoint(event);
+      queuePointer(clientX, clientY, event.pointerType === "touch" ? 0.75 : 1);
+      const now = performance.now();
+      if (now - lastMoveRipple >= moveRippleThrottleMs) {
+        lastMoveRipple = now;
+        addRipple(clientX, clientY, "move");
+      }
+    };
+    const onPointerDown = (event: PointerEvent) => {
+      const { clientX, clientY } = getEventPoint(event);
+      queuePointer(clientX, clientY, event.pointerType === "touch" ? 0.75 : 1);
+      addRipple(clientX, clientY, "splash");
+      if (!lowPerformance) {
+        registerTimer(() => addRipple(clientX, clientY, "splash-secondary"), 80);
       }
     };
     const onVisibilityChange = () => {
       paused = document.visibilityState === "hidden";
-      if (!paused && frame === 0) {
-        frame = window.requestAnimationFrame(render);
-      }
     };
 
-    const render = () => {
-      if (paused) {
-        frame = 0;
-        return;
-      }
-      const ease = 0.075 + progressRef.current * 0.015;
-      current.x += (target.x - current.x) * ease;
-      current.y += (target.y - current.y) * ease;
-      current.intensity += (target.intensity - current.intensity) * 0.055;
-      target.intensity += (0.16 - target.intensity) * 0.018;
-      layer.style.setProperty("--glow-x", `${(current.x * 100).toFixed(2)}%`);
-      layer.style.setProperty("--glow-y", `${(current.y * 100).toFixed(2)}%`);
-      layer.style.setProperty("--glow-inverse-x", `${((1 - current.x) * 100).toFixed(2)}%`);
-      layer.style.setProperty("--glow-secondary-y", `${((0.32 + current.y * 0.36) * 100).toFixed(2)}%`);
-      layer.style.setProperty("--glow-intensity", current.intensity.toFixed(4));
-      frame = window.requestAnimationFrame(render);
-    };
-
-    frame = window.requestAnimationFrame(render);
     window.addEventListener("pointermove", onPointerMove, { passive: true });
-    window.addEventListener("touchmove", onTouchMove, { passive: true });
+    window.addEventListener("pointerdown", onPointerDown, { passive: true });
     document.addEventListener("visibilitychange", onVisibilityChange);
     return () => {
       window.cancelAnimationFrame(frame);
       window.removeEventListener("pointermove", onPointerMove);
-      window.removeEventListener("touchmove", onTouchMove);
+      window.removeEventListener("pointerdown", onPointerDown);
       document.removeEventListener("visibilitychange", onVisibilityChange);
+      rippleTimersRef.current.forEach((timer) => window.clearTimeout(timer));
+      rippleTimersRef.current = [];
+      activeRipplesRef.current.forEach((ripple) => ripple.remove());
+      activeRipplesRef.current = [];
     };
   }, []);
 
