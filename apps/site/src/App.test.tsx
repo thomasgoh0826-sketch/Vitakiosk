@@ -3,7 +3,6 @@ import userEvent from "@testing-library/user-event";
 import { afterEach, describe, expect, it } from "vitest";
 import { App } from "./App";
 import { approvedVitaKioskReference, demoAssetRoots, demoAssets } from "./content/demoAssets";
-import { demoHotspots } from "./content/interactiveDemoStates";
 import { videoHubItems } from "./content/videoHub";
 import { getPricingByCategory, pricingItems } from "./content/pricing";
 import { createPaymentProvider } from "./lib/payments";
@@ -94,31 +93,35 @@ describe("VitaKiosk Asia site", () => {
     expect(screen.queryByText(/Do you mean/i)).not.toBeInTheDocument();
 
     await user.click(screen.getByRole("button", { name: "Product panel" }));
-    expect(screen.getByRole("dialog", { name: /product demo state/i })).toBeInTheDocument();
+    expect(screen.getByRole("dialog", { name: /product enlarged demo state/i })).toBeInTheDocument();
     expect(screen.getByText(/Tap inside sheet to morph/i)).toBeInTheDocument();
     await user.click(screen.getByRole("button", { name: /Close demo state/i }));
 
     await user.click(screen.getAllByRole("button", { name: /Scan Product/i })[0]);
-    expect(screen.getByRole("dialog", { name: /scan demo state/i })).toBeInTheDocument();
+    expect(screen.getByRole("dialog", { name: /scan product demo state/i })).toBeInTheDocument();
     expect(screen.getAllByText(/Packaging detected/i).length).toBeGreaterThan(0);
   });
 
-  it("renders the approved screenshot as an embedded interactive base, not an iframe or localhost dependency", () => {
+  it("renders a solid interactive mini app without screenshot base, iframe, or transparent hotspots", () => {
     window.history.pushState({}, "", "/vitakiosk");
     render(<App />);
 
     const demo = document.querySelector("#interactive-demo");
-    const screenshot = demo?.querySelector(".demo-reference-surface");
 
-    expect(screenshot).toHaveAttribute("src", approvedVitaKioskReference.src);
+    expect(demo).toHaveAttribute("data-component", "InteractiveVitaKioskMiniApp");
+    expect(demo?.querySelector(".demo-reference-surface")).not.toBeInTheDocument();
+    expect(demo?.querySelector(".demo-reference-layer")).not.toBeInTheDocument();
+    expect(demo?.querySelector(".demo-hotspot")).not.toBeInTheDocument();
+    expect(demo?.querySelector("img")).not.toBeInTheDocument();
     expect(demo?.querySelector("iframe")).not.toBeInTheDocument();
     expect(screen.getByRole("link", { name: /Open live local demo if running/i })).toHaveClass("demo-dev-link");
-    expect(screen.getByRole("button", { name: "Tap to Speak" })).toHaveClass("demo-hotspot");
-    expect(screen.getByRole("button", { name: "Product panel" })).toHaveClass("demo-hotspot");
-    expect(screen.getByRole("button", { name: "Promotion leaflet" })).toHaveClass("demo-hotspot");
-    expect(screen.getByRole("button", { name: "Shelf navigation map" })).toHaveClass("demo-hotspot");
-    expect(screen.getByRole("button", { name: "Scan Product" })).toHaveClass("demo-hotspot");
-    expect(screen.getByRole("button", { name: "Request assistance" })).toHaveClass("demo-hotspot");
+    expect(screen.getByRole("button", { name: "Tap to Speak" })).toHaveClass("mini-tap-button");
+    expect(screen.getByRole("button", { name: "Product panel" })).toHaveClass("mini-product-panel");
+    expect(screen.getByRole("button", { name: "Promotion leaflet" })).toHaveClass("mini-promotion-panel");
+    expect(screen.getByRole("button", { name: "Shelf navigation map" })).toHaveClass("mini-shelf-panel");
+    expect(screen.getByRole("button", { name: "Scan Product" })).toHaveClass("mini-scan-button");
+    expect(screen.getByRole("button", { name: "Request assistance" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /Explore Demo/i })).toHaveClass("mini-fullscreen-toggle");
   });
 
   it("runs Tap to Speak through listening and answering states inside the embedded demo", async () => {
@@ -134,9 +137,9 @@ describe("VitaKiosk Asia site", () => {
       expect(screen.getByTestId("demo-state-machine")).toHaveAttribute("data-state", "answering");
     });
     expect(screen.getByText(/Relief Balm is available at Shelf A-03/i)).toBeInTheDocument();
-    expect(document.querySelector('[data-highlight="product"]')).toHaveClass("is-active");
-    expect(document.querySelector('[data-highlight="shelf"]')).toHaveClass("is-active");
-    expect(document.querySelector('[data-highlight="promotion"]')).toHaveClass("is-active");
+    expect(screen.getByRole("button", { name: "Product panel" })).toHaveAttribute("data-active", "true");
+    expect(screen.getByRole("button", { name: "Shelf navigation map" })).toHaveAttribute("data-active", "true");
+    expect(screen.getByRole("button", { name: "Promotion leaflet" })).toHaveAttribute("data-active", "true");
   });
 
   it("handles fuzzy match selection and highlights product, shelf, and promotion areas", async () => {
@@ -150,41 +153,42 @@ describe("VitaKiosk Asia site", () => {
     await user.click(screen.getByRole("button", { name: "Relief Balm" }));
 
     expect(screen.getByTestId("demo-state-machine")).toHaveAttribute("data-state", "answering");
-    expect(document.querySelector('[data-highlight="product"]')).toHaveClass("is-active");
-    expect(document.querySelector('[data-highlight="shelf"]')).toHaveClass("is-active");
-    expect(document.querySelector('[data-highlight="promotion"]')).toHaveClass("is-active");
+    expect(screen.getByRole("button", { name: "Product panel" })).toHaveAttribute("data-active", "true");
+    expect(screen.getByRole("button", { name: "Shelf navigation map" })).toHaveAttribute("data-active", "true");
+    expect(screen.getByRole("button", { name: "Promotion leaflet" })).toHaveAttribute("data-active", "true");
   });
 
-  it("opens product, promotion, shelf, scan, and pharmacist states from screenshot hotspots", async () => {
+  it("opens product, promotion, shelf, scan, and pharmacist states from real mini-app controls", async () => {
     window.history.pushState({}, "", "/vitakiosk");
     render(<App />);
     const user = userEvent.setup();
 
     await user.click(screen.getByRole("button", { name: "Product panel" }));
-    expect(screen.getByRole("dialog", { name: /product demo state/i })).toBeInTheDocument();
+    expect(screen.getByRole("dialog", { name: /product enlarged demo state/i })).toBeInTheDocument();
     expect(screen.getByText(/Product summary/i)).toBeInTheDocument();
     await user.click(screen.getByText(/Product summary/i));
     expect(screen.getByText(/Product detail/i)).toBeInTheDocument();
     await user.click(screen.getByRole("button", { name: /Close demo state/i }));
 
     await user.click(screen.getByRole("button", { name: "Promotion leaflet" }));
-    expect(screen.getByRole("dialog", { name: /promotion demo state/i })).toBeInTheDocument();
-    expect(screen.getByText(/Sponsored education must be labelled/i)).toBeInTheDocument();
+    expect(screen.getByRole("dialog", { name: /promotion open demo state/i })).toBeInTheDocument();
+    expect(screen.getAllByText(/Sponsored product education must be clearly labelled/i).length).toBeGreaterThan(0);
     await user.click(screen.getByRole("button", { name: /Close demo state/i }));
 
     await user.click(screen.getByRole("button", { name: "Shelf navigation map" }));
+    expect(screen.getByRole("dialog", { name: /shelf route demo state/i })).toBeInTheDocument();
     expect(screen.getAllByText(/Shelf route/i).length).toBeGreaterThan(0);
     expect(screen.getByText(/Entrance > Aisle 03 > Shelf A-03/i)).toBeInTheDocument();
     await user.click(screen.getByRole("button", { name: /Close route/i }));
 
     await user.click(screen.getByRole("button", { name: "Scan Product" }));
-    expect(screen.getByRole("dialog", { name: /scan demo state/i })).toBeInTheDocument();
+    expect(screen.getByRole("dialog", { name: /scan product demo state/i })).toBeInTheDocument();
     expect(screen.getAllByText(/Best match: Relief Balm/i).length).toBeGreaterThan(0);
     await user.click(screen.getByRole("button", { name: /Select Relief Balm/i }));
     expect(screen.getByTestId("demo-state-machine")).toHaveAttribute("data-state", "answering");
 
     await user.click(screen.getByRole("button", { name: "Request assistance" }));
-    expect(screen.getByRole("dialog", { name: /pharmacist assistance demo state/i })).toBeInTheDocument();
+    expect(screen.getByRole("dialog", { name: /pharmacist handoff demo state/i })).toBeInTheDocument();
     expect(screen.getAllByText(/A pharmacist or staff member can assist you/i).length).toBeGreaterThan(0);
     expect(screen.getByText(/Not diagnosis, prescription consultation/i)).toBeInTheDocument();
   });
@@ -288,14 +292,7 @@ describe("asset manifest", () => {
     expect(approvedVitaKioskReference.channel).toBe("reference");
     expect(approvedVitaKioskReference.src).toBe("/assets/reference/vitakiosk-demo-approved.png");
     expect(approvedVitaKioskReference.notes).toMatch(/interactive React UI/i);
-    expect(demoHotspots.map((hotspot) => hotspot.label)).toEqual([
-      "Tap to Speak",
-      "Product panel",
-      "Promotion leaflet",
-      "Shelf navigation map",
-      "Scan Product",
-      "Request assistance",
-    ]);
+    expect(document.querySelector("#interactive-demo img")).not.toBeInTheDocument();
   });
 
   it("uses manifest-driven generated video previews for the spherical carousel", () => {

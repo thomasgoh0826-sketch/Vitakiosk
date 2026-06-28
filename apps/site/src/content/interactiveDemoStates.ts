@@ -15,11 +15,12 @@ export type DemoLanguage = "en" | "zh" | "bm";
 export const demoProduct = {
   name: "Relief Balm",
   sku: "MOCK-P001",
-  price: "$12.50",
-  stock: "18",
+  price: 12.5,
+  stock: 18,
   branch: "SG-001",
   shelf: "A-03",
   source: "Mock VitaFlow",
+  promotion: "Relief Balm Demo Offer",
   summary: "Cooling relief balm. Easy to apply. For external use only.",
   details: [
     ["Ingredient", "Menthol, camphor, herbal soothing ingredients"],
@@ -55,12 +56,3 @@ export const demoLanguageLabels: Record<DemoLanguage, { ready: string; response:
     selected: "BM selected",
   },
 };
-
-export const demoHotspots = [
-  { id: "voice", label: "Tap to Speak", mode: "listening" as DemoMode },
-  { id: "product", label: "Product panel", mode: "product_enlarged" as DemoMode },
-  { id: "promotion", label: "Promotion leaflet", mode: "promotion_open" as DemoMode },
-  { id: "shelf", label: "Shelf navigation map", mode: "shelf_route" as DemoMode },
-  { id: "scan", label: "Scan Product", mode: "scan_product" as DemoMode },
-  { id: "assist", label: "Request assistance", mode: "pharmacist_handoff" as DemoMode },
-];

@@ -8,27 +8,16 @@ import {
   ChevronRight,
   CreditCard,
   ExternalLink,
-  HandHeart,
-  Languages,
   Mail,
   Menu,
-  Mic,
-  ScanLine,
   ShieldCheck,
   ShoppingBag,
   Sparkles,
   Stethoscope,
   X,
 } from "lucide-react";
-import { approvedVitaKioskReference } from "./content/demoAssets";
-import {
-  demoHotspots,
-  demoLanguageLabels,
-  demoProduct,
-  demoTranscriptStates,
-  DemoLanguage,
-  DemoMode,
-} from "./content/interactiveDemoStates";
+import { InteractiveVitaKioskMiniApp } from "./components/InteractiveVitaKioskMiniApp";
+import { demoProduct } from "./content/interactiveDemoStates";
 import { ShowcaseScene, showcaseScenes } from "./content/showcaseScenes";
 import {
   businessLines,
@@ -670,328 +659,6 @@ function ShowcaseSection() {
   return <SystemShowcaseStage />;
 }
 
-function DemoHotspot({
-  label,
-  onClick,
-  className,
-  active,
-}: {
-  label: string;
-  onClick: () => void;
-  className: string;
-  active?: boolean;
-}) {
-  return (
-    <button
-      className={`demo-hotspot ${className}`}
-      data-active={active ? "true" : "false"}
-      onMouseDown={(event) => event.preventDefault()}
-      onClick={onClick}
-      aria-label={label}
-      type="button"
-    >
-      <span>{label}</span>
-    </button>
-  );
-}
-
-function DemoStateMachine({ mode }: { mode: DemoMode }) {
-  return <span className="sr-only" data-testid="demo-state-machine" data-state={mode}>{mode}</span>;
-}
-
-function DemoCallout({
-  className,
-  children,
-}: {
-  className: string;
-  children: React.ReactNode;
-}) {
-  return <div className={`demo-state-bubble ${className}`}>{children}</div>;
-}
-
-function DemoTranscriptOverlay({ mode, language }: { mode: DemoMode; language: DemoLanguage }) {
-  const labels = demoLanguageLabels[language];
-  const text =
-    mode === "listening"
-      ? demoTranscriptStates.listening
-      : mode === "answering"
-        ? demoTranscriptStates.answering
-        : mode === "fuzzy_match"
-          ? demoTranscriptStates.fuzzy_match
-          : mode === "scan_product"
-            ? demoTranscriptStates.scan_product
-            : mode === "pharmacist_handoff"
-              ? demoTranscriptStates.pharmacist_handoff
-            : demoTranscriptStates.idle;
-
-  return (
-    <div className={`demo-transcript mode-${mode}`} role="status" aria-live="polite">
-      <span>AI subtitle</span>
-      <strong>{text}</strong>
-      <small>{mode === "answering" ? labels.response : labels.ready}</small>
-    </div>
-  );
-}
-
-function DemoProductPanel({ onOpen }: { onOpen: () => void }) {
-  return (
-    <button className="demo-product-panel" onClick={onOpen} aria-label="Product panel">
-      <span>Product summary</span>
-      <strong>{demoProduct.name}</strong>
-      <div className="demo-product-grid">
-        {demoProduct.details.map(([label, value]) => (
-          <small key={label}>
-            <b>{label}</b>
-            {value}
-          </small>
-        ))}
-      </div>
-    </button>
-  );
-}
-
-function DemoPromotionLeaflet({ onOpen }: { onOpen: () => void }) {
-  return (
-    <button className="demo-leaflet-stack" onClick={onOpen} aria-label="Promotion leaflet">
-      <article>
-        <span>VitaKiosk</span>
-        <strong>Relief Balm</strong>
-        <small>Demo Offer</small>
-      </article>
-      <article>
-        <span>VitaKiosk</span>
-        <strong>Supplement</strong>
-        <small>Savings Demo</small>
-      </article>
-    </button>
-  );
-}
-
-function DemoShelfMap({ enlarged = false }: { enlarged?: boolean }) {
-  return (
-    <div className={enlarged ? "demo-shelf-map is-enlarged" : "demo-shelf-map"}>
-      <span className="pharmacy-label">Pharmacy</span>
-      <div className="aisle aisle-one">01</div>
-      <div className="aisle aisle-two">02</div>
-      <div className="aisle target">A-03</div>
-      <div className="route-dot start" />
-      <div className="route-path" />
-      <div className="route-dot end" />
-      <small>Route: Entrance &gt; Aisle 03 &gt; Shelf A-03</small>
-    </div>
-  );
-}
-
-function DemoProductEnlarge({
-  sheetMode,
-  onToggle,
-}: {
-  sheetMode: "summary" | "detail";
-  onToggle: () => void;
-}) {
-  return (
-    <button
-      className="demo-overlay-content product-overlay"
-      data-view={sheetMode}
-      onMouseDown={(event) => event.preventDefault()}
-      onClick={onToggle}
-      type="button"
-    >
-      <span>{sheetMode === "summary" ? "Product summary" : "Product detail"}</span>
-      <h3>{demoProduct.name}</h3>
-      <p>
-        {sheetMode === "summary"
-          ? demoProduct.summary
-          : "Menthol and camphor demo facts are fictional mock data from the marketing demo."}
-      </p>
-      <strong>{demoProduct.price}</strong>
-      <small>Tap inside sheet to morph summary/detail.</small>
-    </button>
-  );
-}
-
-function DemoPromotionViewer() {
-  return (
-    <div className="demo-overlay-content promotion-overlay">
-      <article className="enlarged-leaflet">
-        <span>VitaKiosk</span>
-        <strong>Relief Balm</strong>
-        <small>Demo Offer</small>
-        <p>Sponsored education must be labelled and reviewed before display.</p>
-      </article>
-    </div>
-  );
-}
-
-function DemoShelfRouteOverlay({ onClose }: { onClose: () => void }) {
-  return (
-    <>
-      <div className="demo-route-overlay" aria-hidden="true">
-        <span />
-        <i />
-      </div>
-      <DemoCallout className="shelf-bubble">
-        <span>Shelf route</span>
-        <strong>Entrance &gt; Aisle 03 &gt; Shelf A-03</strong>
-        <button onClick={onClose} type="button">Close route</button>
-      </DemoCallout>
-    </>
-  );
-}
-
-function DemoScanOverlay({ onSelect }: { onSelect: () => void }) {
-  return (
-    <div className="demo-overlay-content scan-overlay">
-      <ScanLine size={32} />
-      <h3>Packaging detected</h3>
-      <p>Best match: Relief Balm</p>
-      <button className="button primary" onClick={onSelect}>
-        Select Relief Balm
-      </button>
-    </div>
-  );
-}
-
-function DemoPharmacistHandoff() {
-  return (
-    <div className="demo-overlay-content handoff-overlay">
-      <HandHeart size={34} />
-      <h3>A pharmacist or staff member can assist you.</h3>
-      <p>Product education and guidance only. Not diagnosis, prescription consultation, or professional medical advice.</p>
-    </div>
-  );
-}
-
-function InteractiveVitaKioskDemo() {
-  const [mode, setMode] = useState<DemoMode>("idle");
-  const [sheetMode, setSheetMode] = useState<"summary" | "detail">("summary");
-  const [language, setLanguage] = useState<DemoLanguage>("en");
-  const [selectedPulse, setSelectedPulse] = useState(false);
-  const demoRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    if (demoRef.current) {
-      demoRef.current.scrollTop = 0;
-      demoRef.current.scrollLeft = 0;
-    }
-  }, [mode]);
-
-  useEffect(() => {
-    if (mode === "listening") {
-      const answerTimer = window.setTimeout(() => setMode("answering"), 800);
-      return () => window.clearTimeout(answerTimer);
-    }
-    if (mode === "answering") {
-      const readyTimer = window.setTimeout(() => {
-        setMode("idle");
-        setSelectedPulse(false);
-      }, 4200);
-      return () => window.clearTimeout(readyTimer);
-    }
-  }, [mode]);
-
-  const openMode = (next: DemoMode) => {
-    setSheetMode("summary");
-    setSelectedPulse(false);
-    setMode(next);
-  };
-
-  const closeOverlay = () => setMode("idle");
-  const selectReliefBalm = () => {
-    setSelectedPulse(true);
-    setMode("answering");
-  };
-  const activeProduct = selectedPulse || ["listening", "answering", "fuzzy_match", "product_enlarged", "scan_product"].includes(mode);
-  const activePromotion = selectedPulse || ["listening", "answering", "fuzzy_match", "promotion_open", "scan_product"].includes(mode);
-  const activeShelf = selectedPulse || ["listening", "answering", "fuzzy_match", "shelf_route", "scan_product"].includes(mode);
-  const activeAssist = mode === "pharmacist_handoff";
-
-  return (
-    <div ref={demoRef} className={`interactive-kiosk-demo mode-${mode}`} id="interactive-demo" data-demo-state={mode}>
-      <DemoStateMachine mode={mode} />
-      <div className="demo-reference-layer" aria-hidden="true">
-        <img
-          className="demo-reference-surface"
-          src={approvedVitaKioskReference.src}
-          alt=""
-          loading="eager"
-        />
-      </div>
-      <div className="demo-screenshot-sheen" aria-hidden="true" />
-      <div className={`demo-area-highlight highlight-product ${activeProduct ? "is-active" : ""}`} data-highlight="product" aria-hidden="true" />
-      <div className={`demo-area-highlight highlight-promotion ${activePromotion ? "is-active" : ""}`} data-highlight="promotion" aria-hidden="true" />
-      <div className={`demo-area-highlight highlight-shelf ${activeShelf ? "is-active" : ""}`} data-highlight="shelf" aria-hidden="true" />
-      <div className={`demo-area-highlight highlight-assist ${activeAssist ? "is-active" : ""}`} data-highlight="assist" aria-hidden="true" />
-      <DemoTranscriptOverlay mode={mode} language={language} />
-      {mode === "listening" && (
-        <div className="demo-voice-pulse" aria-hidden="true">
-          <Mic size={24} />
-          <div className="voice-wave">
-            {Array.from({ length: 18 }).map((_, index) => <i key={index} />)}
-          </div>
-        </div>
-      )}
-      {mode === "shelf_route" && <DemoShelfRouteOverlay onClose={closeOverlay} />}
-      <div className="demo-floating-actions">
-        <span>Try fuzzy search</span>
-        <button className="demo-chip" onClick={() => openMode("fuzzy_match")} type="button">Relief Bomb</button>
-      </div>
-      <div className="demo-language-rail">
-        <Languages size={14} />
-        <button className={language === "en" ? "is-active" : ""} onClick={() => setLanguage("en")} type="button" aria-label="Language EN">EN</button>
-        <button className={language === "zh" ? "is-active" : ""} onClick={() => setLanguage("zh")} type="button" aria-label="Language 中文">中文</button>
-        <button className={language === "bm" ? "is-active" : ""} onClick={() => setLanguage("bm")} type="button" aria-label="Language BM">BM</button>
-        <small>{demoLanguageLabels[language].selected}</small>
-      </div>
-      {demoHotspots.map((hotspot) => (
-        <DemoHotspot
-          key={hotspot.id}
-          label={hotspot.label}
-          className={`hotspot-${hotspot.id}`}
-          active={
-            (hotspot.id === "product" && activeProduct) ||
-            (hotspot.id === "promotion" && activePromotion) ||
-            (hotspot.id === "shelf" && activeShelf) ||
-            (hotspot.id === "assist" && activeAssist) ||
-            (hotspot.id === "voice" && mode === "listening") ||
-            (hotspot.id === "scan" && mode === "scan_product")
-          }
-          onClick={() => openMode(hotspot.mode)}
-        />
-      ))}
-      {mode === "fuzzy_match" && (
-        <DemoCallout className="fuzzy-bubble">
-          <span>Do you mean</span>
-          <button onClick={selectReliefBalm} type="button">Relief Balm</button>
-        </DemoCallout>
-      )}
-      {mode === "promotion_open" && (
-        <DemoCinematicDialog mode={mode} label="promotion demo state" onClose={closeOverlay}>
-          <DemoPromotionViewer />
-        </DemoCinematicDialog>
-      )}
-      {mode === "product_enlarged" && (
-        <DemoCinematicDialog mode={mode} label="product demo state" onClose={closeOverlay}>
-          <DemoProductEnlarge
-            sheetMode={sheetMode}
-            onToggle={() => setSheetMode(sheetMode === "summary" ? "detail" : "summary")}
-          />
-        </DemoCinematicDialog>
-      )}
-      {mode === "scan_product" && (
-        <DemoCinematicDialog mode={mode} label="scan demo state" onClose={closeOverlay}>
-          <DemoScanOverlay onSelect={selectReliefBalm} />
-        </DemoCinematicDialog>
-      )}
-      {mode === "pharmacist_handoff" && (
-        <DemoCinematicDialog mode={mode} label="pharmacist assistance demo state" onClose={closeOverlay}>
-          <DemoPharmacistHandoff />
-        </DemoCinematicDialog>
-      )}
-    </div>
-  );
-}
-
 function VitaKioskDemoStage() {
   return (
     <section className="vitakiosk-demo-stage immersive-scene">
@@ -1004,7 +671,7 @@ function VitaKioskDemoStage() {
           <ExternalLink size={16} />
         </SmartLink>
       </div>
-      <InteractiveVitaKioskDemo />
+      <InteractiveVitaKioskMiniApp />
     </section>
   );
 }
@@ -1026,7 +693,7 @@ function VitaFlowSourceScene() {
           <span>Product</span>
           <strong>{demoProduct.name}</strong>
           <small>{demoProduct.sku}</small>
-          <b>{demoProduct.price}</b>
+          <b>{`$${demoProduct.price.toFixed(2)}`}</b>
         </div>
         {["Stock 18", "Shelf A-03", "Branch SG-001", "Promotion reviewed"].map((label, index) => (
           <div key={label} className={`erp-node node-${index + 1}`}>{label}</div>
@@ -1096,30 +763,6 @@ function ImmersiveJourney() {
         );
       }}
     </ScrollSceneController>
-  );
-}
-
-function DemoCinematicDialog({
-  mode,
-  label,
-  onClose,
-  children,
-}: {
-  mode: DemoMode;
-  label: string;
-  onClose: () => void;
-  children: React.ReactNode;
-}) {
-  return (
-    <div className="demo-cinematic-overlay" role="dialog" aria-modal="true" aria-label={label} onMouseDown={onClose}>
-      <div className={`demo-overlay-sheet state-${mode}`} onMouseDown={(event) => event.stopPropagation()}>
-        <button className="icon-button" onMouseDown={(event) => event.preventDefault()} onClick={onClose} type="button">
-          <X size={18} />
-          <span className="sr-only">Close demo state</span>
-        </button>
-        {children}
-      </div>
-    </div>
   );
 }
 
@@ -2045,7 +1688,13 @@ function RouteExperienceVisual({
       </div>
       {visual === "vitakiosk" ? (
         <div className="route-kiosk-device">
-          <img src={approvedVitaKioskReference.src} alt="" loading="lazy" />
+          <div className="route-kiosk-native-screen">
+            <span className="route-kiosk-avatar" />
+            <span className="route-kiosk-subtitle" />
+            <span className="route-kiosk-product" />
+            <span className="route-kiosk-map" />
+            <span className="route-kiosk-promo" />
+          </div>
           <span className="route-device-scan" />
         </div>
       ) : visual === "vitaflow" ? (
