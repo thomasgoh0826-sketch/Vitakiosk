@@ -124,6 +124,29 @@ describe("VitaKiosk Asia site", () => {
     expect(screen.getByRole("button", { name: /Explore Demo/i })).toHaveClass("mini-fullscreen-toggle");
   });
 
+  it("switches the mini app into mobile fullscreen panels for small screens", async () => {
+    window.history.pushState({}, "", "/vitakiosk");
+    render(<App />);
+    const user = userEvent.setup();
+
+    await user.click(screen.getByRole("button", { name: /Explore Demo/i }));
+
+    const demo = document.querySelector("#interactive-demo");
+    expect(demo).toHaveAttribute("data-mobile-panel", "voice");
+    expect(screen.getByRole("navigation", { name: /Fullscreen demo sections/i })).toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: /Mobile demo tab Scan/i }));
+    expect(demo).toHaveAttribute("data-mobile-panel", "scan");
+    await user.click(screen.getAllByRole("button", { name: "Scan Product" })[0]);
+    expect(screen.getByRole("dialog", { name: /scan product demo state/i })).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: /Close demo state/i }));
+
+    await user.click(screen.getByRole("button", { name: /Mobile demo tab Assist/i }));
+    expect(demo).toHaveAttribute("data-mobile-panel", "assistance");
+    await user.click(screen.getByRole("button", { name: "Request assistance" }));
+    expect(screen.getByRole("dialog", { name: /pharmacist handoff demo state/i })).toBeInTheDocument();
+  });
+
   it("runs Tap to Speak through listening and answering states inside the embedded demo", async () => {
     window.history.pushState({}, "", "/vitakiosk");
     render(<App />);
@@ -216,6 +239,42 @@ describe("VitaKiosk Asia site", () => {
 
     expect(screen.getByRole("dialog", { name: /VitaKiosk Interactive Demo full video viewer/i })).toBeInTheDocument();
     expect(screen.getAllByText(/Tap, scan, enlarge/i).length).toBeGreaterThan(0);
+  });
+
+  it("uses a compact orbit deck on phone-width screens", async () => {
+    const originalMatchMedia = window.matchMedia;
+    Object.defineProperty(window, "matchMedia", {
+      configurable: true,
+      writable: true,
+      value: (query: string) => ({
+        matches: query.includes("max-width: 767px"),
+        media: query,
+        onchange: null,
+        addEventListener: () => undefined,
+        removeEventListener: () => undefined,
+        addListener: () => undefined,
+        removeListener: () => undefined,
+        dispatchEvent: () => false,
+      }),
+    });
+
+    try {
+      render(<App />);
+
+      await waitFor(() => {
+        expect(screen.getByLabelText(/Spherical video carousel/i)).toHaveAttribute(
+          "data-layout-mode",
+          "compact-deck",
+        );
+      });
+      expect(document.querySelectorAll('.video-orbit-card[data-visible="true"]').length).toBeLessThanOrEqual(3);
+    } finally {
+      Object.defineProperty(window, "matchMedia", {
+        configurable: true,
+        writable: true,
+        value: originalMatchMedia,
+      });
+    }
   });
 
   it("rotates the spherical video carousel by drag instead of click-only navigation", () => {

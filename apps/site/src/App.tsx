@@ -835,6 +835,7 @@ function VideoPreviewCard({
   total,
   hovered,
   dragging,
+  compact,
   onHover,
   onOpen,
 }: {
@@ -845,6 +846,7 @@ function VideoPreviewCard({
   total: number;
   hovered: boolean;
   dragging: boolean;
+  compact: boolean;
   onHover: (id: string | null) => void;
   onOpen: (trigger: HTMLButtonElement | null) => void;
 }) {
@@ -852,18 +854,20 @@ function VideoPreviewCard({
   const relative = (((logicalIndex - orbitalProgress + total / 2) % total) + total) % total - total / 2;
   const abs = Math.abs(relative);
   const isActive = logicalIndex === activeVideoIndex;
-  const isVisible = abs <= 2.28;
-  const isInteractive = abs <= 1.34 && !dragging;
+  const isVisible = compact ? abs <= 1.16 : abs <= 2.28;
+  const isInteractive = (compact ? abs <= 0.64 : abs <= 1.34) && !dragging;
   const shouldLoad = isActive || hovered;
   const direction = relative === 0 ? 0 : relative > 0 ? 1 : -1;
-  const positionAbs = Math.min(abs, 2.28);
-  const sidePush = Math.max(0, positionAbs - 0.72) * 180;
-  const x = direction * (Math.pow(positionAbs, 0.9) * 620 + sidePush);
-  const z = 150 - positionAbs * 210;
-  const scale = Math.max(0.45, 1 - positionAbs * 0.36);
-  const tiltAngle = direction * Math.min(54, positionAbs * 24);
-  const opacity = isVisible ? Math.max(0.1, 1 - positionAbs * 0.34) : 0;
-  const orbitDistance = isActive ? "center" : abs <= 1.44 ? "side" : abs <= 2.28 ? "far" : "hidden";
+  const positionAbs = Math.min(abs, compact ? 1.16 : 2.28);
+  const sidePush = compact ? 0 : Math.max(0, positionAbs - 0.72) * 120;
+  const x = compact
+    ? direction * Math.pow(positionAbs, 0.92) * 185
+    : direction * (Math.pow(positionAbs, 0.9) * 540 + sidePush);
+  const z = compact ? 0 : 150 - positionAbs * 210;
+  const scale = compact ? Math.max(0.72, 1 - positionAbs * 0.24) : Math.max(0.45, 1 - positionAbs * 0.36);
+  const tiltAngle = compact ? direction * Math.min(12, positionAbs * 10) : direction * Math.min(54, positionAbs * 24);
+  const opacity = isVisible ? (compact ? Math.max(0.34, 1 - positionAbs * 0.54) : Math.max(0.1, 1 - positionAbs * 0.34)) : 0;
+  const orbitDistance = isActive ? "center" : abs <= (compact ? 1.16 : 1.44) ? "side" : abs <= 2.28 ? "far" : "hidden";
 
   useEffect(() => {
     const el = videoRef.current;
@@ -981,6 +985,7 @@ function VideoViewerModal({
 function SphericalVideoCarousel() {
   const initialVideoIndex = 3;
   const [orbitalProgress, setOrbitalProgress] = useState(initialVideoIndex);
+  const [isCompactOrbit, setIsCompactOrbit] = useState(false);
   const [hoveredCardKey, setHoveredCardKey] = useState<string | null>(null);
   const [openVideo, setOpenVideo] = useState<(typeof videoHubItems)[number] | null>(null);
   const [isDragging, setIsDragging] = useState(false);
@@ -1030,6 +1035,14 @@ function SphericalVideoCarousel() {
   const pauseAuto = (delay = 2200) => {
     pauseUntilRef.current = performance.now() + delay;
   };
+
+  useEffect(() => {
+    const compactQuery = window.matchMedia("(max-width: 767px)");
+    const updateCompactOrbit = () => setIsCompactOrbit(compactQuery.matches);
+    updateCompactOrbit();
+    compactQuery.addEventListener("change", updateCompactOrbit);
+    return () => compactQuery.removeEventListener("change", updateCompactOrbit);
+  }, []);
 
   useEffect(() => {
     autoStateRef.current.isUserInteracting = isUserInteracting;
@@ -1200,6 +1213,7 @@ function SphericalVideoCarousel() {
         data-touching={isTouching}
         data-focused={hasFocusWithin}
         data-modal-open={isModalOpen}
+        data-layout-mode={isCompactOrbit ? "compact-deck" : "cylindrical-orbit"}
         data-hovered-video={hoveredCardKey ?? ""}
         data-orbital-progress={orbitalProgress.toFixed(3)}
         data-render-buffer={videoHubItems.length}
@@ -1313,6 +1327,7 @@ function SphericalVideoCarousel() {
               total={total}
               hovered={hoveredCardKey === video.id}
               dragging={isDragging}
+              compact={isCompactOrbit}
               onHover={(nextIndex) => {
                 setHoveredCardKey(nextIndex);
                 pauseAuto(nextIndex === null ? 1800 : 2600);

@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { HandHeart, Languages, Mic, ScanLine, X } from "lucide-react";
 import {
   demoLanguageLabels,
@@ -9,6 +10,16 @@ import {
 } from "../content/interactiveDemoStates";
 
 const formatPrice = (price: number) => `$${price.toFixed(2)}`;
+type MobilePanel = "voice" | "product" | "promotion" | "shelf" | "scan" | "assistance";
+
+const mobilePanels: Array<{ id: MobilePanel; label: string }> = [
+  { id: "voice", label: "Voice" },
+  { id: "product", label: "Product" },
+  { id: "promotion", label: "Promotion" },
+  { id: "shelf", label: "Shelf" },
+  { id: "scan", label: "Scan" },
+  { id: "assistance", label: "Assistance" },
+];
 
 function DemoStateMachine({ mode }: { mode: DemoMode }) {
   return (
@@ -415,6 +426,7 @@ export function InteractiveVitaKioskMiniApp() {
   const [language, setLanguage] = useState<DemoLanguage>("en");
   const [selectedPulse, setSelectedPulse] = useState(false);
   const [fullscreen, setFullscreen] = useState(false);
+  const [mobilePanel, setMobilePanel] = useState<MobilePanel>("voice");
   const demoRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -444,6 +456,13 @@ export function InteractiveVitaKioskMiniApp() {
     setMode(next);
   };
 
+  const openMobilePanel = (next: MobilePanel) => {
+    setMobilePanel(next);
+    if (next !== "scan" && mode === "scan_product") {
+      setMode("idle");
+    }
+  };
+
   const selectReliefBalm = () => {
     setSelectedPulse(true);
     setMode("answering");
@@ -453,16 +472,13 @@ export function InteractiveVitaKioskMiniApp() {
   const activePromotion = selectedPulse || ["listening", "answering", "fuzzy_match", "promotion_open", "scan_product"].includes(mode);
   const activeShelf = selectedPulse || ["listening", "answering", "fuzzy_match", "shelf_route", "scan_product"].includes(mode);
 
-  return (
-    <div className={fullscreen ? "mini-kiosk-fullscreen" : undefined}>
-      <button className="mini-fullscreen-toggle" type="button" onClick={() => setFullscreen(true)}>
-        Explore Demo
-      </button>
+  const kioskApp = (
       <div
         ref={demoRef}
         id="interactive-demo"
         className={`interactive-kiosk-mini-app state-${mode}`}
         data-demo-state={mode}
+        data-mobile-panel={mobilePanel}
         data-component="InteractiveVitaKioskMiniApp"
       >
         <DemoStateMachine mode={mode} />
@@ -481,6 +497,22 @@ export function InteractiveVitaKioskMiniApp() {
             Connected | Mock mode | No customer data
           </div>
         </header>
+        {fullscreen && (
+          <nav className="mini-mobile-tabbar" aria-label="Fullscreen demo sections">
+            {mobilePanels.map((panel) => (
+              <button
+                key={panel.id}
+                type="button"
+                aria-label={`Mobile demo tab ${panel.label}`}
+                aria-pressed={mobilePanel === panel.id}
+                className={mobilePanel === panel.id ? "is-active" : ""}
+                onClick={() => openMobilePanel(panel.id)}
+              >
+                {panel.label}
+              </button>
+            ))}
+          </nav>
+        )}
         <main className="mini-kiosk-layout">
           <aside className="mini-left-column">
             <KioskAvatarPanel mode={mode} />
@@ -529,6 +561,23 @@ export function InteractiveVitaKioskMiniApp() {
           </KioskDemoStateLayer>
         )}
       </div>
+  );
+
+  return (
+    <div className="mini-kiosk-host">
+      {!fullscreen && (
+        <button className="mini-fullscreen-toggle" type="button" onClick={() => setFullscreen(true)}>
+          Explore Demo
+        </button>
+      )}
+      {!fullscreen && kioskApp}
+      {fullscreen &&
+        createPortal(
+          <div className="mini-kiosk-host mini-kiosk-fullscreen">
+            {kioskApp}
+          </div>,
+          document.body,
+        )}
     </div>
   );
 }
