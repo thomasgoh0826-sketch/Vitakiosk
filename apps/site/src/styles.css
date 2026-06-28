@@ -2606,61 +2606,17 @@ img {
 .orbit-a { transform: rotate(23deg) scaleX(0.72); }
 .orbit-b { transform: rotate(-42deg) scaleX(0.56); border-color: rgba(155, 124, 255, 0.2); }
 
-.mini-avatar-figure {
+.mini-avatar-image {
   position: relative;
-  width: 142px;
-  height: 245px;
-  filter: drop-shadow(0 0 22px rgba(53, 244, 232, 0.28));
+  z-index: 1;
+  width: min(82%, 236px);
+  max-height: 94%;
+  object-fit: contain;
+  object-position: center bottom;
+  filter:
+    drop-shadow(0 0 22px rgba(53, 244, 232, 0.24))
+    drop-shadow(0 20px 34px rgba(0, 0, 0, 0.32));
 }
-
-.mini-avatar-head,
-.mini-avatar-hair,
-.mini-avatar-body,
-.mini-avatar-sleeve {
-  position: absolute;
-  left: 50%;
-  transform: translateX(-50%);
-}
-
-.mini-avatar-head {
-  top: 22px;
-  width: 72px;
-  height: 86px;
-  border-radius: 42% 42% 48% 48%;
-  background:
-    radial-gradient(circle at 34% 45%, #ffc66b 0 4px, transparent 5px),
-    radial-gradient(circle at 66% 45%, #ffc66b 0 4px, transparent 5px),
-    linear-gradient(#fff7f1, #f3ecff);
-}
-
-.mini-avatar-hair {
-  top: 8px;
-  width: 86px;
-  height: 112px;
-  border-radius: 48% 48% 38% 38%;
-  background: linear-gradient(160deg, #98643e, #c9926a 42%, #65412e);
-  clip-path: polygon(8% 0, 92% 0, 100% 78%, 70% 100%, 50% 86%, 30% 100%, 0 78%);
-}
-
-.mini-avatar-body {
-  top: 98px;
-  width: 118px;
-  height: 140px;
-  border-radius: 36% 36% 10% 10%;
-  background: linear-gradient(150deg, #f6f2ff 0 28%, #26344f 29% 100%);
-  clip-path: polygon(26% 0, 74% 0, 92% 100%, 8% 100%);
-}
-
-.mini-avatar-sleeve {
-  top: 112px;
-  width: 38px;
-  height: 92px;
-  border-radius: 24px;
-  background: #f9f6ff;
-}
-
-.sleeve-left { left: 16%; transform: rotate(17deg); }
-.sleeve-right { left: 84%; transform: rotate(-17deg); }
 
 .mini-avatar-wave,
 .mini-subtitle-wave {

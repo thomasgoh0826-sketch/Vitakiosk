@@ -8,6 +8,7 @@ import {
   DemoLanguage,
   DemoMode,
 } from "../content/interactiveDemoStates";
+import { aiPharmacyAssistantAvatar } from "../content/demoAssets";
 
 const formatPrice = (price: number) => `$${price.toFixed(2)}`;
 type MobilePanel = "voice" | "product" | "promotion" | "shelf" | "scan" | "assistance";
@@ -56,13 +57,13 @@ function KioskAvatarPanel({ mode }: { mode: DemoMode }) {
       <div className="mini-avatar-stage" data-active={isListening ? "true" : "false"}>
         <span className="mini-avatar-orbit orbit-a" />
         <span className="mini-avatar-orbit orbit-b" />
-        <div className="mini-avatar-figure" aria-hidden="true">
-          <span className="mini-avatar-head" />
-          <span className="mini-avatar-hair" />
-          <span className="mini-avatar-body" />
-          <span className="mini-avatar-sleeve sleeve-left" />
-          <span className="mini-avatar-sleeve sleeve-right" />
-        </div>
+        <img
+          className="mini-avatar-image"
+          src={aiPharmacyAssistantAvatar.src}
+          alt={aiPharmacyAssistantAvatar.alt}
+          loading="eager"
+          decoding="async"
+        />
       </div>
       <div className="mini-avatar-wave" aria-hidden="true">
         {Array.from({ length: 20 }).map((_, index) => (

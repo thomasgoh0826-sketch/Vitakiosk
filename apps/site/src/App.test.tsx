@@ -2,7 +2,7 @@ import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, describe, expect, it } from "vitest";
 import { App } from "./App";
-import { approvedVitaKioskReference, demoAssetRoots, demoAssets } from "./content/demoAssets";
+import { aiPharmacyAssistantAvatar, approvedVitaKioskReference, demoAssetRoots, demoAssets } from "./content/demoAssets";
 import { videoHubItems } from "./content/videoHub";
 import { getPricingByCategory, pricingItems } from "./content/pricing";
 import { createPaymentProvider } from "./lib/payments";
@@ -112,7 +112,7 @@ describe("VitaKiosk Asia site", () => {
     expect(demo?.querySelector(".demo-reference-surface")).not.toBeInTheDocument();
     expect(demo?.querySelector(".demo-reference-layer")).not.toBeInTheDocument();
     expect(demo?.querySelector(".demo-hotspot")).not.toBeInTheDocument();
-    expect(demo?.querySelector("img")).not.toBeInTheDocument();
+    expect(demo?.querySelector(".mini-avatar-image")).toHaveAttribute("src", aiPharmacyAssistantAvatar.src);
     expect(demo?.querySelector("iframe")).not.toBeInTheDocument();
     expect(screen.getByRole("link", { name: /Open live local demo if running/i })).toHaveClass("demo-dev-link");
     expect(screen.getByRole("button", { name: "Tap to Speak" })).toHaveClass("mini-tap-button");
@@ -351,7 +351,8 @@ describe("asset manifest", () => {
     expect(approvedVitaKioskReference.channel).toBe("reference");
     expect(approvedVitaKioskReference.src).toBe("/assets/reference/vitakiosk-demo-approved.png");
     expect(approvedVitaKioskReference.notes).toMatch(/interactive React UI/i);
-    expect(document.querySelector("#interactive-demo img")).not.toBeInTheDocument();
+    expect(aiPharmacyAssistantAvatar.src).toBe("/assets/avatar/ai-pharmacy-assistant-avatar.png");
+    expect(aiPharmacyAssistantAvatar.channel).toBe("avatar");
   });
 
   it("uses manifest-driven generated video previews for the spherical carousel", () => {
@@ -365,12 +366,14 @@ describe("asset manifest", () => {
   it("keeps demo media under public asset roots instead of importing evidence paths", () => {
     const roots = Object.values(demoAssetRoots);
     const allAssets = [
+      demoAssets.aiPharmacyAssistantAvatar,
       demoAssets.approvedVitaKioskReference,
       ...demoAssets.vitaflow.screenshots,
       ...videoHubItems,
     ];
 
     expect(roots).toContain("/assets/reference/");
+    expect(roots).toContain("/assets/avatar/");
     expect(roots).toContain("/assets/videos/higgsfield/");
     for (const asset of allAssets) {
       const mediaPaths = "src" in asset ? [asset.src] : [asset.poster, asset.previewSrc, asset.fullSrc];

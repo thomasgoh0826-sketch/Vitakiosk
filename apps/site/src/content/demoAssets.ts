@@ -1,5 +1,5 @@
 export type DemoAssetKind = "approved_reference" | "placeholder" | "generated" | "concept";
-export type DemoAssetChannel = "reference" | "poster" | "video" | "loop" | "screenshot";
+export type DemoAssetChannel = "reference" | "poster" | "video" | "loop" | "screenshot" | "avatar";
 
 export interface DemoMedia {
   id: string;
@@ -27,6 +27,7 @@ export interface DemoVideoMedia extends Omit<DemoMedia, "channel" | "src"> {
 
 const media = {
   approvedKioskReference: "/assets/reference/vitakiosk-demo-approved.png",
+  aiPharmacyAssistantAvatar: "/assets/avatar/ai-pharmacy-assistant-avatar.png",
   vitaflowDashboard: "/assets/demos/vitaflow/dashboard.svg",
   vitaflowInventory: "/assets/demos/vitaflow/inventory.svg",
   vitaflowPurchase: "/assets/demos/vitaflow/purchase.svg",
@@ -51,11 +52,25 @@ const media = {
 
 export const demoAssetRoots = {
   approvedReference: "/assets/reference/",
+  avatars: "/assets/avatar/",
   vitaflow: "/assets/demos/vitaflow/",
   videos: "/assets/videos/higgsfield/",
   posters: "/assets/posters/higgsfield/",
   heroLoops: "/assets/loops/hero/",
 } as const;
+
+export const aiPharmacyAssistantAvatar: DemoMedia = {
+  id: "ai-pharmacy-assistant-avatar",
+  title: "AI Pharmacy Assistant avatar",
+  src: media.aiPharmacyAssistantAvatar,
+  alt: "AI Pharmacy Assistant avatar in the VitaKiosk demo.",
+  kind: "approved_reference",
+  channel: "avatar",
+  label: "Approved Avatar",
+  notes: "User-approved avatar image for the public interactive VitaKiosk mini app.",
+  aspect: "portrait",
+  replacementPath: "apps/site/public/assets/avatar/ai-pharmacy-assistant-avatar.png",
+};
 
 export const approvedVitaKioskReference: DemoMedia = {
   id: "vitakiosk-approved-reference",
@@ -186,6 +201,7 @@ export const demoVideoAssets = {
 } as const;
 
 export const demoAssets = {
+  aiPharmacyAssistantAvatar,
   approvedVitaKioskReference,
   vitaflow: vitaflowAssets,
   videos: demoVideoAssets,
