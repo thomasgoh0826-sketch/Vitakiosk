@@ -299,7 +299,7 @@ function GlobalStageBackground({ progress }: { progress: number }) {
   );
 }
 
-function GlobalGlowRippleBackdrop({ progress }: { progress: number }) {
+function GlobalGlowRippleBackdrop({ progress, debug = false }: { progress: number; debug?: boolean }) {
   const layerRef = useRef<HTMLDivElement | null>(null);
   const activeRipplesRef = useRef<HTMLSpanElement[]>([]);
   const rippleTimersRef = useRef<number[]>([]);
@@ -326,6 +326,9 @@ function GlobalGlowRippleBackdrop({ progress }: { progress: number }) {
     layer.dataset.performance = lowPerformance ? "low" : "standard";
     layer.dataset.maxRipples = String(maxRipples);
     layer.dataset.rippleThrottleMs = String(moveRippleThrottleMs);
+    if (debug) {
+      layer.dataset.debugRipple = "true";
+    }
     layer.style.setProperty("--glow-depth", progressRef.current.toFixed(3));
     if (reducedMotion.matches) {
       layer.dataset.reducedMotion = "true";
@@ -359,8 +362,8 @@ function GlobalGlowRippleBackdrop({ progress }: { progress: number }) {
       ripple.className = `global-ripple is-${kind}`;
       ripple.style.setProperty("--ripple-x", `${clientX.toFixed(1)}px`);
       ripple.style.setProperty("--ripple-y", `${clientY.toFixed(1)}px`);
-      ripple.style.setProperty("--ripple-size", kind === "move" ? (lowPerformance ? "72px" : "82px") : "164px");
-      ripple.style.setProperty("--ripple-opacity", kind === "move" ? (lowPerformance ? "0.11" : "0.14") : "0.2");
+      ripple.style.setProperty("--ripple-size", kind === "move" ? (lowPerformance ? "96px" : "128px") : "220px");
+      ripple.style.setProperty("--ripple-opacity", kind === "move" ? (lowPerformance ? "0.24" : "0.34") : "0.52");
       ripple.addEventListener("animationend", () => removeRipple(ripple), { once: true });
       registerTimer(() => {
         if (ripple.isConnected) {
@@ -473,7 +476,7 @@ function GlobalGlowRippleBackdrop({ progress }: { progress: number }) {
       activeRipplesRef.current.forEach((ripple) => ripple.remove());
       activeRipplesRef.current = [];
     };
-  }, []);
+  }, [debug]);
 
   return <div ref={layerRef} className="global-glow-backdrop" data-testid="global-glow-backdrop" aria-hidden="true" />;
 }
@@ -1998,9 +2001,10 @@ function HomeContent({ progress }: { progress: number }) {
 export function App() {
   const route = resolveRoute();
   const progress = useScrollProgress();
+  const debugRipple = typeof window !== "undefined" && new URLSearchParams(window.location.search).has("debugRipple");
   return (
     <div className="site-root">
-      <GlobalGlowRippleBackdrop progress={route === "/" ? progress : 0.35} />
+      <GlobalGlowRippleBackdrop progress={route === "/" ? progress : 0.35} debug={debugRipple} />
       {route !== "/" ? <RoutePage route={route} /> : <HomeContent progress={progress} />}
     </div>
   );

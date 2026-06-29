@@ -131,6 +131,15 @@ describe("VitaKiosk Asia site", () => {
     expect(document.querySelector("canvas.global-liquid-backdrop")).not.toBeInTheDocument();
   });
 
+  it("supports an obvious visual debug mode for glow ripple QA", async () => {
+    window.history.pushState({}, "", "/?debugRipple=1");
+    render(<App />);
+
+    await waitFor(() => {
+      expect(screen.getByTestId("global-glow-backdrop")).toHaveAttribute("data-debug-ripple", "true");
+    });
+  });
+
   it("drives the public VitaKiosk demo without backend devices", async () => {
     window.history.pushState({}, "", "/vitakiosk");
     render(<App />);
