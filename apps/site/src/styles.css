@@ -2976,7 +2976,8 @@ img {
 }
 
 .mini-right-rail {
-  grid-template-rows: minmax(230px, auto) auto 1fr;
+  align-content: start;
+  grid-template-rows: auto auto auto;
 }
 
 .mini-promotion-panel {
@@ -3058,8 +3059,18 @@ img {
 }
 
 .mini-assistance-panel {
+  display: grid;
+  gap: 8px;
+  align-content: start;
+  min-height: 0;
   border-color: rgba(255, 98, 138, 0.5);
   background: rgba(52, 9, 31, 0.7);
+}
+
+.mini-assistance-panel p {
+  margin: 0;
+  color: #f2d6df;
+  font-size: 13px;
 }
 
 .mini-assistance-panel[data-active="true"] {
@@ -3068,25 +3079,30 @@ img {
 
 .mini-assistance-panel button {
   width: 100%;
-  margin-top: 18px;
+  margin-top: 6px;
   border-color: rgba(255, 98, 138, 0.5);
   background: rgba(255, 98, 138, 0.1);
 }
 
 .mini-language-chips {
-  display: flex;
+  display: inline-flex;
   gap: 8px;
   align-items: center;
-  padding: 8px;
+  justify-self: start;
+  width: fit-content;
+  max-width: 100%;
+  padding: 6px;
   border: 1px solid rgba(53, 244, 232, 0.16);
-  border-radius: 999px;
+  border-radius: 18px;
   background: rgba(2, 12, 20, 0.64);
 }
 
 .mini-language-chips button {
+  min-width: 44px;
+  min-height: 40px;
   border: 1px solid rgba(53, 244, 232, 0.26);
   border-radius: 999px;
-  padding: 7px 12px;
+  padding: 7px 11px;
   color: var(--text);
   background: rgba(4, 18, 28, 0.84);
 }
@@ -3100,6 +3116,7 @@ img {
   color: #a8c2ce;
   font-size: 11px;
   font-weight: 800;
+  white-space: nowrap;
 }
 
 .mini-state-callout,
