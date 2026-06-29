@@ -2476,7 +2476,7 @@ img {
 .interactive-kiosk-mini-app {
   position: relative;
   width: min(1240px, 100%);
-  min-height: min(720px, calc(100vh - 110px));
+  min-height: 0;
   overflow: hidden;
   border: 1px solid rgba(53, 244, 232, 0.38);
   border-radius: 20px;
@@ -2982,8 +2982,7 @@ img {
 
 .mini-promotion-panel {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 10px;
+  grid-template-columns: minmax(0, 1fr);
   padding: 0;
   border: 0;
   background: transparent;
@@ -2991,18 +2990,19 @@ img {
 
 .mini-promotion-panel article {
   display: grid;
-  min-height: 220px;
+  min-height: 300px;
   place-items: center;
-  padding: 16px;
+  gap: 8px;
+  padding: 22px;
   text-align: center;
   background: radial-gradient(circle at 50% 36%, rgba(53, 244, 232, 0.24), rgba(23, 14, 70, 0.92));
 }
 
 .mini-leaflet-icon {
   display: block;
-  width: 66px;
-  height: 66px;
-  border-radius: 18px;
+  width: 96px;
+  height: 96px;
+  border-radius: 26px;
   background:
     radial-gradient(circle at 50% 36%, rgba(53, 244, 232, 0.52), transparent 60%),
     linear-gradient(135deg, #1fe5d5, #14afa6);
@@ -3016,12 +3016,14 @@ img {
 }
 
 .mini-promotion-panel strong {
-  font-size: 23px;
+  font-size: 30px;
+  line-height: 1.02;
 }
 
 .mini-promotion-panel b {
   color: var(--cyan);
-  font-size: 17px;
+  font-size: 22px;
+  line-height: 1.05;
 }
 
 .mini-promotion-panel em {
@@ -3341,7 +3343,7 @@ img {
   }
 
   .mini-promotion-panel {
-    grid-row: span 2;
+    grid-row: auto;
   }
 }
 
@@ -3450,8 +3452,8 @@ img {
   }
 
   .mini-kiosk-host:not(.mini-kiosk-fullscreen) .interactive-kiosk-mini-app {
-    max-height: min(680px, 120vh);
-    overflow: hidden;
+    max-height: none;
+    overflow: visible;
   }
 
   .mini-kiosk-fullscreen .mini-kiosk-layout {

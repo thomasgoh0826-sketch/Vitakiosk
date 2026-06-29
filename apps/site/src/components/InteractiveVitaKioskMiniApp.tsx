@@ -200,14 +200,6 @@ function KioskPromotionPanel({ active, onOpen }: { active: boolean; onOpen: () =
         <small>Active for {demoProduct.branch}</small>
         <em>Product education only</em>
       </article>
-      <article>
-        <span>VitaKiosk</span>
-        <i className="mini-leaflet-icon alt" />
-        <strong>Supplement</strong>
-        <b>Savings Demo</b>
-        <small>Ask pharmacist for advice</small>
-        <em>Sponsored education labelled</em>
-      </article>
     </button>
   );
 }

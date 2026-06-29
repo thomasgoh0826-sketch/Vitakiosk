@@ -180,6 +180,7 @@ describe("VitaKiosk Asia site", () => {
     expect(screen.getByRole("button", { name: "Tap to Speak" })).toHaveClass("mini-tap-button");
     expect(screen.getByRole("button", { name: "Product panel" })).toHaveClass("mini-product-panel");
     expect(screen.getByRole("button", { name: "Promotion leaflet" })).toHaveClass("mini-promotion-panel");
+    expect(document.querySelectorAll(".mini-promotion-panel article")).toHaveLength(1);
     expect(screen.getByRole("button", { name: "Shelf navigation map" })).toHaveClass("mini-shelf-panel");
     expect(screen.getByRole("button", { name: "Scan Product" })).toHaveClass("mini-scan-button");
     expect(screen.getByRole("button", { name: "Request assistance" }).closest(".mini-assistance-panel")).toHaveClass("mini-assistance-panel");
