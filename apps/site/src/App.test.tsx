@@ -18,6 +18,10 @@ describe("VitaKiosk Asia site", () => {
 
     const glowBackdrop = screen.getByTestId("global-glow-backdrop");
     expect(glowBackdrop).toBeInTheDocument();
+    expect(screen.getAllByTestId("global-glow-backdrop")).toHaveLength(1);
+    expect(glowBackdrop.closest(".site-root")).toBeInTheDocument();
+    expect(glowBackdrop.closest(".page-shell")).not.toBeInTheDocument();
+    expect(glowBackdrop.closest(".vitakiosk-mini-app")).not.toBeInTheDocument();
     expect(glowBackdrop).toHaveAttribute("data-effect", "pointer-glow-ripple");
     expect(glowBackdrop).toHaveAttribute("data-ripple-throttle-ms");
     expect(glowBackdrop).toHaveAttribute("data-max-ripples");
@@ -108,6 +112,8 @@ describe("VitaKiosk Asia site", () => {
 
     fireEvent.pointerMove(window, { clientX: 220, clientY: 180, pointerType: "mouse" });
     fireEvent.pointerDown(window, { clientX: 260, clientY: 210, pointerType: "mouse" });
+    fireEvent.touchMove(window, { touches: [{ clientX: 330, clientY: 280 }] });
+    fireEvent.touchStart(window, { touches: [{ clientX: 340, clientY: 300 }] });
 
     await waitFor(() => {
       expect(glowBackdrop.querySelector(".global-ripple")).toBeInTheDocument();

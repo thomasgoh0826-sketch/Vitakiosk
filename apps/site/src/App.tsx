@@ -299,7 +299,7 @@ function GlobalStageBackground({ progress }: { progress: number }) {
   );
 }
 
-function GlobalGlowBackdrop({ progress }: { progress: number }) {
+function GlobalGlowRippleBackdrop({ progress }: { progress: number }) {
   const layerRef = useRef<HTMLDivElement | null>(null);
   const activeRipplesRef = useRef<HTMLSpanElement[]>([]);
   const rippleTimersRef = useRef<number[]>([]);
@@ -384,7 +384,7 @@ function GlobalGlowBackdrop({ progress }: { progress: number }) {
       layer.style.setProperty("--glow-intensity", pendingPointer.intensity.toFixed(4));
     };
 
-    const getEventPoint = (event: PointerEvent) => {
+    const getEventPoint = (event: PointerEvent | Touch) => {
       const fallbackX = pendingPointer.x * Math.max(window.innerWidth, 1);
       const fallbackY = pendingPointer.y * Math.max(window.innerHeight, 1);
       return {
@@ -430,17 +430,43 @@ function GlobalGlowBackdrop({ progress }: { progress: number }) {
         registerTimer(() => addRipple(clientX, clientY, "splash-secondary"), 80);
       }
     };
+    const onTouchMove = (event: TouchEvent) => {
+      const touch = event.touches[0];
+      if (!touch) {
+        return;
+      }
+      const { clientX, clientY } = getEventPoint(touch);
+      queuePointer(clientX, clientY, 0.7);
+      const now = performance.now();
+      if (now - lastMoveRipple >= moveRippleThrottleMs) {
+        lastMoveRipple = now;
+        addRipple(clientX, clientY, "move");
+      }
+    };
+    const onTouchStart = (event: TouchEvent) => {
+      const touch = event.touches[0];
+      if (!touch) {
+        return;
+      }
+      const { clientX, clientY } = getEventPoint(touch);
+      queuePointer(clientX, clientY, 0.7);
+      addRipple(clientX, clientY, "splash");
+    };
     const onVisibilityChange = () => {
       paused = document.visibilityState === "hidden";
     };
 
     window.addEventListener("pointermove", onPointerMove, { passive: true });
     window.addEventListener("pointerdown", onPointerDown, { passive: true });
+    window.addEventListener("touchmove", onTouchMove, { passive: true });
+    window.addEventListener("touchstart", onTouchStart, { passive: true });
     document.addEventListener("visibilitychange", onVisibilityChange);
     return () => {
       window.cancelAnimationFrame(frame);
       window.removeEventListener("pointermove", onPointerMove);
       window.removeEventListener("pointerdown", onPointerDown);
+      window.removeEventListener("touchmove", onTouchMove);
+      window.removeEventListener("touchstart", onTouchStart);
       document.removeEventListener("visibilitychange", onVisibilityChange);
       rippleTimersRef.current.forEach((timer) => window.clearTimeout(timer));
       rippleTimersRef.current = [];
@@ -1885,7 +1911,6 @@ function RouteExperienceBody({ route, kind }: { route: string; kind: SiteFormKin
 function LegalPage({ title }: { title: string }) {
   return (
     <main className="page-shell route-page">
-      <GlobalGlowBackdrop progress={0.2} />
       <GlobalStageBackground progress={0.2} />
       <Header />
       <section className="route-hero compact-route">
@@ -1919,7 +1944,6 @@ function RoutePage({ route }: { route: string }) {
   if (route === "/checkout/success" || route === "/checkout/cancel") {
     return (
       <main className="page-shell route-page">
-        <GlobalGlowBackdrop progress={0.2} />
         <GlobalStageBackground progress={0.2} />
         <Header />
         <section className="route-hero checkout-state">
@@ -1945,7 +1969,6 @@ function RoutePage({ route }: { route: string }) {
 
   return (
     <main className="page-shell route-page">
-      <GlobalGlowBackdrop progress={0.35} />
       <GlobalStageBackground progress={0.35} />
       <Header />
       <RouteExperienceHero content={routeExperiences[route] || routeExperiences["/about"]!} />
@@ -1956,11 +1979,9 @@ function RoutePage({ route }: { route: string }) {
   );
 }
 
-function HomePage() {
-  const progress = useScrollProgress();
+function HomeContent({ progress }: { progress: number }) {
   return (
     <main className="page-shell" style={{ "--page-progress": progress } as React.CSSProperties}>
-      <GlobalGlowBackdrop progress={progress} />
       <GlobalStageBackground progress={progress} />
       <Header />
       <HeroPrologueScene progress={progress} />
@@ -1976,8 +1997,11 @@ function HomePage() {
 
 export function App() {
   const route = resolveRoute();
-  if (route !== "/") {
-    return <RoutePage route={route} />;
-  }
-  return <HomePage />;
+  const progress = useScrollProgress();
+  return (
+    <div className="site-root">
+      <GlobalGlowRippleBackdrop progress={route === "/" ? progress : 0.35} />
+      {route !== "/" ? <RoutePage route={route} /> : <HomeContent progress={progress} />}
+    </div>
+  );
 }
