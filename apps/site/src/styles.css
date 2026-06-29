@@ -2383,9 +2383,11 @@ img {
 }
 
 .showcase-orbit-controls button {
+  min-height: 44px;
   min-width: 96px;
   padding: 12px 14px;
   text-align: left;
+  transition: border-color var(--motion-fast) var(--ease-out), box-shadow var(--motion-fast) var(--ease-out), transform var(--motion-fast) var(--ease-out);
 }
 
 .showcase-orbit-controls button span,
@@ -2400,6 +2402,18 @@ img {
 .commerce-plan-rail button.is-active {
   border-color: var(--cyan);
   box-shadow: var(--shadow-glow);
+}
+
+.showcase-orbit-controls button:hover,
+.showcase-orbit-controls button:focus-visible {
+  border-color: rgba(53, 244, 232, 0.72);
+  box-shadow: 0 0 22px rgba(53, 244, 232, 0.18);
+  outline: none;
+  transform: translateY(-1px);
+}
+
+.showcase-orbit-controls button:active {
+  transform: translateY(0) scale(0.98);
 }
 
 .vitakiosk-demo-stage {

@@ -122,7 +122,7 @@ export const pricingItems: PricingItem[] = [
       "cancelled",
     ],
     includes: [
-      "iPad or kiosk-style demo setup",
+      "Tablet or kiosk-style demo setup",
       "Product education and shelf guidance",
       "Staff/pharmacist escalation",
       "Mock-first launch checklist",

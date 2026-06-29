@@ -84,7 +84,7 @@ const routeExperiences: Partial<Record<string, {
     secondaryCta: "View pricing",
     secondaryHref: "/pricing",
     visual: "showcase",
-    pulses: ["iPad mode", "Large kiosk", "ERP board", "AI website", "AI lessons"],
+    pulses: ["Tablet mode", "Large kiosk", "ERP board", "AI website", "AI lessons"],
   },
   "/solutions": {
     label: "Operating scenes",
@@ -526,6 +526,10 @@ function HeroPrologueScene({ progress }: { progress: number }) {
 
 function useScrollSceneController(sceneCount: number) {
   const [activeSceneIndex, setActiveSceneIndex] = useState(0);
+  const triggerRef = useRef<ReturnType<typeof ScrollTrigger.create> | null>(null);
+  const lastIndexRef = useRef(0);
+  const lastProgressRef = useRef(0);
+  const manualLockUntilRef = useRef(0);
 
   useEffect(() => {
     const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -536,15 +540,19 @@ function useScrollSceneController(sceneCount: number) {
     }
 
     gsap.registerPlugin(ScrollTrigger);
-    let lastIndex = 0;
-    let lastProgress = 0;
+    lastIndexRef.current = 0;
+    lastProgressRef.current = 0;
     const labels = Array.from({ length: sceneCount }, (_, index) => index / Math.max(sceneCount - 1, 1));
     const updateIndex = (progress: number, direction: number) => {
+      if (Date.now() < manualLockUntilRef.current) {
+        root.style.setProperty("--journey-progress", progress.toFixed(4));
+        return;
+      }
       const raw = progress * Math.max(sceneCount - 1, 1);
       const rounded = Math.min(sceneCount - 1, Math.max(0, Math.round(raw)));
-      const next = direction >= 0 ? Math.max(lastIndex, rounded) : Math.min(lastIndex, rounded);
-      if (next !== lastIndex) {
-        lastIndex = next;
+      const next = direction >= 0 ? Math.max(lastIndexRef.current, rounded) : Math.min(lastIndexRef.current, rounded);
+      if (next !== lastIndexRef.current) {
+        lastIndexRef.current = next;
         setActiveSceneIndex(next);
       }
       root.style.setProperty("--journey-progress", progress.toFixed(4));
@@ -559,8 +567,8 @@ function useScrollSceneController(sceneCount: number) {
       scrub: 0.48,
       invalidateOnRefresh: true,
       onUpdate: (self) => {
-        const direction = self.direction || (self.progress >= lastProgress ? 1 : -1);
-        lastProgress = self.progress;
+        const direction = self.direction || (self.progress >= lastProgressRef.current ? 1 : -1);
+        lastProgressRef.current = self.progress;
         updateIndex(self.progress, direction);
       },
       snap: {
@@ -571,6 +579,7 @@ function useScrollSceneController(sceneCount: number) {
         ease: "power2.out",
       },
     });
+    triggerRef.current = trigger;
 
     const refresh = () => ScrollTrigger.refresh();
     window.addEventListener("load", refresh);
@@ -584,11 +593,34 @@ function useScrollSceneController(sceneCount: number) {
     return () => {
       images.forEach((image) => image.removeEventListener("load", refresh));
       window.removeEventListener("load", refresh);
+      triggerRef.current = null;
       trigger.kill();
     };
   }, [sceneCount]);
 
-  return activeSceneIndex;
+  const goToScene = (index: number) => {
+    const boundedIndex = Math.min(sceneCount - 1, Math.max(0, index));
+    const progress = sceneCount <= 1 ? 0 : boundedIndex / (sceneCount - 1);
+    lastIndexRef.current = boundedIndex;
+    manualLockUntilRef.current = Date.now() + 700;
+    setActiveSceneIndex(boundedIndex);
+
+    const trigger = triggerRef.current;
+    if (trigger) {
+      const y = trigger.start + (trigger.end - trigger.start) * progress;
+      window.scrollTo({ top: y, behavior: "smooth" });
+      window.setTimeout(() => {
+        manualLockUntilRef.current = 0;
+        ScrollTrigger.update();
+      }, 760);
+    } else {
+      window.setTimeout(() => {
+        manualLockUntilRef.current = 0;
+      }, 360);
+    }
+  };
+
+  return { activeSceneIndex, goToScene };
 }
 
 function ScrollSceneController({
@@ -596,10 +628,10 @@ function ScrollSceneController({
   children,
 }: {
   sceneCount: number;
-  children: (activeSceneIndex: number) => React.ReactNode;
+  children: (activeSceneIndex: number, goToScene: (index: number) => void) => React.ReactNode;
 }) {
-  const activeSceneIndex = useScrollSceneController(sceneCount);
-  return <>{children(activeSceneIndex)}</>;
+  const { activeSceneIndex, goToScene } = useScrollSceneController(sceneCount);
+  return <>{children(activeSceneIndex, goToScene)}</>;
 }
 
 function AbstractDeviceVisual({ scene }: { scene: ShowcaseScene }) {
@@ -618,10 +650,20 @@ function AbstractDeviceVisual({ scene }: { scene: ShowcaseScene }) {
   );
 }
 
-function SystemShowcaseStage({ activeSceneIndex }: { activeSceneIndex?: number }) {
+function SystemShowcaseStage({
+  activeSceneIndex,
+  onSceneSelect,
+}: {
+  activeSceneIndex?: number;
+  onSceneSelect?: (index: number) => void;
+}) {
   const [localIndex, setLocalIndex] = useState(0);
   const activeIndex = activeSceneIndex ?? localIndex;
   const activeScene = showcaseScenes[activeIndex % showcaseScenes.length];
+  const handleSceneSelect = (index: number) => {
+    setLocalIndex(index);
+    onSceneSelect?.(index);
+  };
 
   return (
     <section className="system-showcase-stage" id="showcase" aria-label="VitaKiosk Asia system showcase">
@@ -639,9 +681,11 @@ function SystemShowcaseStage({ activeSceneIndex }: { activeSceneIndex?: number }
         <div className="showcase-orbit-controls" aria-label="Showcase scenes">
           {showcaseScenes.map((scene, index) => (
             <button
+              type="button"
               key={scene.id}
               className={index === activeIndex ? "is-active" : ""}
-              onClick={() => setLocalIndex(index)}
+              aria-pressed={index === activeIndex}
+              onClick={() => handleSceneSelect(index)}
             >
               <span>{String(index + 1).padStart(2, "0")}</span>
               {scene.shortTitle}
@@ -732,7 +776,7 @@ function ImmersiveJourney() {
 
   return (
     <ScrollSceneController sceneCount={journeyStepCount}>
-      {(activeSceneIndex) => {
+      {(activeSceneIndex, goToScene) => {
         const isShowcaseActive = activeSceneIndex < showcaseStepCount;
         const showcaseIndex = Math.min(activeSceneIndex, showcaseStepCount - 1);
         const demoIndex = showcaseStepCount;
@@ -743,7 +787,7 @@ function ImmersiveJourney() {
         return (
           <section className="authored-journey" aria-label="VitaKiosk Asia immersive journey">
             <div className="journey-scene" data-active={isShowcaseActive}>
-              <SystemShowcaseStage activeSceneIndex={showcaseIndex} />
+              <SystemShowcaseStage activeSceneIndex={showcaseIndex} onSceneSelect={goToScene} />
             </div>
             <div className="journey-scene" data-active={activeSceneIndex === demoIndex}>
               <VitaKioskDemoStage />

@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, describe, expect, it } from "vitest";
 import { App } from "./App";
@@ -61,6 +61,38 @@ describe("VitaKiosk Asia site", () => {
     expect(screen.queryByText("MOCK-P001")).not.toBeInTheDocument();
     expect(screen.getByText(/Connected product experience/i)).toBeInTheDocument();
     expect(screen.getAllByText(/Product education and where-to-buy guidance only/i).length).toBeGreaterThan(0);
+  });
+
+  it("uses Tablet showcase tabs as clickable scene navigation", async () => {
+    const user = userEvent.setup();
+    render(<App />);
+    const showcase = screen.getByLabelText("VitaKiosk Asia system showcase");
+    const scope = within(showcase);
+
+    const tabletTab = scope.getByRole("button", { name: /01\s+Tablet/i });
+    const kioskTab = scope.getByRole("button", { name: /02\s+Kiosk/i });
+    const erpTab = scope.getByRole("button", { name: /03\s+ERP/i });
+    const websiteTab = scope.getByRole("button", { name: /04\s+Website/i });
+    const academyTab = scope.getByRole("button", { name: /05\s+Academy/i });
+
+    expect(tabletTab).toHaveAttribute("aria-pressed", "true");
+    expect(scope.queryByText(/\biPad\b/i)).not.toBeInTheDocument();
+
+    await user.click(erpTab);
+    expect(erpTab).toHaveAttribute("aria-pressed", "true");
+    expect(scope.getByRole("heading", { name: /ERP remains the source of truth/i })).toBeInTheDocument();
+
+    await user.click(websiteTab);
+    expect(websiteTab).toHaveAttribute("aria-pressed", "true");
+    expect(scope.getByRole("heading", { name: /website becomes a growth surface/i })).toBeInTheDocument();
+
+    await user.click(academyTab);
+    expect(academyTab).toHaveAttribute("aria-pressed", "true");
+    expect(scope.getByRole("heading", { name: /Teams learn the workflow/i })).toBeInTheDocument();
+
+    await user.click(kioskTab);
+    expect(kioskTab).toHaveAttribute("aria-pressed", "true");
+    expect(scope.getByRole("heading", { name: /large kiosk that feels alive/i })).toBeInTheDocument();
   });
 
   it("keeps the global glow ripple effect lightweight and bounded", async () => {

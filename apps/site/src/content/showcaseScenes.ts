@@ -15,10 +15,10 @@ export interface ShowcaseScene {
 
 export const showcaseScenes: ShowcaseScene[] = [
   {
-    id: "vitakiosk-ipad",
+    id: "vitakiosk-tablet",
     title: "Product education before the counter.",
-    shortTitle: "iPad",
-    eyebrow: "VitaKiosk iPad",
+    shortTitle: "Tablet",
+    eyebrow: "VitaKiosk Tablet",
     copy: "Tap, search, scan, enlarge, route, and request staff help inside a safe simulated kiosk flow.",
     cta: "Try the demo",
     href: "/vitakiosk#interactive-demo",

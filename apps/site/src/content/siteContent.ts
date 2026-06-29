@@ -135,11 +135,11 @@ export const storyScenes = [
 
 export const showcaseItems = [
   {
-    id: "ipad",
-    title: "VitaKiosk iPad",
+    id: "tablet",
+    title: "VitaKiosk Tablet",
     strap: "Counter-adjacent product education",
     description:
-      "Shows the current mock demo as an iPad/tablet experience with product facts, promotions, shelf guidance, and staff escalation.",
+      "Shows the current public demo as a tablet experience with product facts, promotions, shelf guidance, and staff escalation.",
   },
   {
     id: "large",
