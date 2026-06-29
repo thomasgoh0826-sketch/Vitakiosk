@@ -455,8 +455,14 @@ function GlobalGlowBackdrop({ progress }: { progress: number }) {
 function OrbitRibbon() {
   return (
     <div className="business-orbit" aria-label="VitaKiosk Asia business lines">
-      <svg className="connection-map" viewBox="0 0 1000 220" role="img" aria-label="Animated light path connecting the four business lines">
-        <path d="M80 150 C220 50 360 210 500 110 C640 15 770 185 925 85" />
+      <svg
+        className="connection-map"
+        viewBox="0 0 100 100"
+        preserveAspectRatio="none"
+        role="img"
+        aria-label="Animated light path connecting the four business lines"
+      >
+        <path d="M12 56 C22 40 28 39 35 38 C46 36 50 70 61 56 C69 45 75 54 88 42" />
       </svg>
       {businessLines.map((line, index) => (
         <SmartLink
