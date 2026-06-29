@@ -48,6 +48,21 @@ describe("VitaKiosk Asia site", () => {
     expect(document.querySelectorAll('.video-orbit-card[data-orbit-distance="far"]').length).toBeGreaterThan(0);
   });
 
+  it("does not show internal demo provenance badges on the public homepage", () => {
+    render(<App />);
+
+    expect(screen.queryByText(/Mock mode/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/No customer data/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/VitaFlow-ready/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/System provenance/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/Fictional mock leaflet/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/Current mock VitaFlow product price/i)).not.toBeInTheDocument();
+    expect(screen.queryByText("Mock VitaFlow")).not.toBeInTheDocument();
+    expect(screen.queryByText("MOCK-P001")).not.toBeInTheDocument();
+    expect(screen.getByText(/Connected product experience/i)).toBeInTheDocument();
+    expect(screen.getAllByText(/Product education and where-to-buy guidance only/i).length).toBeGreaterThan(0);
+  });
+
   it("keeps the global glow ripple effect lightweight and bounded", async () => {
     render(<App />);
     const glowBackdrop = screen.getByTestId("global-glow-backdrop");

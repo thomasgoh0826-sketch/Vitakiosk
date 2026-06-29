@@ -41,7 +41,7 @@ export const showcaseScenes: ShowcaseScene[] = [
     title: "ERP remains the source of truth.",
     shortTitle: "ERP",
     eyebrow: "VitaFlow ERP",
-    copy: "Product, stock, shelf, price, and campaign facts stay tied to mock VitaFlow data until live connectors are reviewed.",
+    copy: "Product, stock, shelf, price, and campaign facts stay tied to reviewed VitaFlow data.",
     cta: "View VitaFlow",
     href: "/vitaflow",
     visual: "erp",

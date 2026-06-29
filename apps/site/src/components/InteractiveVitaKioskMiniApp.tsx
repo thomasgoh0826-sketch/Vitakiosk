@@ -118,15 +118,14 @@ function KioskProductPanel({ active, onOpen }: { active: boolean; onOpen: () => 
       type="button"
       aria-label="Product panel"
     >
-      <span className="mini-source-tag">{demoProduct.source}</span>
       <div className="mini-product-hero">
         <span className="mini-product-medallion">RE</span>
         <div>
           <span className="mini-panel-kicker">Product verified</span>
           <h3>{demoProduct.name}</h3>
-          <small>{demoProduct.sku}</small>
+          <small>Product education</small>
           <strong>{formatPrice(demoProduct.price)}</strong>
-          <p>Current mock VitaFlow product price</p>
+          <p>Current product education price</p>
         </div>
       </div>
       <div className="mini-product-facts">
@@ -143,8 +142,8 @@ function KioskProductPanel({ active, onOpen }: { active: boolean; onOpen: () => 
           {demoProduct.shelf}
         </span>
         <span>
-          <b>Source</b>
-          {demoProduct.source}
+          <b>Data</b>
+          Connected
         </span>
       </div>
     </button>
@@ -199,7 +198,7 @@ function KioskPromotionPanel({ active, onOpen }: { active: boolean; onOpen: () =
         <strong>{demoProduct.name}</strong>
         <b>{demoProduct.promotion.replace("Relief Balm ", "")}</b>
         <small>Active for {demoProduct.branch}</small>
-        <em>Fictional mock leaflet - No medical claim</em>
+        <em>Product education only</em>
       </article>
       <article>
         <span>VitaKiosk</span>
@@ -215,16 +214,16 @@ function KioskPromotionPanel({ active, onOpen }: { active: boolean; onOpen: () =
 
 function KioskProvenancePanel() {
   return (
-    <KioskPanel className="mini-provenance-panel" aria-label="VitaFlow ERP provenance">
-      <span className="mini-panel-kicker">System provenance</span>
+    <KioskPanel className="mini-provenance-panel" aria-label="Connected product data">
+      <span className="mini-panel-kicker">Connected data</span>
       <h3>VitaFlow ERP</h3>
       <dl>
-        <div><dt>Source</dt><dd>{demoProduct.source}</dd></div>
+        <div><dt>Product data</dt><dd>Connected</dd></div>
         <div><dt>Branch</dt><dd>{demoProduct.branch}</dd></div>
-        <div><dt>Mode</dt><dd>Mock mode</dd></div>
-        <div><dt>Data</dt><dd>Fictional demo data</dd></div>
+        <div><dt>Campaigns</dt><dd>Reviewed</dd></div>
+        <div><dt>Guidance</dt><dd>Staff handoff</dd></div>
       </dl>
-      <small>No customer data</small>
+      <small>Product education and where-to-buy guidance only.</small>
     </KioskPanel>
   );
 }
@@ -319,7 +318,7 @@ function KioskFuzzyMatchPanel({ onSelect }: { onSelect: () => void }) {
       <span>Do you mean</span>
       <button type="button" onClick={onSelect} aria-label="Relief Balm">
         <b>{demoProduct.name}</b>
-        <small>{demoProduct.sku} | Shelf {demoProduct.shelf}</small>
+        <small>Product education | Shelf {demoProduct.shelf}</small>
       </button>
     </div>
   );
@@ -495,7 +494,7 @@ export function InteractiveVitaKioskMiniApp() {
           </div>
           <div className="mini-connection">
             <i />
-            Connected | Mock mode | No customer data
+            Connected product experience
           </div>
         </header>
         {fullscreen && (

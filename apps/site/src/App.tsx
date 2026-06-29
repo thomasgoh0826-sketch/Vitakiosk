@@ -494,14 +494,6 @@ function HeroPrologueScene({ progress }: { progress: number }) {
           <div className="hero-device-panel promo-mini" />
           <div className="device-glass" />
         </div>
-        <div className="floating-panel panel-top">
-          <span>Mock mode</span>
-          <strong>No customer data</strong>
-        </div>
-        <div className="floating-panel panel-right">
-          <span>Source</span>
-          <strong>VitaFlow-ready</strong>
-        </div>
       </div>
       <div className="hero-copy">
         <h1>Build smarter pharmacies, clinics, and AI-powered businesses.</h1>
@@ -698,7 +690,7 @@ function VitaFlowSourceScene() {
         <div className="erp-core-board">
           <span>Product</span>
           <strong>{demoProduct.name}</strong>
-          <small>{demoProduct.sku}</small>
+          <small>Product education</small>
           <b>{`$${demoProduct.price.toFixed(2)}`}</b>
         </div>
         {["Stock 18", "Shelf A-03", "Branch SG-001", "Promotion reviewed"].map((label, index) => (

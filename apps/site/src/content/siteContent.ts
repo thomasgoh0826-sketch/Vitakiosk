@@ -41,7 +41,7 @@ export const businessLines = [
   {
     id: "vitaflow",
     title: "VitaFlow ERP",
-    phrase: "Source of truth",
+    phrase: "Product data hub",
     Icon: BarChart3,
     href: "/vitaflow",
     copy:
