@@ -122,9 +122,17 @@ def test_ai_response_returns_authoritative_product(client: TestClient) -> None:
         "productId": "MOCK-P001",
         "promotionId": None,
         "campaignId": None,
+        "shelf": None,
+        "reason": None,
     }
-    assert payload["ui_actions"][1]["type"] == "SHOW_PROMOTION_LEAFLET"
-    assert payload["ui_actions"][1]["promotionId"] == "MOCK-LF-PROMO-001"
+    assert payload["ui_actions"][1] == {
+        "type": "OPEN_PRODUCT_DETAIL",
+        "productId": "MOCK-P001",
+        "promotionId": None,
+        "campaignId": None,
+        "shelf": None,
+        "reason": None,
+    }
     assert [leaflet["id"] for leaflet in payload["leaflets"]] == [
         "MOCK-LF-PROMO-001",
         "MOCK-LF-PROMO-002",

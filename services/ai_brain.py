@@ -60,7 +60,10 @@ class MockAIBrain:
                 escalation_id=escalation.id,
                 safety_reason=safety.reason_code,
                 ui_actions=(
-                    UiAction(type=UiActionType.REQUEST_PHARMACIST_ASSISTANCE),
+                    UiAction(
+                        type=UiActionType.REQUEST_PHARMACIST_ASSISTANCE,
+                        reason=self._ui_safety_reason(safety.reason_code),
+                    ),
                 ),
             )
 
@@ -89,6 +92,7 @@ class MockAIBrain:
                         requested_intent,
                         best_candidate.product,
                         branch_id,
+                        lookup_text=lookup_text,
                         session_id=session_id,
                     )
                 self._clear_pending(session_id)
@@ -129,6 +133,7 @@ class MockAIBrain:
             requested_intent,
             product,
             branch_id,
+            lookup_text=lookup_text,
             session_id=session_id,
         )
 
@@ -155,6 +160,7 @@ class MockAIBrain:
         product: Product,
         branch_id: str,
         *,
+        lookup_text: str,
         session_id: str | None,
     ) -> AIResult:
         promotions = tuple(self._promotion_engine.match(product.id, branch_id))
@@ -176,6 +182,9 @@ class MockAIBrain:
         ui_actions: list[UiAction] = [
             UiAction(type=UiActionType.SHOW_PRODUCT, productId=product.id)
         ]
+        auto_open_product_detail = self._should_open_product_detail(intent, lookup_text)
+        explicit_promotion_request = intent is Intent.PROMOTION_CHECK
+        explicit_shelf_request = intent is Intent.SHELF_LOCATION
 
         if intent is Intent.PRICE_CHECK:
             message = self._authoritative_value_message(
@@ -225,23 +234,44 @@ class MockAIBrain:
 
         if product_promotional_leaflets:
             promotion_leaflet = product_promotional_leaflets[0]
-            ui_actions.append(
-                UiAction(
-                    type=UiActionType.SHOW_PROMOTION_LEAFLET,
-                    promotionId=promotion_leaflet.id,
+            if explicit_promotion_request:
+                ui_actions.append(
+                    UiAction(
+                        type=UiActionType.OPEN_PROMOTION_MODAL,
+                        productId=product.id,
+                        promotionId=promotion_leaflet.id,
+                    )
                 )
-            )
-            if intent is not Intent.PRODUCT_COUNSELLING:
+                self._clear_pending(session_id)
+            else:
+                if not (auto_open_product_detail or explicit_shelf_request):
+                    ui_actions.append(
+                        UiAction(
+                            type=UiActionType.SHOW_PROMOTION_LEAFLET,
+                            productId=product.id,
+                            promotionId=promotion_leaflet.id,
+                        )
+                    )
+                if intent is not Intent.PRODUCT_COUNSELLING and not (
+                    auto_open_product_detail or explicit_shelf_request
+                ):
+                    self._set_pending(
+                        session_id,
+                        UiAction(
+                            type=UiActionType.OPEN_PROMOTION_MODAL,
+                            productId=product.id,
+                            promotionId=promotion_leaflet.id,
+                        ),
+                    )
+                elif intent is not Intent.PRODUCT_COUNSELLING:
+                    self._clear_pending(session_id)
+
+            if intent is not Intent.PRODUCT_COUNSELLING and not (
+                auto_open_product_detail or explicit_shelf_request
+            ):
                 message = self._with_product_promotion_message(
                     message,
                     promotion_leaflet,
-                )
-                self._set_pending(
-                    session_id,
-                    UiAction(
-                        type=UiActionType.OPEN_PROMOTION_MODAL,
-                        promotionId=promotion_leaflet.id,
-                    ),
                 )
         elif intent is not Intent.CAMPAIGN_CHECK:
             message = self._with_no_product_promotion_message(message)
@@ -268,6 +298,25 @@ class MockAIBrain:
             self._set_pending(
                 session_id,
                 UiAction(type=UiActionType.REQUEST_PHARMACIST_ASSISTANCE),
+            )
+
+        if auto_open_product_detail:
+            ui_actions.insert(
+                1,
+                UiAction(
+                    type=UiActionType.OPEN_PRODUCT_DETAIL,
+                    productId=product.id,
+                ),
+            )
+
+        if explicit_shelf_request:
+            ui_actions.insert(
+                1,
+                UiAction(
+                    type=UiActionType.OPEN_SHELF_MAP,
+                    productId=product.id,
+                    shelf=product.shelf_location,
+                ),
             )
 
         return AIResult(
@@ -401,6 +450,30 @@ class MockAIBrain:
         }
 
     @staticmethod
+    def _should_open_product_detail(intent: Intent, text: str) -> bool:
+        normalized = text.casefold()
+        return (
+            intent in {Intent.PRICE_CHECK, Intent.STOCK_CHECK}
+            or any(
+                phrase in normalized
+                for phrase in (
+                    "detail",
+                    "details",
+                    "tell me about",
+                    "what is relief balm",
+                    "used for",
+                    "what is it",
+                )
+            )
+        )
+
+    @staticmethod
+    def _ui_safety_reason(reason_code: str | None) -> str:
+        if reason_code in {"pregnancy_safety", "red_flag"}:
+            return "pregnancy_or_red_flag"
+        return reason_code or "safety_handoff"
+
+    @staticmethod
     def _with_product_promotion_message(message: str, leaflet: Leaflet) -> str:
         if "active promotion" in message.casefold():
             return f"{message} Would you like me to enlarge the promotion leaflet?"
@@ -486,7 +559,10 @@ class LiveAIPlaceholder:
                 escalation_id=escalation.id,
                 safety_reason=safety.reason_code,
                 ui_actions=(
-                    UiAction(type=UiActionType.REQUEST_PHARMACIST_ASSISTANCE),
+                    UiAction(
+                        type=UiActionType.REQUEST_PHARMACIST_ASSISTANCE,
+                        reason=MockAIBrain._ui_safety_reason(safety.reason_code),
+                    ),
                 ),
             )
         raise RuntimeError(

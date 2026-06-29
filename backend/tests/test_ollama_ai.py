@@ -80,7 +80,7 @@ def test_ollama_uses_structured_json_answer_without_overriding_vitaflow_facts() 
     assert result.product.price == 12.5
     assert [action.type for action in result.ui_actions] == [
         "SHOW_PRODUCT",
-        "SHOW_PROMOTION_LEAFLET",
+        "OPEN_PRODUCT_DETAIL",
     ]
     assert result.source == "ollama"
     assert len(transport.requests) == 1
@@ -102,7 +102,7 @@ def test_ollama_accepts_whitelisted_string_ui_actions_from_real_model_style() ->
                 "intent": "price_check",
                 "answer": "Relief Balm is $12.50 according to VitaFlow mock data.",
                 "emotion": "friendly",
-                "ui_actions": ["SHOW_PRODUCT", "SHOW_PROMOTION_LEAFLET"],
+                "ui_actions": ["SHOW_PRODUCT", "OPEN_PRODUCT_DETAIL"],
                 "requires_pharmacist": False,
                 "safety_notes": [],
             }
@@ -114,7 +114,7 @@ def test_ollama_accepts_whitelisted_string_ui_actions_from_real_model_style() ->
     assert result.source == "ollama"
     assert [action.type for action in result.ui_actions] == [
         "SHOW_PRODUCT",
-        "SHOW_PROMOTION_LEAFLET",
+        "OPEN_PRODUCT_DETAIL",
     ]
 
 

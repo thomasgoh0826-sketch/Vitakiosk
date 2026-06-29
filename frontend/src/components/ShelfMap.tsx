@@ -9,6 +9,7 @@ const AISLE_NUMBER_PATTERN = /\d+/;
 interface ShelfMapProps {
   product: Product | null;
   labels?: KioskTranslations;
+  openMapToken?: number;
 }
 
 interface ShelfRouteData {
@@ -194,9 +195,17 @@ function ShelfMapViewer({
   return createPortal(modal, document.body);
 }
 
-function ShelfMap({ product, labels = translations.en }: ShelfMapProps) {
+function ShelfMap({ product, labels = translations.en, openMapToken = 0 }: ShelfMapProps) {
   const [isViewerOpen, setIsViewerOpen] = useState(false);
   const route = getShelfRouteData(product);
+
+  useEffect(() => {
+    if (!product || openMapToken <= 0) {
+      return;
+    }
+
+    setIsViewerOpen(true);
+  }, [openMapToken, product]);
 
   const openViewer = () => {
     setIsViewerOpen(true);

@@ -360,6 +360,57 @@ describe("integrated kiosk panels", () => {
     expect(screen.queryByText(/NAVIGATE_UNSAFE_DEBUG_PAGE/i)).not.toBeInTheDocument();
   });
 
+  it("executes OPEN_PRODUCT_DETAIL by opening the enlarged product detail viewer", () => {
+    hookMocks.voice.mockReturnValue({
+      ...hookMocks.voice(),
+      uiActions: [
+        { type: "SHOW_PRODUCT", productId: "MOCK-P001" },
+        { type: "OPEN_PRODUCT_DETAIL", productId: "MOCK-P001" },
+      ],
+    });
+
+    render(<App />);
+
+    expect(screen.getByRole("dialog", { name: /enlarged product details/i })).toBeInTheDocument();
+    expect(screen.getByTestId("product-viewer-stage")).toHaveAttribute(
+      "data-product-view",
+      "details",
+    );
+  });
+
+  it("executes OPEN_SHELF_MAP by opening the enlarged route viewer", () => {
+    hookMocks.voice.mockReturnValue({
+      ...hookMocks.voice(),
+      uiActions: [
+        { type: "SHOW_PRODUCT", productId: "MOCK-P001" },
+        { type: "OPEN_SHELF_MAP", productId: "MOCK-P001", shelf: "A-03" },
+      ],
+    });
+
+    render(<App />);
+
+    const dialog = screen.getByRole("dialog", { name: /enlarged shelf navigation map/i });
+    expect(dialog).toBeInTheDocument();
+    expect(within(dialog).getAllByText("Shelf A-03").length).toBeGreaterThan(0);
+  });
+
+  it("ignores malformed auto-enlarge actions safely", () => {
+    hookMocks.voice.mockReturnValue({
+      ...hookMocks.voice(),
+      uiActions: [
+        { type: "OPEN_PRODUCT_DETAIL" },
+        { type: "OPEN_SHELF_MAP", shelf: "A-03" },
+        { type: "OPEN_PROMOTION_MODAL", productId: "UNKNOWN-PRODUCT" },
+      ],
+    });
+
+    render(<App />);
+
+    expect(screen.queryByRole("dialog", { name: /enlarged product details/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole("dialog", { name: /enlarged shelf navigation map/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole("dialog", { name: /leaflet preview/i })).not.toBeInTheDocument();
+  });
+
   it("executes explicit leaflet open aliases while ignoring arbitrary action names", () => {
     hookMocks.voice.mockReturnValue({
       ...hookMocks.voice(),

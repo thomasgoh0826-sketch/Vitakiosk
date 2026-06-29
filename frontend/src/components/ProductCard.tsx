@@ -18,6 +18,7 @@ interface ProductCardProps {
   labels?: KioskTranslations;
   language?: KioskLanguage;
   hasActivePromotion?: boolean;
+  openDetailsToken?: number;
 }
 
 type ProductViewMode = "details" | "summary";
@@ -105,6 +106,7 @@ function ProductCard({
   labels = translations.en,
   language = "en",
   hasActivePromotion = false,
+  openDetailsToken = 0,
 }: ProductCardProps) {
   const [isSummaryVisible, setIsSummaryVisible] = useState(false);
   const [enlargedView, setEnlargedView] = useState<ProductViewMode | null>(null);
@@ -124,6 +126,15 @@ function ProductCard({
     setEnlargedView(null);
     clearPendingToggle();
   }, [product?.id]);
+
+  useEffect(() => {
+    if (!product || openDetailsToken <= 0) {
+      return;
+    }
+
+    clearPendingToggle();
+    setEnlargedView("details");
+  }, [openDetailsToken, product]);
 
   useEffect(() => () => clearPendingToggle(), []);
 

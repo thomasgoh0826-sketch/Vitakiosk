@@ -185,6 +185,10 @@ Before showing the local demo, verify:
 - Unknown products create purchasing queries instead of guessed product facts.
 - Ollama output is accepted only as structured, validated, safe wording.
 - Frontend executes only whitelisted `ui_actions`.
+- Product detail, promotion leaflet, and shelf map auto-enlarge behavior must
+  come from whitelisted `OPEN_PRODUCT_DETAIL`, `OPEN_PROMOTION_MODAL`, and
+  `OPEN_SHELF_MAP` actions with adapter-backed IDs. Unknown or malformed action
+  payloads are ignored.
 - No real customer audio, transcripts, logs, or screenshots are committed.
 
 ## Manual microphone QA checklist

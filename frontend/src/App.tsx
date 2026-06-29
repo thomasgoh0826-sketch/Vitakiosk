@@ -65,12 +65,42 @@ function isLeafletActiveForBranch(leaflet: Leaflet, branchId: string) {
   );
 }
 
+function getActionStringField(
+  action: UiAction,
+  field: "productId" | "promotionId" | "campaignId" | "shelf",
+) {
+  const value = (action as Partial<Record<typeof field, unknown>>)[field];
+  return typeof value === "string" && value.trim().length > 0 ? value : null;
+}
+
+function actionTargetsProduct(action: UiAction, product: Product | null) {
+  return Boolean(product && getActionStringField(action, "productId") === product.id);
+}
+
+function actionTargetsShelf(action: UiAction, product: Product | null) {
+  if (!actionTargetsProduct(action, product)) {
+    return false;
+  }
+  const actionShelf = getActionStringField(action, "shelf");
+  if (!actionShelf) {
+    return true;
+  }
+  return actionShelf === product?.shelf_location;
+}
+
 function findLeaflet(leaflets: Leaflet[], action: UiAction) {
   if ("promotionId" in action) {
     return leaflets.find((leaflet) => leaflet.id === action.promotionId) ?? null;
   }
   if ("campaignId" in action) {
     return leaflets.find((leaflet) => leaflet.id === action.campaignId) ?? null;
+  }
+  const productId = getActionStringField(action, "productId");
+  if (productId) {
+    return leaflets.find((leaflet) =>
+      leaflet.kind === "promotion"
+      && leaflet.product_ids.includes(productId),
+    ) ?? null;
   }
   return null;
 }
@@ -114,6 +144,8 @@ function App() {
   const [providerStatusUnavailable, setProviderStatusUnavailable] = useState(false);
   const [pharmacistConfirmationRequested, setPharmacistConfirmationRequested] =
     useState(false);
+  const [productDetailOpenToken, setProductDetailOpenToken] = useState(0);
+  const [shelfMapOpenToken, setShelfMapOpenToken] = useState(0);
   const [selectedProductCandidate, setSelectedProductCandidate] =
     useState<ProductSearchCandidate | null>(null);
   const [scanOverlayOpen, setScanOverlayOpen] = useState(false);
@@ -212,6 +244,8 @@ function App() {
     setPromotionPanelMode("idle");
     setSelectedLeafletId(null);
     setModalLeafletId(null);
+    setProductDetailOpenToken(0);
+    setShelfMapOpenToken(0);
     setTypedQuestion("");
     setTypedInputResetToken((current) => current + 1);
     voice.reset();
@@ -298,9 +332,20 @@ function App() {
           }
           break;
         }
-        case "OPEN_PROMOTION_MODAL": {
+        case "HIGHLIGHT_PROMOTION": {
           const leaflet = findLeaflet(leaflets, action);
           if (leaflet) {
+            setSelectedLeafletId(leaflet.id);
+            setPromotionPanelMode("product_promotion");
+            panelWasControlled = true;
+          }
+          break;
+        }
+        case "OPEN_PROMOTION_MODAL": {
+          const leaflet = findLeaflet(leaflets, action);
+          const productPayloadIsSafe = !getActionStringField(action, "productId")
+            || actionTargetsProduct(action, product);
+          if (leaflet && productPayloadIsSafe) {
             setSelectedLeafletId(leaflet.id);
             setPromotionPanelMode("product_promotion");
             setModalLeafletId(leaflet.id);
@@ -365,6 +410,34 @@ function App() {
           break;
         case "REQUEST_PHARMACIST_ASSISTANCE":
           setModalLeafletId(null);
+          break;
+        case "OPEN_PRODUCT_DETAIL":
+          if (actionTargetsProduct(action, product)) {
+            setModalLeafletId(null);
+            setProductDetailOpenToken((current) => current + 1);
+            panelWasControlled = true;
+          }
+          break;
+        case "HIGHLIGHT_PRODUCT":
+          if (actionTargetsProduct(action, product)) {
+            panelWasControlled = true;
+          }
+          break;
+        case "OPEN_SHELF_MAP":
+          if (actionTargetsShelf(action, product)) {
+            setModalLeafletId(null);
+            setShelfMapOpenToken((current) => current + 1);
+            panelWasControlled = true;
+          }
+          break;
+        case "HIGHLIGHT_SHELF_ROUTE":
+          if (actionTargetsShelf(action, product)) {
+            panelWasControlled = true;
+          }
+          break;
+        case "CLOSE_ACTIVE_OVERLAY":
+          setModalLeafletId(null);
+          panelWasControlled = true;
           break;
         case "RESET_KIOSK":
           startNewCustomer();
@@ -492,8 +565,9 @@ function App() {
                 ),
               )
             }
+            openDetailsToken={productDetailOpenToken}
           />
-          <ShelfMap product={product} labels={t} />
+          <ShelfMap product={product} labels={t} openMapToken={shelfMapOpenToken} />
           <TypedInputPanel
             value={typedQuestion}
             config={typedInputConfig}

@@ -29,6 +29,14 @@ Classify requests deterministically before any future model integration.
   creating a purchasing query.
 - Unknown products return no product and create one purchasing query.
 - Backend AI responses may include only structured whitelisted `ui_actions`; arbitrary UI instructions are not valid output.
+- Approved UI auto-enlarge actions are limited to `OPEN_PRODUCT_DETAIL`,
+  `OPEN_PROMOTION_MODAL`, `OPEN_SHELF_MAP`, `HIGHLIGHT_PRODUCT`,
+  `HIGHLIGHT_PROMOTION`, `HIGHLIGHT_SHELF_ROUTE`,
+  `REQUEST_PHARMACIST_ASSISTANCE`, and safe overlay reset/close actions.
+- Price/detail prompts must return `OPEN_PRODUCT_DETAIL` for the adapter-backed
+  product, explicit promotion prompts must return `OPEN_PROMOTION_MODAL` for the
+  active branch-valid leaflet, and shelf/location prompts must return
+  `OPEN_SHELF_MAP` with the adapter-backed shelf code.
 - Product-specific promotion and campaign actions reference only adapter-provided leaflet IDs.
 - General promotion and campaign queries return active branch-valid leaflets only.
 - Red-flag responses return pharmacist escalation actions and do not return promotion or campaign leaflets first.

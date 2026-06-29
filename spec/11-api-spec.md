@@ -29,7 +29,10 @@ Expose typed mock contracts for the kiosk without provider-specific route logic.
 - AI responses include customer-safe text plus structured `ui_actions`, active
   branch-valid leaflet data, and `product_candidates` when the workflow needs a
   customer to confirm a near product match.
-- `ui_actions` must be from the approved action set; no free-form click target, URL, selector, or raw UI instruction is accepted.
+- `ui_actions` must be from the approved action set; no free-form click target,
+  URL, selector, or raw UI instruction is accepted. Product detail,
+  promotion-modal, and shelf-map open actions must include enough adapter-backed
+  identifiers for the frontend to verify the target before opening any overlay.
 - `GET /api/runtime/status` returns safe local runtime provider diagnostics only: STT provider, AI provider, TTS provider, VitaFlow provider, vision provider, Ollama reachability, and selected Ollama model. It must not expose API keys, `.env` values, model cache paths, database URLs, logs, customer data, sales data, or private VitaFlow URLs.
 - Backend starts without provider credentials.
 

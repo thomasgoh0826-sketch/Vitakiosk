@@ -29,6 +29,12 @@ A feature is accepted only when:
 - AI-controlled UI behavior is accepted only when the backend returns structured
   `ui_actions` from the approved action set and the frontend ignores unknown or
   arbitrary action types.
+- AI-controlled auto-enlarge acceptance requires price/detail prompts to open
+  the Product detail sheet with `OPEN_PRODUCT_DETAIL`, explicit promotion
+  prompts to open the active branch-valid leaflet with `OPEN_PROMOTION_MODAL`,
+  shelf/location prompts to open the enlarged Shelf Navigation map with
+  `OPEN_SHELF_MAP`, and pharmacist/red-flag actions to suppress product,
+  promotion, and shelf auto-open behavior.
 - Subtitle acceptance requires cinematic AI subtitle mode: the main kiosk UI
   hides the customer transcript and any `YOU` bubble, shows only the current AI
   phrase or sentence with at most 1-2 lines, uses `aria-live`, supports
