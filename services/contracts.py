@@ -2,7 +2,13 @@ from __future__ import annotations
 
 from typing import Protocol
 
-from services.models import AIResult, Product, ProductSearchResult, TranscriptionResult
+from services.models import (
+    AIResult,
+    Product,
+    ProductScanResult,
+    ProductSearchResult,
+    TranscriptionResult,
+)
 
 
 class STTAdapter(Protocol):
@@ -15,6 +21,8 @@ class TTSAdapter(Protocol):
 
 class VitaFlowAdapter(Protocol):
     def search_products(self, query: str, branch_id: str) -> list[Product]: ...
+    def get_product(self, product_id: str, branch_id: str) -> Product | None: ...
+    def get_product_by_barcode(self, barcode: str, branch_id: str) -> Product | None: ...
     def search_product_candidates(
         self,
         query: str,
@@ -26,6 +34,14 @@ class VitaFlowAdapter(Protocol):
 
 class ProductVisionAdapter(Protocol):
     def identify(self, image: bytes) -> str | None: ...
+    def scan_product(
+        self,
+        image: bytes,
+        content_type: str,
+        branch_id: str,
+        mode: str,
+        vitaflow: VitaFlowAdapter,
+    ) -> ProductScanResult: ...
 
 
 class AIBrain(Protocol):

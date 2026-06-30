@@ -6,6 +6,14 @@ from enum import Enum
 
 
 @dataclass(frozen=True)
+class ProductImage:
+    url: str
+    type: str
+    isPrimary: bool = False
+    alt: str | None = None
+
+
+@dataclass(frozen=True)
 class Product:
     id: str
     name: str
@@ -17,6 +25,10 @@ class Product:
     source: str = "mock_vitaflow"
     unavailable_reason: str | None = None
     productSummary: dict[str, dict[str, str]] | None = None
+    barcode: str | None = None
+    imageUrl: str | None = None
+    thumbnailUrl: str | None = None
+    images: tuple[ProductImage, ...] = ()
 
 
 @dataclass(frozen=True)
@@ -25,6 +37,34 @@ class ProductSearchResult:
     confidence: float
     match_reason: str
     matched_text: str
+
+
+@dataclass(frozen=True)
+class ProductScanSignals:
+    barcode: str | None = None
+    imageSimilarity: bool = False
+    ocr: bool = False
+
+
+@dataclass(frozen=True)
+class ProductScanCandidate:
+    product: Product
+    confidence: float
+    matchReason: str
+    matchedText: str | None = None
+
+
+@dataclass(frozen=True)
+class ProductScanResult:
+    ok: bool
+    provider: str
+    scanSignals: ProductScanSignals
+    candidates: tuple[ProductScanCandidate, ...] = ()
+    requiresConfirmation: bool = False
+    message: str = ""
+    barcodeResult: str | None = None
+    ocrText: str | None = None
+    correctedText: str | None = None
 
 
 @dataclass(frozen=True)
@@ -63,14 +103,20 @@ class Leaflet:
 
 class UiActionType(str, Enum):
     SHOW_PRODUCT = "SHOW_PRODUCT"
+    HIGHLIGHT_PRODUCT = "HIGHLIGHT_PRODUCT"
+    OPEN_PRODUCT_DETAIL = "OPEN_PRODUCT_DETAIL"
     SHOW_PROMOTION_LEAFLET = "SHOW_PROMOTION_LEAFLET"
+    HIGHLIGHT_PROMOTION = "HIGHLIGHT_PROMOTION"
     OPEN_PROMOTION_MODAL = "OPEN_PROMOTION_MODAL"
     SHOW_CAMPAIGN_LEAFLET = "SHOW_CAMPAIGN_LEAFLET"
     OPEN_CAMPAIGN_MODAL = "OPEN_CAMPAIGN_MODAL"
     SHOW_PROMOTION_GALLERY = "SHOW_PROMOTION_GALLERY"
     SHOW_CAMPAIGN_GALLERY = "SHOW_CAMPAIGN_GALLERY"
+    HIGHLIGHT_SHELF_ROUTE = "HIGHLIGHT_SHELF_ROUTE"
+    OPEN_SHELF_MAP = "OPEN_SHELF_MAP"
     ASK_PHARMACIST_CONFIRMATION = "ASK_PHARMACIST_CONFIRMATION"
     REQUEST_PHARMACIST_ASSISTANCE = "REQUEST_PHARMACIST_ASSISTANCE"
+    CLOSE_ACTIVE_OVERLAY = "CLOSE_ACTIVE_OVERLAY"
     RESET_KIOSK = "RESET_KIOSK"
 
 
@@ -80,6 +126,8 @@ class UiAction:
     productId: str | None = None
     promotionId: str | None = None
     campaignId: str | None = None
+    shelf: str | None = None
+    reason: str | None = None
 
 
 @dataclass(frozen=True)

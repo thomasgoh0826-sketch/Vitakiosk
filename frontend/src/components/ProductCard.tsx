@@ -10,6 +10,7 @@ import { createPortal } from "react-dom";
 
 import { translations, type KioskLanguage, type KioskTranslations } from "../i18n";
 import type { LocalizedProductText, Product, ProductSummary } from "../types";
+import ProductImage from "./ProductImage";
 
 interface ProductCardProps {
   product: Product | null;
@@ -17,6 +18,7 @@ interface ProductCardProps {
   labels?: KioskTranslations;
   language?: KioskLanguage;
   hasActivePromotion?: boolean;
+  openDetailsToken?: number;
 }
 
 type ProductViewMode = "details" | "summary";
@@ -104,6 +106,7 @@ function ProductCard({
   labels = translations.en,
   language = "en",
   hasActivePromotion = false,
+  openDetailsToken = 0,
 }: ProductCardProps) {
   const [isSummaryVisible, setIsSummaryVisible] = useState(false);
   const [enlargedView, setEnlargedView] = useState<ProductViewMode | null>(null);
@@ -123,6 +126,15 @@ function ProductCard({
     setEnlargedView(null);
     clearPendingToggle();
   }, [product?.id]);
+
+  useEffect(() => {
+    if (!product || openDetailsToken <= 0) {
+      return;
+    }
+
+    clearPendingToggle();
+    setEnlargedView("details");
+  }, [openDetailsToken, product]);
 
   useEffect(() => () => clearPendingToggle(), []);
 
@@ -309,9 +321,7 @@ function ProductCard({
           >
             {enlargedView === "details" ? (
               <div className="product-viewer-detail">
-                <div className="product-viewer-art" aria-hidden="true">
-                  <span>{product.name.slice(0, 2).toUpperCase()}</span>
-                </div>
+                <ProductImage product={product} className="product-viewer-art" variant="viewer" />
                 <div className="product-viewer-copy">
                   <span className="eyebrow">{labels.productVerified}</span>
                   <h2>{product.name}</h2>
@@ -329,6 +339,7 @@ function ProductCard({
             ) : (
               <div className="product-viewer-summary">
                 <div className="product-viewer-summary-heading">
+                  <ProductImage product={product} className="product-viewer-summary-art" variant="viewer" />
                   <span className="eyebrow">{labels.productSummary}</span>
                   <h2>{product.name}</h2>
                 </div>
@@ -372,9 +383,7 @@ function ProductCard({
             ) : (
               <>
                 <div className="product-hero">
-                  <div className="product-art" aria-hidden="true">
-                    <span>{product.name.slice(0, 2).toUpperCase()}</span>
-                  </div>
+                  <ProductImage product={product} className="product-art" variant="panel" />
                   <div className="product-identity">
                     <span className="eyebrow">{labels.productVerified}</span>
                     <h3>{product.name}</h3>

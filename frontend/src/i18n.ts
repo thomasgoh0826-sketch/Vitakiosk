@@ -101,7 +101,18 @@ export interface KioskTranslations {
   safeHandoffOnly: string;
   doYouMeanThisItem: string;
   bestMatch: string;
+  barcodeMatch: string;
+  bestVisualMatch: string;
+  labelTextMatch: string;
+  similarName: string;
   selectProductCandidate: string;
+  scanProduct: string;
+  scanProductInstruction: string;
+  capture: string;
+  retry: string;
+  cancel: string;
+  scanningProduct: string;
+  cameraPermissionNeeded: string;
 }
 
 export const translations: Record<KioskLanguage, KioskTranslations> = {
@@ -197,7 +208,18 @@ export const translations: Record<KioskLanguage, KioskTranslations> = {
     safeHandoffOnly: "In-store safety handoff only.",
     doYouMeanThisItem: "Do you mean this item?",
     bestMatch: "Best match",
+    barcodeMatch: "Barcode match",
+    bestVisualMatch: "Best visual match",
+    labelTextMatch: "Label text match",
+    similarName: "Similar name",
     selectProductCandidate: "Select item",
+    scanProduct: "Scan Product",
+    scanProductInstruction: "Hold product label, barcode, or packaging in view",
+    capture: "Capture",
+    retry: "Retry",
+    cancel: "Cancel",
+    scanningProduct: "Scanning product...",
+    cameraPermissionNeeded: "Camera permission is needed to scan a product. You can still type the product name.",
   },
   zh: {
     aiPharmacyAssistant: "AI 药房助手",
@@ -291,7 +313,18 @@ export const translations: Record<KioskLanguage, KioskTranslations> = {
     safeHandoffOnly: "仅限店内安全转交。",
     doYouMeanThisItem: "你是指这个产品吗？",
     bestMatch: "最佳匹配",
+    barcodeMatch: "条码匹配",
+    bestVisualMatch: "最佳视觉匹配",
+    labelTextMatch: "标签文字匹配",
+    similarName: "相似名称",
     selectProductCandidate: "选择此产品",
+    scanProduct: "扫描产品",
+    scanProductInstruction: "请把产品标签、条码或包装放在镜头内",
+    capture: "拍摄",
+    retry: "重试",
+    cancel: "取消",
+    scanningProduct: "正在扫描产品...",
+    cameraPermissionNeeded: "需要相机权限才能扫描产品。你也可以输入产品名称。",
   },
   ms: {
     aiPharmacyAssistant: "Pembantu Farmasi AI",
@@ -385,7 +418,18 @@ export const translations: Record<KioskLanguage, KioskTranslations> = {
     safeHandoffOnly: "Serahan keselamatan dalam kedai sahaja.",
     doYouMeanThisItem: "Adakah anda maksudkan produk ini?",
     bestMatch: "Padanan terbaik",
+    barcodeMatch: "Padanan kod bar",
+    bestVisualMatch: "Padanan visual terbaik",
+    labelTextMatch: "Padanan teks label",
+    similarName: "Nama serupa",
     selectProductCandidate: "Pilih produk ini",
+    scanProduct: "Imbas Produk",
+    scanProductInstruction: "Halakan label, kod bar, atau bungkusan produk ke kamera",
+    capture: "Tangkap",
+    retry: "Cuba lagi",
+    cancel: "Batal",
+    scanningProduct: "Mengimbas produk...",
+    cameraPermissionNeeded: "Kebenaran kamera diperlukan untuk mengimbas produk. Anda masih boleh menaip nama produk.",
   },
 };
 

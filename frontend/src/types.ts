@@ -31,6 +31,15 @@ export interface Product {
   source: "mock_vitaflow";
   unavailable_reason: string | null;
   productSummary?: Partial<ProductSummary>;
+  barcode?: string | null;
+  imageUrl?: string | null;
+  thumbnailUrl?: string | null;
+  images?: Array<{
+    url: string;
+    type: string;
+    isPrimary: boolean;
+    alt?: string | null;
+  }>;
 }
 
 export interface ProductSearchCandidate {
@@ -38,6 +47,29 @@ export interface ProductSearchCandidate {
   confidence: number;
   match_reason: string;
   matched_text: string;
+}
+
+export interface ProductScanCandidate {
+  product: Product;
+  confidence: number;
+  matchReason: string;
+  matchedText: string | null;
+}
+
+export interface ProductScanResponse {
+  ok: boolean;
+  provider: string;
+  scanSignals: {
+    barcode: string | null;
+    imageSimilarity: boolean;
+    ocr: boolean;
+  };
+  candidates: ProductScanCandidate[];
+  requiresConfirmation: boolean;
+  message: string;
+  barcodeResult: string | null;
+  ocrText: string | null;
+  correctedText: string | null;
 }
 
 export interface Promotion {
@@ -71,17 +103,23 @@ export interface Leaflet {
 
 export type UiAction =
   | { type: "SHOW_PRODUCT"; productId: string }
+  | { type: "HIGHLIGHT_PRODUCT"; productId: string }
+  | { type: "OPEN_PRODUCT_DETAIL"; productId: string }
   | { type: "SHOW_PROMOTION_LEAFLET"; promotionId: string }
+  | { type: "HIGHLIGHT_PROMOTION"; productId?: string; promotionId?: string }
   | { type: "OPEN_PROMOTION_LEAFLET"; promotionId: string }
-  | { type: "OPEN_PROMOTION_MODAL"; promotionId: string }
+  | { type: "OPEN_PROMOTION_MODAL"; productId?: string; promotionId?: string }
   | { type: "SHOW_CAMPAIGN_LEAFLET"; campaignId: string }
   | { type: "OPEN_CAMPAIGN_LEAFLET"; campaignId: string }
   | { type: "OPEN_CAMPAIGN_MODAL"; campaignId: string }
   | { type: "SHOW_PROMOTION_GALLERY" }
   | { type: "SHOW_CAMPAIGN_GALLERY" }
   | { type: "SHOW_LEAFLET_GALLERY" }
+  | { type: "HIGHLIGHT_SHELF_ROUTE"; productId: string; shelf?: string | null }
+  | { type: "OPEN_SHELF_MAP"; productId: string; shelf?: string | null }
   | { type: "ASK_PHARMACIST_CONFIRMATION" }
-  | { type: "REQUEST_PHARMACIST_ASSISTANCE" }
+  | { type: "REQUEST_PHARMACIST_ASSISTANCE"; reason?: string | null }
+  | { type: "CLOSE_ACTIVE_OVERLAY" }
   | { type: "RESET_KIOSK" };
 
 export interface Poster {

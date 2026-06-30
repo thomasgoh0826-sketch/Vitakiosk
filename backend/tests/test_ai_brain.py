@@ -198,6 +198,51 @@ def test_price_response_uses_exact_vitaflow_product_fact() -> None:
     assert result.product == expected
     assert f"{expected.price:.2f}" in result.message
     assert result.source == "mock_vitaflow"
+    assert [action.type for action in result.ui_actions][:2] == [
+        "SHOW_PRODUCT",
+        "OPEN_PRODUCT_DETAIL",
+    ]
+    assert result.ui_actions[1].productId == expected.id
+
+
+@pytest.mark.parametrize(
+    "prompt",
+    [
+        "what is the price and details of relief balm",
+        "tell me about relief balm",
+        "how much is relief balm",
+    ],
+)
+def test_product_detail_prompts_return_open_product_detail_action(prompt: str) -> None:
+    brain, _, _ = build_brain()
+
+    result = brain.respond(prompt, branch_id="SG-001")
+
+    assert result.product is not None
+    assert result.product.id == "MOCK-P001"
+    assert any(
+        action.type == "OPEN_PRODUCT_DETAIL" and action.productId == "MOCK-P001"
+        for action in result.ui_actions
+    )
+
+
+def test_explicit_promotion_prompt_opens_promotion_modal_immediately() -> None:
+    brain, _, _ = build_brain()
+
+    result = brain.respond(
+        "show me the promotion for relief balm",
+        branch_id="SG-001",
+        session_id="session-direct-promo",
+    )
+
+    assert result.product is not None
+    assert result.product.id == "MOCK-P001"
+    assert [action.type for action in result.ui_actions] == [
+        "SHOW_PRODUCT",
+        "OPEN_PROMOTION_MODAL",
+    ]
+    assert result.ui_actions[1].productId == "MOCK-P001"
+    assert result.ui_actions[1].promotionId == "MOCK-LF-PROMO-001"
 
 
 def test_product_query_returns_controlled_leaflet_action() -> None:
@@ -237,6 +282,21 @@ def test_confirmation_opens_pending_promotion_modal() -> None:
     ]
     assert result.ui_actions[0].promotionId == "MOCK-LF-PROMO-001"
     assert "opening" in result.message.casefold()
+
+
+def test_shelf_location_prompt_opens_shelf_map_action() -> None:
+    brain, _, _ = build_brain()
+
+    result = brain.respond("where is relief balm?", branch_id="SG-001")
+
+    assert result.product is not None
+    assert result.product.id == "MOCK-P001"
+    assert [action.type for action in result.ui_actions] == [
+        "SHOW_PRODUCT",
+        "OPEN_SHELF_MAP",
+    ]
+    assert result.ui_actions[1].productId == "MOCK-P001"
+    assert result.ui_actions[1].shelf == "A-03"
 
 
 def test_product_without_specific_promotion_offers_galleries_without_guessing() -> None:
@@ -325,4 +385,26 @@ def test_red_flag_returns_only_pharmacist_action() -> None:
     assert [action.type for action in result.ui_actions] == [
         "REQUEST_PHARMACIST_ASSISTANCE"
     ]
+    assert vitaflow.search_count == 0
+
+
+def test_pregnancy_safety_suppresses_auto_open_actions() -> None:
+    vitaflow = CountingVitaFlow()
+    brain, _, _ = build_brain(vitaflow=vitaflow)
+
+    result = brain.respond(
+        "I am pregnant. Can I use Relief Balm?",
+        branch_id="SG-001",
+    )
+
+    assert result.intent is Intent.RED_FLAG
+    assert result.requires_pharmacist is True
+    assert [action.type for action in result.ui_actions] == [
+        "REQUEST_PHARMACIST_ASSISTANCE"
+    ]
+    assert result.ui_actions[0].reason == "pregnancy_or_red_flag"
+    assert not any(
+        action.type in {"OPEN_PRODUCT_DETAIL", "OPEN_PROMOTION_MODAL", "OPEN_SHELF_MAP"}
+        for action in result.ui_actions
+    )
     assert vitaflow.search_count == 0

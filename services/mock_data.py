@@ -1,6 +1,6 @@
 from datetime import UTC, datetime
 
-from services.models import Leaflet, LeafletKind, Poster, Product, Promotion
+from services.models import Leaflet, LeafletKind, Poster, Product, ProductImage, Promotion
 
 
 MOCK_PRODUCTS: tuple[Product, ...] = (
@@ -12,6 +12,23 @@ MOCK_PRODUCTS: tuple[Product, ...] = (
         price=12.50,
         stock=18,
         shelf_location="A-03",
+        barcode="9550000000019",
+        imageUrl="/assets/mock-products/relief-balm-front.svg",
+        thumbnailUrl="/assets/mock-products/relief-balm-front.svg",
+        images=(
+            ProductImage(
+                url="/assets/mock-products/relief-balm-front.svg",
+                type="front_pack",
+                isPrimary=True,
+                alt="Relief Balm product image",
+            ),
+            ProductImage(
+                url="/assets/mock-products/relief-balm-label.svg",
+                type="label_closeup",
+                isPrimary=False,
+                alt="Relief Balm product label",
+            ),
+        ),
         productSummary={
             "ingredient": {
                 "en": "Menthol, camphor, herbal soothing ingredients",
@@ -48,6 +65,17 @@ MOCK_PRODUCTS: tuple[Product, ...] = (
         price=8.90,
         stock=24,
         shelf_location="B-07",
+        barcode="9550000000026",
+        imageUrl="/assets/mock-products/hydration-salts-front.svg",
+        thumbnailUrl="/assets/mock-products/hydration-salts-front.svg",
+        images=(
+            ProductImage(
+                url="/assets/mock-products/hydration-salts-front.svg",
+                type="front_pack",
+                isPrimary=True,
+                alt="Hydration Salts product image",
+            ),
+        ),
         productSummary={
             "ingredient": {"en": "Oral rehydration salts blend"},
             "howToUse": {
@@ -68,6 +96,17 @@ MOCK_PRODUCTS: tuple[Product, ...] = (
         price=10.20,
         stock=11,
         shelf_location="C-02",
+        barcode="9550000000033",
+        imageUrl="/assets/mock-products/gentle-skin-wash-front.svg",
+        thumbnailUrl="/assets/mock-products/gentle-skin-wash-front.svg",
+        images=(
+            ProductImage(
+                url="/assets/mock-products/gentle-skin-wash-front.svg",
+                type="front_pack",
+                isPrimary=True,
+                alt="Gentle Skin Wash product image",
+            ),
+        ),
         productSummary={
             "ingredient": {"en": "Gentle skin cleansing base"},
             "howToUse": {"en": "Use externally as described on the product label."},

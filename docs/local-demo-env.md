@@ -33,6 +33,15 @@ FASTER_WHISPER_LANGUAGE=auto
 STT_LOW_CONFIDENCE_THRESHOLD=0.55
 ```
 
+For reviewed local camera product scan testing only, change the vision selector
+in local `.env` to:
+
+```env
+VISION_PROVIDER=local_product_scan
+```
+
+Keep CI and normal demos on `VISION_PROVIDER=mock`.
+
 Keep `TTS_PROVIDER=mock` and `VITAFLOW_PROVIDER=mock` for this demo. Do not add OpenAI, ElevenLabs, VitaFlow, or database credentials.
 
 If the Ollama model is not installed yet:
@@ -176,6 +185,10 @@ Before showing the local demo, verify:
 - Unknown products create purchasing queries instead of guessed product facts.
 - Ollama output is accepted only as structured, validated, safe wording.
 - Frontend executes only whitelisted `ui_actions`.
+- Product detail, promotion leaflet, and shelf map auto-enlarge behavior must
+  come from whitelisted `OPEN_PRODUCT_DETAIL`, `OPEN_PROMOTION_MODAL`, and
+  `OPEN_SHELF_MAP` actions with adapter-backed IDs. Unknown or malformed action
+  payloads are ignored.
 - No real customer audio, transcripts, logs, or screenshots are committed.
 
 ## Manual microphone QA checklist

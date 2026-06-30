@@ -1,6 +1,7 @@
 import type { KioskTranslations } from "../i18n";
 import { translations } from "../i18n";
 import type { ProductSearchCandidate } from "../types";
+import ProductImage from "./ProductImage";
 
 interface ProductCandidatePanelProps {
   candidates: ProductSearchCandidate[];
@@ -14,6 +15,22 @@ function formatPrice(value: number | null, labels: KioskTranslations) {
 
 function sourceLabel(source: string, labels: KioskTranslations) {
   return source === "mock_vitaflow" ? labels.mockVitaFlow : source;
+}
+
+function matchLabel(candidate: ProductSearchCandidate, index: number, labels: KioskTranslations) {
+  if (candidate.match_reason === "barcode_match") {
+    return labels.barcodeMatch;
+  }
+  if (candidate.match_reason === "product_image_similarity") {
+    return labels.bestVisualMatch;
+  }
+  if (candidate.match_reason === "ocr_text_match") {
+    return labels.labelTextMatch;
+  }
+  if (candidate.match_reason.startsWith("near_")) {
+    return labels.similarName;
+  }
+  return index === 0 ? labels.bestMatch : `Match ${index + 1}`;
 }
 
 function ProductCandidatePanel({
@@ -46,8 +63,9 @@ function ProductCandidatePanel({
               onClick={() => onSelect(candidate)}
             >
               <span className="candidate-rank">
-                {index === 0 ? labels.bestMatch : `Match ${index + 1}`}
+                {matchLabel(candidate, index, labels)}
               </span>
+              <ProductImage product={product} className="candidate-product-image" variant="candidate" />
               <strong>{product.name}</strong>
               <span>{product.id}</span>
               <dl>

@@ -29,6 +29,12 @@ A feature is accepted only when:
 - AI-controlled UI behavior is accepted only when the backend returns structured
   `ui_actions` from the approved action set and the frontend ignores unknown or
   arbitrary action types.
+- AI-controlled auto-enlarge acceptance requires price/detail prompts to open
+  the Product detail sheet with `OPEN_PRODUCT_DETAIL`, explicit promotion
+  prompts to open the active branch-valid leaflet with `OPEN_PROMOTION_MODAL`,
+  shelf/location prompts to open the enlarged Shelf Navigation map with
+  `OPEN_SHELF_MAP`, and pharmacist/red-flag actions to suppress product,
+  promotion, and shelf auto-open behavior.
 - Subtitle acceptance requires cinematic AI subtitle mode: the main kiosk UI
   hides the customer transcript and any `YOU` bubble, shows only the current AI
   phrase or sentence with at most 1-2 lines, uses `aria-live`, supports
@@ -245,6 +251,13 @@ A feature is accepted only when:
 - Product, promotion, leaflet, and safety icons are not accepted if inner
   artwork, logos, glyphs, or leaflet images are clipped; image artwork must use
   safe padding and `object-fit: contain`.
+- Backend-driven product image acceptance requires normal Product panel,
+  enlarged Product detail, enlarged Product summary, and candidate cards to use
+  adapter-provided `imageUrl`/`thumbnailUrl`/`images[]` data through the shared
+  `ProductImage` component. The frontend must not hardcode product-specific
+  image paths, and missing, unsafe, or failed images must fall back to the
+  generated premium initials/icon without changing VitaFlow source-of-truth
+  product facts.
 - Leaflet modal acceptance requires a floating holographic leaflet card over the
   existing kiosk UI, not a big dark modal container and not a modal box
   containing a nested carousel box. The whole floating stage must be
@@ -328,6 +341,13 @@ A feature is accepted only when:
 - Assistant waveform acceptance requires state-specific idle/listening/thinking/speaking/error/pharmacist-escalation styling, microphone RMS activity during listening, playback analyser or subtle visual fallback during speaking, reduced-motion support, and no customer-facing debug labels.
 - Futuristic background animation acceptance requires lightweight CSS-only grid drift, scanlines, and glow sweeps that preserve readability and avoid particles, smoke, fog, noisy atmosphere, global zoom, or layout movement.
 - Heavy 3D models are not accepted for the iPad landscape kiosk path.
+- Local product scan acceptance requires an explicit `VISION_PROVIDER=local_product_scan`
+  selector, browser camera access only after the customer taps `Scan Product`,
+  stream cleanup after capture/cancel/close, no raw image persistence by default,
+  barcode exact matches through VitaFlow/mock barcode lookup, OCR/image-similarity
+  matches through the existing product candidate confirmation panel, customer-safe
+  match labels, controlled camera/invalid-image errors, and tests proving CI
+  remains mock-safe without camera hardware or cloud OCR.
 
 ## Test evidence
 

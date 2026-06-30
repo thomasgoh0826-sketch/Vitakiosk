@@ -70,6 +70,11 @@ AI assistant, primary Tap to Speak voice control plus Start/New Customer reset, 
 - Dev-only provider/runtime diagnostics must be placed in reserved header space or hidden; they must never use floating positioning that covers AI subtitles, promotion content, product cards, or customer-facing status labels.
 - UI translation applies only to kiosk labels and controls. VitaFlow/mock facts such as product names, SKU, prices, shelf codes, branch codes, promotion titles, and `Mock VitaFlow` provenance values must remain unchanged.
 - Product, poster, pharmacist, and leaflet icon/artwork containers must use stable square/icon-safe sizing with centered content, safe padding, non-shrinking containers, and `object-fit: contain` for image assets so logos and leaflet artwork are not clipped.
+- Product artwork in the normal Product panel, enlarged Product detail sheet,
+  enlarged Product summary sheet, and candidate cards must be rendered from
+  backend/VitaFlow product image metadata through a reusable `ProductImage`
+  component. If the backend provides no usable image, the UI falls back to the
+  premium generated initials/icon without a broken-image glyph or layout shift.
 - Product card fact rows and inner text must remain inside the Product panel bounds at the supported landscape QA viewports.
 - The Product panel must grow or compact its own internals instead of clipping stock, branch, shelf, or source facts; at narrower landscape widths the fact row may wrap into a compact grid, but `scrollHeight`/`scrollWidth` clipping and whole-app transform/zoom fixes are not accepted.
 - When the backend returns medium-confidence fuzzy product candidates, the

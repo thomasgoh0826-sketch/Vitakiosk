@@ -231,6 +231,7 @@ function buildApi(redFlag = false, unclear = false, correctedTranscript?: string
     matchPromotions: vi.fn(),
     createPurchasingQuery: vi.fn(),
     escalatePharmacist: vi.fn(),
+    scanProduct: vi.fn(),
   };
 }
 

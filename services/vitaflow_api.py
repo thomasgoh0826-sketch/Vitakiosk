@@ -168,6 +168,19 @@ class MockVitaFlowAPI:
             None,
         )
 
+    def get_product_by_barcode(self, barcode: str, branch_id: str) -> Product | None:
+        normalized_barcode = barcode.strip()
+        if not normalized_barcode or not branch_id.strip():
+            return None
+        return next(
+            (
+                product
+                for product in self._products
+                if product.branch_id == branch_id and product.barcode == normalized_barcode
+            ),
+            None,
+        )
+
 
 class ReadOnlyVitaFlowAPI:
     """Placeholder for the first future live VitaFlow integration.
@@ -198,5 +211,19 @@ class ReadOnlyVitaFlowAPI:
         del query, branch_id, limit
         raise RuntimeError(
             "Read-only VitaFlow API fuzzy search is a live-provider placeholder "
+            "and is not implemented in the mock-first demo."
+        )
+
+    def get_product(self, product_id: str, branch_id: str) -> Product | None:
+        del product_id, branch_id
+        raise RuntimeError(
+            "Read-only VitaFlow API product lookup is a live-provider placeholder "
+            "and is not implemented in the mock-first demo."
+        )
+
+    def get_product_by_barcode(self, barcode: str, branch_id: str) -> Product | None:
+        del barcode, branch_id
+        raise RuntimeError(
+            "Read-only VitaFlow API barcode lookup is a live-provider placeholder "
             "and is not implemented in the mock-first demo."
         )

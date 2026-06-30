@@ -9,6 +9,7 @@ const hookMocks = vi.hoisted(() => ({
   escalate: vi.fn(),
   health: vi.fn(),
   runtimeStatus: vi.fn(),
+  scanProduct: vi.fn(),
 }));
 
 vi.mock("./api/client", () => ({
@@ -16,6 +17,7 @@ vi.mock("./api/client", () => ({
     escalatePharmacist: hookMocks.escalate,
     health: hookMocks.health,
     runtimeStatus: hookMocks.runtimeStatus,
+    scanProduct: hookMocks.scanProduct,
   },
 }));
 vi.mock("./hooks/useKioskSocket", () => ({ default: hookMocks.socket }));
@@ -27,6 +29,7 @@ describe("integrated kiosk panels", () => {
   const submitText = vi.fn();
   const resetVoice = vi.fn();
   const sendState = vi.fn();
+  const stopCameraTrack = vi.fn();
 
   beforeEach(() => {
     window.localStorage.clear();
@@ -37,7 +40,24 @@ describe("integrated kiosk panels", () => {
     sendState.mockReset();
     hookMocks.health.mockReset();
     hookMocks.runtimeStatus.mockReset();
+    hookMocks.scanProduct.mockReset();
+    stopCameraTrack.mockReset();
     vi.unstubAllEnvs();
+    Object.defineProperty(navigator, "mediaDevices", {
+      configurable: true,
+      value: {
+        getUserMedia: vi.fn().mockResolvedValue({
+          getTracks: () => [{ stop: stopCameraTrack }],
+        }),
+      },
+    });
+    HTMLCanvasElement.prototype.getContext = vi.fn(() => ({
+      drawImage: vi.fn(),
+    })) as unknown as typeof HTMLCanvasElement.prototype.getContext;
+    HTMLCanvasElement.prototype.toBlob = vi.fn((callback: BlobCallback) => {
+      callback(new Blob(["IMAGE:MOCK-P001"], { type: "image/jpeg" }));
+    });
+    HTMLMediaElement.prototype.play = vi.fn().mockResolvedValue(undefined);
     hookMocks.health.mockResolvedValue({
       status: "ok",
       service: "vitakiosk-api",
@@ -58,6 +78,37 @@ describe("integrated kiosk panels", () => {
       vision_provider: "mock",
       ollama_reachable: false,
       model: "qwen2.5:7b",
+    });
+    hookMocks.scanProduct.mockResolvedValue({
+      ok: true,
+      provider: "mock",
+      scanSignals: {
+        barcode: null,
+        imageSimilarity: true,
+        ocr: false,
+      },
+      candidates: [
+        {
+          product: {
+            id: "MOCK-P001",
+            name: "Relief Balm",
+            branch_id: "SG-001",
+            price: 12.5,
+            stock: 18,
+            shelf_location: "A-03",
+            source: "mock_vitaflow",
+            unavailable_reason: null,
+          },
+          confidence: 0.93,
+          matchReason: "product_image_similarity",
+          matchedText: null,
+        },
+      ],
+      requiresConfirmation: true,
+      message: "Do you mean this item?",
+      barcodeResult: null,
+      ocrText: null,
+      correctedText: null,
     });
     hookMocks.escalate.mockReset();
     hookMocks.escalate.mockResolvedValue({
@@ -309,6 +360,57 @@ describe("integrated kiosk panels", () => {
     expect(screen.queryByText(/NAVIGATE_UNSAFE_DEBUG_PAGE/i)).not.toBeInTheDocument();
   });
 
+  it("executes OPEN_PRODUCT_DETAIL by opening the enlarged product detail viewer", () => {
+    hookMocks.voice.mockReturnValue({
+      ...hookMocks.voice(),
+      uiActions: [
+        { type: "SHOW_PRODUCT", productId: "MOCK-P001" },
+        { type: "OPEN_PRODUCT_DETAIL", productId: "MOCK-P001" },
+      ],
+    });
+
+    render(<App />);
+
+    expect(screen.getByRole("dialog", { name: /enlarged product details/i })).toBeInTheDocument();
+    expect(screen.getByTestId("product-viewer-stage")).toHaveAttribute(
+      "data-product-view",
+      "details",
+    );
+  });
+
+  it("executes OPEN_SHELF_MAP by opening the enlarged route viewer", () => {
+    hookMocks.voice.mockReturnValue({
+      ...hookMocks.voice(),
+      uiActions: [
+        { type: "SHOW_PRODUCT", productId: "MOCK-P001" },
+        { type: "OPEN_SHELF_MAP", productId: "MOCK-P001", shelf: "A-03" },
+      ],
+    });
+
+    render(<App />);
+
+    const dialog = screen.getByRole("dialog", { name: /enlarged shelf navigation map/i });
+    expect(dialog).toBeInTheDocument();
+    expect(within(dialog).getAllByText("Shelf A-03").length).toBeGreaterThan(0);
+  });
+
+  it("ignores malformed auto-enlarge actions safely", () => {
+    hookMocks.voice.mockReturnValue({
+      ...hookMocks.voice(),
+      uiActions: [
+        { type: "OPEN_PRODUCT_DETAIL" },
+        { type: "OPEN_SHELF_MAP", shelf: "A-03" },
+        { type: "OPEN_PROMOTION_MODAL", productId: "UNKNOWN-PRODUCT" },
+      ],
+    });
+
+    render(<App />);
+
+    expect(screen.queryByRole("dialog", { name: /enlarged product details/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole("dialog", { name: /enlarged shelf navigation map/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole("dialog", { name: /leaflet preview/i })).not.toBeInTheDocument();
+  });
+
   it("executes explicit leaflet open aliases while ignoring arbitrary action names", () => {
     hookMocks.voice.mockReturnValue({
       ...hookMocks.voice(),
@@ -427,7 +529,7 @@ describe("integrated kiosk panels", () => {
     render(<App />);
 
     expect(screen.getByText("Do you mean this item?")).toBeInTheDocument();
-    expect(screen.getByText("Best match")).toBeInTheDocument();
+    expect(screen.getByText("Similar name")).toBeInTheDocument();
     const candidateButton = screen.getByRole("button", {
       name: /select item: relief balm/i,
     });
@@ -444,6 +546,107 @@ describe("integrated kiosk panels", () => {
     expect(screen.getAllByText("A-03").length).toBeGreaterThan(0);
     expect(screen.getByRole("button", { name: /open Relief Balm Demo Leaflet leaflet/i })).toBeInTheDocument();
     expect(screen.queryByText("Do you mean this item?")).not.toBeInTheDocument();
+  });
+
+  it("opens camera scan overlay and shows visual product candidates after capture", async () => {
+    let finishScan: ((value: unknown) => void) | undefined;
+    hookMocks.scanProduct.mockImplementationOnce(() =>
+      new Promise((resolve) => {
+        finishScan = resolve;
+      }),
+    );
+    render(<App />);
+
+    fireEvent.click(screen.getByRole("button", { name: /scan product/i }));
+
+    const dialog = await screen.findByRole("dialog", { name: /scan product/i });
+    expect(dialog).toHaveTextContent("Hold product label, barcode, or packaging in view");
+    expect(navigator.mediaDevices.getUserMedia).toHaveBeenCalledWith({
+      video: { facingMode: "environment" },
+      audio: false,
+    });
+
+    fireEvent.click(within(dialog).getByRole("button", { name: /capture/i }));
+
+    expect((await screen.findAllByText("Scanning product...")).length).toBeGreaterThan(0);
+    finishScan?.({
+      ok: true,
+      provider: "mock",
+      scanSignals: {
+        barcode: null,
+        imageSimilarity: true,
+        ocr: false,
+      },
+      candidates: [
+        {
+          product: {
+            id: "MOCK-P001",
+            name: "Relief Balm",
+            branch_id: "SG-001",
+            price: 12.5,
+            stock: 18,
+            shelf_location: "A-03",
+            source: "mock_vitaflow",
+            unavailable_reason: null,
+          },
+          confidence: 0.93,
+          matchReason: "product_image_similarity",
+          matchedText: null,
+        },
+      ],
+      requiresConfirmation: true,
+      message: "Do you mean this item?",
+      barcodeResult: null,
+      ocrText: null,
+      correctedText: null,
+    });
+    await waitFor(() => expect(hookMocks.scanProduct).toHaveBeenCalledTimes(1));
+    expect(await screen.findByText("Do you mean this item?")).toBeInTheDocument();
+    expect(screen.getByText("Best visual match")).toBeInTheDocument();
+    expect(stopCameraTrack).toHaveBeenCalledTimes(1);
+  });
+
+  it("applies a selected camera scan candidate to product shelf and promotion panels", async () => {
+    render(<App />);
+
+    fireEvent.click(screen.getByRole("button", { name: /scan product/i }));
+    fireEvent.click(
+      within(await screen.findByRole("dialog", { name: /scan product/i }))
+        .getByRole("button", { name: /capture/i }),
+    );
+
+    const candidateButton = await screen.findByRole("button", {
+      name: /select item: relief balm/i,
+    });
+    expect(candidateButton).toHaveTextContent("Mock VitaFlow");
+
+    fireEvent.click(candidateButton);
+
+    expect(screen.getAllByText("Relief Balm").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("A-03").length).toBeGreaterThan(0);
+    expect(screen.getByRole("button", { name: /open Relief Balm Demo Leaflet leaflet/i })).toBeInTheDocument();
+    expect(screen.queryByText("Do you mean this item?")).not.toBeInTheDocument();
+  });
+
+  it("shows controlled camera permission errors and cancel stops the stream", async () => {
+    const getUserMedia = vi.fn().mockRejectedValue(new DOMException("blocked", "NotAllowedError"));
+    Object.defineProperty(navigator, "mediaDevices", {
+      configurable: true,
+      value: { getUserMedia },
+    });
+
+    render(<App />);
+
+    fireEvent.click(screen.getByRole("button", { name: /scan product/i }));
+
+    const dialog = await screen.findByRole("dialog", { name: /scan product/i });
+    expect(await within(dialog).findByText(/Camera permission is needed/i)).toBeInTheDocument();
+
+    fireEvent.click(within(dialog).getByRole("button", { name: /cancel/i }));
+
+    await waitFor(() =>
+      expect(screen.queryByRole("dialog", { name: /scan product/i })).not.toBeInTheDocument(),
+    );
   });
 
   it("shows immediate local feedback after manual pharmacist request", async () => {
