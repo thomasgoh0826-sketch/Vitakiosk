@@ -3,12 +3,12 @@ from fastapi.testclient import TestClient
 from backend.app.site_payments import CheckoutOrder, get_payment_provider
 
 
-def test_site_pricing_returns_mock_framework(client: TestClient) -> None:
+def test_site_pricing_returns_manual_confirmation_framework(client: TestClient) -> None:
     response = client.get("/api/site/pricing")
 
     assert response.status_code == 200
     payload = response.json()
-    assert payload["payment_provider"] == "manual_mock"
+    assert payload["payment_provider"] == "manual_confirmation"
     assert "Online payment gateway" in payload["payment_notice"]
     assert {item["group"] for item in payload["items"]} >= {
         "vitaflow",

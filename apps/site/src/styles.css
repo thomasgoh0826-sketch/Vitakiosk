@@ -959,7 +959,7 @@ img {
 .pricing-node {
   display: flex;
   flex-direction: column;
-  min-height: 430px;
+  min-height: 390px;
   padding: 24px;
 }
 
@@ -970,6 +970,34 @@ img {
 
 .pricing-node > strong {
   color: var(--green);
+}
+
+.pricing-label {
+  display: inline-flex;
+  width: fit-content;
+  margin-bottom: 10px;
+  padding: 5px 9px;
+  border: 1px solid rgba(255, 213, 156, 0.55);
+  border-radius: 999px;
+  color: #ffd59c;
+  font-size: 12px;
+  font-style: normal;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.pricing-note,
+.pricing-legal-note {
+  color: #adc0c9;
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.pricing-legal-note {
+  max-width: 980px;
+  margin: 14px auto 0;
+  text-align: center;
 }
 
 .pricing-node ul,

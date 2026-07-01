@@ -87,12 +87,11 @@ def record_response(record: Any) -> dict[str, Any]:
 def pricing() -> dict[str, Any]:
     return {
         "items": SITE_PRICING_PLANS,
-        "payment_provider": "manual_mock",
+        "payment_provider": "manual_confirmation",
         "payment_notice": MANUAL_PAYMENT_NOTICE,
         "notes": [
             "Final pricing subject to scope.",
             "Payment and onboarding are confirmed manually after discussion.",
-            "Database provider is mock/local unless Supabase env is configured.",
             "Manual bank transfer or DuitNow instructions are shared only after discussion.",
             "Sponsored healthcare campaigns require approval and compliance review.",
         ],

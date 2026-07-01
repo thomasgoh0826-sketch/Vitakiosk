@@ -27,10 +27,14 @@ import {
 } from "./content/siteContent";
 import {
   categoryLabels,
+  healthcareCampaignNotice,
+  legalPricingNotice,
   getPricingByCategory,
   manualPaymentNotice,
+  negotiationNotice,
   PricingCategory,
   pricingItems,
+  submissionSuccessMessage,
 } from "./content/pricing";
 import {
   defaultFormValues,
@@ -402,6 +406,7 @@ function PricingSection() {
         <span>Manual confirmation framework</span>
         <h2>Choose a path. We confirm manually first.</h2>
         <p>{manualPaymentNotice}</p>
+        <p>{negotiationNotice}</p>
       </div>
       <div className="segment-control" role="tablist" aria-label="Pricing categories">
         {categories.map((category) => (
@@ -422,6 +427,10 @@ function PricingSection() {
             <span>{item.cadence}</span>
             <h3>{item.name}</h3>
             <strong>{item.priceLabel}</strong>
+            {item.nonNegotiableLabel && (
+              <em className="pricing-label">{item.nonNegotiableLabel}</em>
+            )}
+            <p>{item.description}</p>
             <ul>
               {item.includes.map((entry) => (
                 <li key={entry}>
@@ -430,14 +439,19 @@ function PricingSection() {
                 </li>
               ))}
             </ul>
+            {item.notes.length > 0 && (
+              <p className="pricing-note">{item.notes.join(" · ")}</p>
+            )}
             {item.safetyNote && <p className="safety-note">{item.safetyNote}</p>}
             <SmartLink href="/order" className="button secondary">
-              {item.priceLabel}
+              {item.ctaLabel}
               <ArrowRight size={16} />
             </SmartLink>
           </article>
         ))}
       </div>
+      <p className="pricing-legal-note">{legalPricingNotice}</p>
+      {active === "vitakiosk" && <p className="pricing-legal-note">{healthcareCampaignNotice}</p>}
     </section>
   );
 }
@@ -467,13 +481,11 @@ function LeadConsole({ initialKind = "lead" }: { initialKind?: SiteFormKind }) {
       const response = await submitSiteForm(values);
       setStatus("success");
       setMessage(
-        `Inquiry received${response.reference_id ? ` (${response.reference_id})` : ""}. ${
-          response.next_step || "We will reply with the quote, schedule, and manual payment steps if needed."
-        }`,
+        `${submissionSuccessMessage}${response.reference_id ? ` Reference: ${response.reference_id}.` : ""}`,
       );
     } catch {
       setStatus("success");
-      setMessage("Local confirmation shown. We will confirm quote, onboarding, and any manual payment after discussion.");
+      setMessage(submissionSuccessMessage);
     }
   }
 
@@ -497,7 +509,7 @@ function LeadConsole({ initialKind = "lead" }: { initialKind?: SiteFormKind }) {
       setMessage(`${session.message} ${session.nextStep || ""}`.trim());
     } catch {
       setStatus("checkout");
-      setMessage("Manual confirmation created locally. Online payment gateway is not enabled yet.");
+      setMessage("Manual payment confirmation is ready. We will contact you before any payment is requested.");
     }
   }
 
@@ -507,8 +519,8 @@ function LeadConsole({ initialKind = "lead" }: { initialKind?: SiteFormKind }) {
         <span>Order and booking console</span>
         <h2>Tell us what you want to launch.</h2>
         <p>
-          Forms validate locally, create inquiry, booking, quote, or project
-          records through the site API when available, and keep payment manual.
+          Submit an inquiry, quote request, booking, or project request. We
+          confirm scope, schedule, and manual payment details after discussion.
           {` ${manualPaymentNotice}`} No card data is collected.
         </p>
         <div className="form-type-rail" aria-label="Form type">
@@ -608,15 +620,15 @@ function LeadConsole({ initialKind = "lead" }: { initialKind?: SiteFormKind }) {
         <div className="form-actions">
           <button className="button primary" type="submit">
             <Mail size={17} />
-            Send inquiry
+            Submit Inquiry
           </button>
           <button className="button secondary" type="button" onClick={handleCheckout}>
             <CreditCard size={17} />
-            Manual Payment Confirmation
+            Request invoice
           </button>
         </div>
         <output className={`form-status ${status}`} aria-live="polite">
-          {message || "Ready. No live payment gateway is enabled."}
+          {message || "Ready. Payment will be confirmed manually after discussion."}
         </output>
       </form>
     </section>

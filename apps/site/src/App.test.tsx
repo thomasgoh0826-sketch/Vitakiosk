@@ -39,7 +39,7 @@ describe("VitaKiosk Asia site", () => {
   it("validates forms before creating records", async () => {
     render(<App />);
 
-    await userEvent.click(screen.getByRole("button", { name: /Send inquiry/i }));
+    await userEvent.click(screen.getByRole("button", { name: /Submit Inquiry/i }));
 
     expect(screen.getByText(/Enter a contact name/i)).toBeInTheDocument();
     expect(screen.getByText(/Enter a valid email/i)).toBeInTheDocument();
@@ -63,7 +63,7 @@ describe("VitaKiosk Asia site", () => {
     await userEvent.type(screen.getByPlaceholderText(/name@business.com/i), "demo@example.com");
     await userEvent.type(screen.getByPlaceholderText(/\+60/i), "60123456789");
     await userEvent.type(screen.getByPlaceholderText(/Tell us about/i), "I want a demo");
-    await userEvent.click(screen.getByRole("button", { name: /Send inquiry/i }));
+    await userEvent.click(screen.getByRole("button", { name: /Submit Inquiry/i }));
 
     expect(fetchMock).toHaveBeenCalledWith(
       "http://127.0.0.1:8001/api/site/lead",
@@ -73,6 +73,7 @@ describe("VitaKiosk Asia site", () => {
       }),
     );
     expect(await screen.findByText(/VK-LEAD-2026-0001/i)).toBeInTheDocument();
+    expect(screen.getByText(/^Your request has been submitted/i)).toBeInTheDocument();
   });
 });
 
@@ -89,12 +90,22 @@ describe("pricing config", () => {
       "Enterprise Deployment",
     ]);
     expect(getPricingByCategory("aiLessons")).toHaveLength(5);
-    expect(getPricingByCategory("aiWebsite")).toHaveLength(5);
+    expect(getPricingByCategory("aiWebsite")).toHaveLength(4);
   });
 
   it("does not scatter payment modes outside known values", () => {
     const modes = new Set(pricingItems.map((item) => item.checkoutMode));
     expect([...modes].sort()).toEqual(["deposit", "one_time", "quote", "subscription"]);
+  });
+
+  it("uses public manual pricing wording without payment test language", () => {
+    const renderedText = JSON.stringify(pricingItems).toLowerCase();
+
+    expect(renderedText).not.toContain(`mock ${"payment"}`);
+    expect(renderedText).not.toContain(`mock ${"checkout"}`);
+    expect(renderedText).toContain("free setup + rm199/month");
+    expect(renderedText).toContain("from rm700 setup + rm200/month maintenance");
+    expect(renderedText).toContain("non-negotiable");
   });
 });
 
@@ -117,7 +128,7 @@ describe("forms and payment providers", () => {
     expect(validateSiteForm(defaultFormValues).valid).toBe(false);
   });
 
-  it("selects manual mock provider by default and keeps live providers disabled", async () => {
+  it("selects internal manual provider by default and keeps live providers disabled", async () => {
     const mock = createPaymentProvider();
     await expect(
       mock.createCheckoutSession({

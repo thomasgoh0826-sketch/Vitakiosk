@@ -48,8 +48,8 @@ function makeMockSession(request: CheckoutRequest): CheckoutSession {
     url: `/checkout/success?provider=mock&item=${encodeURIComponent(request.itemId)}`,
     message:
       request.mode === "quote"
-        ? "Mock quote request created. No payment was attempted."
-        : "Mock checkout session created. No live charge was attempted.",
+        ? "Quote request created. No payment was attempted."
+        : "Manual confirmation session created. No live charge was attempted.",
   };
 }
 
