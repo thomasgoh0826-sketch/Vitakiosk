@@ -1,6 +1,4 @@
 import { buildSubmission, sanitizeText, SiteFormValues } from "./forms";
-import { CheckoutSession } from "./payments";
-
 const apiBase =
   import.meta.env.VITE_SITE_API_BASE_URL ||
   import.meta.env.VITE_API_BASE_URL ||
@@ -28,6 +26,25 @@ export interface SiteFormResponse {
   reference_id?: string;
   next_step?: string;
   payment_note?: string;
+  notification_status?: "sent" | "deferred" | "disabled";
+  customer_message?: string;
+}
+
+export interface ManualConfirmationResponse {
+  ok: boolean;
+  live_payment: false;
+  message: string;
+  customer_message?: string;
+  notification_status?: "sent" | "deferred" | "disabled";
+  checkout: {
+    provider: string;
+    status: string;
+    reference_id?: string;
+    checkout_url?: string;
+    next_step?: string;
+    message?: string;
+  };
+  record?: SiteFormResponse;
 }
 
 export async function submitSiteForm(values: SiteFormValues): Promise<SiteFormResponse> {
@@ -97,16 +114,19 @@ export function buildSiteApiSubmission(values: SiteFormValues): Record<string, s
 
 export async function createManualConfirmation(
   itemId: string,
-  customerEmail: string,
-  customerName: string,
+  values: SiteFormValues,
   mode: "subscription" | "deposit" | "one_time" | "quote",
-): Promise<CheckoutSession> {
-  return postJson<CheckoutSession>("/api/site/checkout/create", {
+): Promise<ManualConfirmationResponse> {
+  return postJson<ManualConfirmationResponse>("/api/site/checkout/create", {
     order_id: `SITE-${Date.now()}`,
     plan_id: itemId,
-    customer_email: customerEmail,
-    customer_name: customerName,
-    amount_label: customerName,
+    customer_email: sanitizeText(values.email).toLowerCase(),
+    customer_name: sanitizeText(values.fullName),
+    customer_phone: sanitizeText(values.phone),
+    business_type: sanitizeText(values.businessType),
+    selected_package: sanitizeText(values.packageId),
+    message: sanitizeText(values.message),
+    amount_label: sanitizeText(values.fullName),
     mode,
     provider: "manual_mock",
   });

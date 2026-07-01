@@ -1,5 +1,6 @@
 from fastapi.testclient import TestClient
 
+from backend.app.site_email import MemorySiteEmailProvider
 from backend.app.site_payments import CheckoutOrder, get_payment_provider
 
 
@@ -112,13 +113,21 @@ def test_site_order_booking_and_project_records(client: TestClient) -> None:
     assert project.json()["status"] == "inquiry_submitted"
 
 
-def test_manual_confirmation_never_triggers_live_payment(client: TestClient) -> None:
+def test_manual_confirmation_never_triggers_live_payment(client: TestClient, monkeypatch) -> None:
+    from backend.app.routes import site
+
+    monkeypatch.setattr(site, "site_email", MemorySiteEmailProvider())
     response = client.post(
         "/api/site/checkout/create",
         json={
             "order_id": "ORDER-1",
             "plan_id": "vitaflow-starter",
             "customer_email": "demo@example.com",
+            "customer_name": "Demo User",
+            "customer_phone": "+60123456789",
+            "business_type": "Pharmacy",
+            "selected_package": "VitaFlow ERP - Starter",
+            "message": "Please send payment details.",
             "amount_label": "Placeholder monthly plan",
             "mode": "subscription",
         },
@@ -128,10 +137,11 @@ def test_manual_confirmation_never_triggers_live_payment(client: TestClient) -> 
     payload = response.json()
     assert payload["live_payment"] is False
     assert payload["checkout"]["provider"] == "manual_mock"
-    assert payload["checkout"]["status"] == "quote_requested"
-    assert payload["checkout"]["reference_id"].startswith("VKA-")
+    assert payload["checkout"]["status"] == "manual_payment_pending"
+    assert payload["checkout"]["reference_id"].startswith("VK-PAY-")
     assert "Online payment gateway" in payload["message"]
     assert "/checkout/success" in payload["checkout"]["checkout_url"]
+    assert payload["notification_status"] == "sent"
 
 
 def test_live_provider_skeletons_are_disabled_without_network() -> None:

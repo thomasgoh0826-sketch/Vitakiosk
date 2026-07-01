@@ -19,12 +19,15 @@ def client() -> Iterator[TestClient]:
 @pytest.fixture(autouse=True)
 def reset_mock_stores() -> Iterator[None]:
     from backend.app.dependencies import escalation_store, purchasing_store
+    from backend.app.routes.site import site_rate_limiter
     from backend.app.site_database import site_database
 
     purchasing_store.clear()
     escalation_store.clear()
     site_database.clear()
+    site_rate_limiter.clear()
     yield
     purchasing_store.clear()
     escalation_store.clear()
     site_database.clear()
+    site_rate_limiter.clear()

@@ -1,16 +1,30 @@
 from __future__ import annotations
 
+from collections import defaultdict, deque
+from datetime import UTC, datetime, timedelta
+import logging
 from typing import Annotated, Any, Literal
 
-from fastapi import APIRouter, Body
+from fastapi import APIRouter, Body, HTTPException, Request
 from pydantic import BaseModel, ConfigDict, Field
 
 from backend.app.site_database import site_database
+from backend.app.site_email import build_site_email_message, site_email
 from backend.app.site_payments import CheckoutOrder, get_payment_provider
 from backend.app.site_pricing import MANUAL_PAYMENT_NOTICE, SITE_PRICING_PLANS
 
 
 router = APIRouter(prefix="/api/site", tags=["site"])
+logger = logging.getLogger(__name__)
+
+CUSTOMER_SUCCESS_MESSAGE = (
+    "Your inquiry has been submitted. We will contact you to confirm scope, "
+    "schedule, and manual payment details."
+)
+CUSTOMER_RECEIVED_MESSAGE = "Your request was received. We will contact you shortly."
+CUSTOMER_ERROR_MESSAGE = (
+    "We could not submit your request. Please try again or contact us directly."
+)
 
 EmailField = Annotated[str, Field(min_length=3, max_length=160, pattern=r"^[^@\s]+@[^@\s]+\.[^@\s]+$")]
 ShortText = Annotated[str, Field(min_length=1, max_length=240)]
@@ -74,13 +88,88 @@ class CheckoutCreateRequest(StrictSiteRequest):
     order_id: ShortText
     plan_id: ShortText
     customer_email: EmailField
+    customer_name: ShortText
+    customer_phone: str | None = Field(default=None, max_length=80)
+    business_type: str | None = Field(default=None, max_length=160)
+    selected_package: str | None = Field(default=None, max_length=160)
+    message: str | None = Field(default=None, max_length=1_000)
     amount_label: ShortText
     mode: Literal["subscription", "one_time", "deposit", "quote"] = "deposit"
     provider: Literal["manual_mock", "mock", "stripe", "billplz", "manual_bank_transfer"] = "manual_mock"
 
 
-def record_response(record: Any) -> dict[str, Any]:
-    return record.to_response()
+class SiteRateLimiter:
+    def __init__(self, *, limit: int = 30, window_seconds: int = 60) -> None:
+        self.limit = limit
+        self.window = timedelta(seconds=window_seconds)
+        self._hits: dict[str, deque[datetime]] = defaultdict(deque)
+
+    def check(self, key: str) -> None:
+        now = datetime.now(UTC)
+        hits = self._hits[key]
+        while hits and now - hits[0] > self.window:
+            hits.popleft()
+        if len(hits) >= self.limit:
+            raise HTTPException(status_code=429, detail="Too many requests. Please try again shortly.")
+        hits.append(now)
+
+    def clear(self) -> None:
+        self._hits.clear()
+
+
+site_rate_limiter = SiteRateLimiter()
+
+
+def rate_limit_request(request: Request) -> None:
+    client = request.client.host if request.client else "unknown"
+    site_rate_limiter.check(client)
+
+
+def notification_response(
+    record: Any,
+    *,
+    notification_status: str = "disabled",
+    customer_message: str | None = None,
+) -> dict[str, Any]:
+    return {
+        **record.to_response(),
+        "notification_status": notification_status,
+        "customer_message": customer_message or CUSTOMER_SUCCESS_MESSAGE,
+    }
+
+
+def notify_owner(
+    record: SiteRecord,
+    submission_type: str | None = None,
+    *,
+    manual_payment_status: str | None = None,
+) -> str:
+    message = build_site_email_message(
+        record,
+        submission_type,
+        manual_payment_status=manual_payment_status,
+    )
+    result = site_email.send(message)
+    return "sent" if result.sent else "deferred"
+
+
+def create_record_and_notify(
+    kind: Literal["lead", "order", "booking", "project"],
+    status: str,
+    payload: dict[str, Any],
+    submission_type: str | None = None,
+) -> dict[str, Any]:
+    record = site_database.create(kind, status, payload)
+    try:
+        notification_status = notify_owner(record, submission_type)
+    except Exception:
+        logger.warning("Site email notification failed for %s", record.reference_id, exc_info=True)
+        return notification_response(
+            record,
+            notification_status="deferred",
+            customer_message=CUSTOMER_RECEIVED_MESSAGE,
+        )
+    return notification_response(record, notification_status=notification_status)
 
 
 @router.get("/pricing")
@@ -99,46 +188,100 @@ def pricing() -> dict[str, Any]:
 
 
 @router.post("/lead", status_code=201)
-def create_lead(request: LeadRequest) -> dict[str, Any]:
-    record = site_database.create("lead", "inquiry_submitted", request.model_dump())
-    return record_response(record)
+def create_lead(request_data: LeadRequest, request: Request) -> dict[str, Any]:
+    rate_limit_request(request)
+    return create_record_and_notify(
+        "lead",
+        "inquiry_submitted",
+        request_data.model_dump(),
+        "New Inquiry",
+    )
 
 
 @router.post("/orders", status_code=201)
-def create_order(request: OrderRequest) -> dict[str, Any]:
-    record = site_database.create("order", "quote_requested", request.model_dump())
-    return record_response(record)
+def create_order(request_data: OrderRequest, request: Request) -> dict[str, Any]:
+    rate_limit_request(request)
+    payload = request_data.model_dump()
+    selected = f"{payload.get('selectedPlan') or ''} {payload.get('buyerType') or ''}".lower()
+    submission_type = "New VitaFlow Request" if "vitaflow" in selected else "New VitaKiosk Order"
+    return create_record_and_notify("order", "quote_requested", payload, submission_type)
 
 
 @router.post("/bookings", status_code=201)
-def create_booking(request: BookingRequest) -> dict[str, Any]:
-    record = site_database.create("booking", "inquiry_submitted", request.model_dump())
-    return record_response(record)
+def create_booking(request_data: BookingRequest, request: Request) -> dict[str, Any]:
+    rate_limit_request(request)
+    return create_record_and_notify(
+        "booking",
+        "inquiry_submitted",
+        request_data.model_dump(),
+        "New AI Lesson Booking",
+    )
 
 
 @router.post("/projects", status_code=201)
-def create_project(request: ProjectRequest) -> dict[str, Any]:
-    record = site_database.create("project", "inquiry_submitted", request.model_dump())
-    return record_response(record)
+def create_project(request_data: ProjectRequest, request: Request) -> dict[str, Any]:
+    rate_limit_request(request)
+    return create_record_and_notify(
+        "project",
+        "inquiry_submitted",
+        request_data.model_dump(),
+        "New Website Project",
+    )
 
 
 @router.post("/checkout/create")
-def create_checkout(request: CheckoutCreateRequest) -> dict[str, Any]:
-    provider = get_payment_provider(request.provider)
+def create_checkout(request_data: CheckoutCreateRequest, request: Request) -> dict[str, Any]:
+    rate_limit_request(request)
+    provider = get_payment_provider(request_data.provider)
     session = provider.create_checkout_session(
         CheckoutOrder(
-            order_id=request.order_id,
-            plan_id=request.plan_id,
-            customer_email=request.customer_email,
-            amount_label=request.amount_label,
-            mode=request.mode,
+            order_id=request_data.order_id,
+            plan_id=request_data.plan_id,
+            customer_email=request_data.customer_email,
+            amount_label=request_data.amount_label,
+            mode=request_data.mode,
         )
     )
+    record_payload = {
+        "name": request_data.customer_name,
+        "email": request_data.customer_email,
+        "phone": request_data.customer_phone,
+        "businessType": request_data.business_type,
+        "selectedPackage": request_data.selected_package or request_data.plan_id,
+        "selectedPlan": request_data.plan_id,
+        "message": request_data.message,
+        "manual_payment_status": session.status,
+    }
+    payment_record = site_database.create(
+        "order",
+        status=session.status,
+        payload=record_payload,
+        reference_id=session.reference_id or None,
+    )
+    try:
+        notification_status = notify_owner(
+            payment_record,
+            "Manual Payment Confirmation Request",
+            manual_payment_status=session.status,
+        )
+    except Exception:
+        logger.warning("Manual payment notification failed for %s", payment_record.reference_id, exc_info=True)
+        notification_status = "deferred"
+        customer_message = CUSTOMER_RECEIVED_MESSAGE
+    else:
+        customer_message = (
+            "We will contact you with payment details after confirming the scope."
+            if notification_status == "sent"
+            else CUSTOMER_RECEIVED_MESSAGE
+        )
     return {
         "ok": True,
+        "record": payment_record.to_response(),
         "checkout": session.to_dict(),
         "live_payment": False,
         "message": MANUAL_PAYMENT_NOTICE,
+        "notification_status": notification_status,
+        "customer_message": customer_message,
     }
 
 

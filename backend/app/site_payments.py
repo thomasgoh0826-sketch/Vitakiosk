@@ -1,11 +1,14 @@
 from __future__ import annotations
 
 from dataclasses import asdict, dataclass
+from datetime import UTC, datetime
+from itertools import count
 import os
 from typing import Any, Literal, Protocol
 
 
 PaymentProviderName = Literal["manual_mock", "mock", "stripe", "billplz", "manual_bank_transfer"]
+_PAYMENT_REFERENCE_COUNTER = count(1)
 
 
 @dataclass(frozen=True)
@@ -112,12 +115,8 @@ class ManualBankTransferProvider(MockPaymentProvider):
 
     def create_checkout_session(self, order: CheckoutOrder) -> CheckoutSession:
         base_url = os.getenv("SITE_BASE_URL", "http://127.0.0.1:5176").rstrip("/")
-        reference_id = f"VKA-{order.order_id}"
-        status = (
-            "quote_requested"
-            if order.mode in {"subscription", "quote"}
-            else "manual_payment_pending"
-        )
+        reference_id = payment_reference_code()
+        status = "manual_payment_pending"
         return CheckoutSession(
             provider=self.name,
             checkout_url=(
@@ -154,3 +153,8 @@ def get_payment_provider(name: PaymentProviderName | None = None) -> PaymentProv
     if provider_name in {"stripe", "billplz"}:
         return DisabledLivePaymentProvider(provider_name)
     return ManualBankTransferProvider()
+
+
+def payment_reference_code() -> str:
+    year = datetime.now(UTC).year
+    return f"VK-PAY-{year}-{next(_PAYMENT_REFERENCE_COUNTER):04d}"

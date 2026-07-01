@@ -480,12 +480,13 @@ function LeadConsole({ initialKind = "lead" }: { initialKind?: SiteFormKind }) {
     try {
       const response = await submitSiteForm(values);
       setStatus("success");
+      const customerMessage = response.customer_message || submissionSuccessMessage;
       setMessage(
-        `${submissionSuccessMessage}${response.reference_id ? ` Reference: ${response.reference_id}.` : ""}`,
+        `${customerMessage}${response.reference_id ? ` Reference: ${response.reference_id}.` : ""}`,
       );
     } catch {
-      setStatus("success");
-      setMessage(submissionSuccessMessage);
+      setStatus("error");
+      setMessage("We could not submit your request. Please try again or contact us directly.");
     }
   }
 
@@ -498,18 +499,21 @@ function LeadConsole({ initialKind = "lead" }: { initialKind?: SiteFormKind }) {
       return;
     }
     const item = pricingItems.find((candidate) => candidate.id === values.packageId) || pricingItems[0];
+    setStatus("saving");
     try {
       const session = await createManualConfirmation(
         item.id,
-        values.email,
-        values.fullName,
+        values,
         item.checkoutMode,
       );
       setStatus("checkout");
-      setMessage(`${session.message} ${session.nextStep || ""}`.trim());
+      const reference = session.checkout.reference_id
+        ? ` Reference: ${session.checkout.reference_id}.`
+        : "";
+      setMessage(`${session.customer_message || session.message}${reference}`.trim());
     } catch {
-      setStatus("checkout");
-      setMessage("Manual payment confirmation is ready. We will contact you before any payment is requested.");
+      setStatus("error");
+      setMessage("We could not submit your request. Please try again or contact us directly.");
     }
   }
 
@@ -618,11 +622,11 @@ function LeadConsole({ initialKind = "lead" }: { initialKind?: SiteFormKind }) {
           {errors.message && <small>{errors.message}</small>}
         </label>
         <div className="form-actions">
-          <button className="button primary" type="submit">
+          <button className="button primary" type="submit" disabled={status === "saving"}>
             <Mail size={17} />
             Submit Inquiry
           </button>
-          <button className="button secondary" type="button" onClick={handleCheckout}>
+          <button className="button secondary" type="button" onClick={handleCheckout} disabled={status === "saving"}>
             <CreditCard size={17} />
             Request invoice
           </button>

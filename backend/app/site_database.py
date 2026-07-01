@@ -84,7 +84,14 @@ class SiteRecord:
 class SiteDatabaseProvider(Protocol):
     name: str
 
-    def create(self, kind: SiteRecordKind, status: str, payload: dict[str, Any]) -> SiteRecord:
+    def create(
+        self,
+        kind: SiteRecordKind,
+        status: str,
+        payload: dict[str, Any],
+        *,
+        reference_id: str | None = None,
+    ) -> SiteRecord:
         ...
 
     def clear(self) -> None:
@@ -102,7 +109,14 @@ class MockSiteDatabaseProvider:
         year = datetime.now(UTC).year
         return f"{reference_prefix(kind)}-{year}-{next(self._counter):04d}"
 
-    def create(self, kind: SiteRecordKind, status: str, payload: dict[str, Any]) -> SiteRecord:
+    def create(
+        self,
+        kind: SiteRecordKind,
+        status: str,
+        payload: dict[str, Any],
+        *,
+        reference_id: str | None = None,
+    ) -> SiteRecord:
         safe_payload = sanitize_payload(payload)
         record_id = str(uuid4())
         record = SiteRecord(
@@ -110,7 +124,7 @@ class MockSiteDatabaseProvider:
             kind=kind,
             status=status,
             payload=safe_payload,
-            reference_id=self._reference_code(kind),
+            reference_id=reference_id or self._reference_code(kind),
             database_provider=self.name,
         )
         self._records[record_id] = record
@@ -140,9 +154,16 @@ class SupabaseSiteDatabaseProvider:
         year = datetime.now(UTC).year
         return f"{reference_prefix(kind)}-{year}-{next(self._fallback_counter):04d}"
 
-    def create(self, kind: SiteRecordKind, status: str, payload: dict[str, Any]) -> SiteRecord:
+    def create(
+        self,
+        kind: SiteRecordKind,
+        status: str,
+        payload: dict[str, Any],
+        *,
+        reference_id: str | None = None,
+    ) -> SiteRecord:
         safe_payload = sanitize_payload(payload)
-        reference_code = self._reference_code(kind)
+        reference_code = reference_id or self._reference_code(kind)
         table, row = self._row_for_record(kind, status, reference_code, safe_payload)
         response = self.http_client.post(
             f"{self.supabase_url}/rest/v1/{table}",
@@ -225,7 +246,7 @@ class SupabaseSiteDatabaseProvider:
             "estimated_users_locations": payload.get("branches") or payload.get("units"),
             "message": payload.get("notes") or payload.get("message"),
             "status": status,
-            "manual_payment_status": "not_required",
+            "manual_payment_status": payload.get("manual_payment_status") or "not_required",
         }
 
     def clear(self) -> None:
