@@ -64,6 +64,7 @@ def test_supabase_provider_inserts_sanitized_lead_with_reference() -> None:
     assert record.payload["name"] == "Demo User"
     assert fake_client.calls[0]["url"] == "https://example.supabase.co/rest/v1/site_leads"
     assert fake_client.calls[0]["json"] == {
+        "reference_code": record.reference_id,
         "name": "Demo User",
         "email": "demo@example.com",
         "phone": "60123456789",

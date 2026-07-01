@@ -175,6 +175,7 @@ class SupabaseSiteDatabaseProvider:
     ) -> tuple[str, dict[str, Any]]:
         if kind == "lead":
             return "site_leads", {
+                "reference_code": reference_code,
                 "name": payload.get("name") or payload.get("fullName") or payload.get("contactPerson"),
                 "email": payload.get("email"),
                 "phone": payload.get("phone"),
