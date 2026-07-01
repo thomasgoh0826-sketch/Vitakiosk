@@ -169,7 +169,16 @@ def create_record_and_notify(
             notification_status="deferred",
             customer_message=CUSTOMER_RECEIVED_MESSAGE,
         )
-    return notification_response(record, notification_status=notification_status)
+    customer_message = (
+        CUSTOMER_SUCCESS_MESSAGE
+        if notification_status == "sent"
+        else CUSTOMER_RECEIVED_MESSAGE
+    )
+    return notification_response(
+        record,
+        notification_status=notification_status,
+        customer_message=customer_message,
+    )
 
 
 @router.get("/pricing")

@@ -3,7 +3,7 @@ import { buildSubmission, sanitizeText, SiteFormValues } from "./forms";
 const apiBase =
   import.meta.env.VITE_SITE_API_BASE_URL ||
   import.meta.env.VITE_API_BASE_URL ||
-  "http://127.0.0.1:8001";
+  "";
 
 async function postJson<T>(path: string, payload: unknown): Promise<T> {
   const response = await fetch(`${apiBase}${path}`, {
