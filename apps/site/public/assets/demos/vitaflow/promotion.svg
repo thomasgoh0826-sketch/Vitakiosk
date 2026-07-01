@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="720" viewBox="0 0 1280 720" role="img" aria-label="VitaFlow promotion and price monitor placeholder">
+  <rect width="1280" height="720" fill="#050814"/>
+  <rect x="78" y="78" width="1124" height="564" rx="28" fill="#07131f" stroke="#ffb84d" stroke-opacity=".42" stroke-width="2"/>
+  <text x="126" y="150" font-family="Arial, sans-serif" font-size="38" font-weight="800" fill="#f2f7ff">Promotion + Price Monitor</text>
+  <text x="126" y="194" font-family="Arial, sans-serif" font-size="21" fill="#a7b7d6">Date-valid, branch-aware campaign placeholder</text>
+  <rect x="126" y="250" width="360" height="300" rx="22" fill="#160d23" stroke="#8b5cff" stroke-opacity=".55"/>
+  <rect x="534" y="250" width="620" height="72" rx="14" fill="#0b2130" stroke="#244b64"/>
+  <rect x="534" y="350" width="620" height="72" rx="14" fill="#0b2130" stroke="#244b64"/>
+  <rect x="534" y="450" width="620" height="72" rx="14" fill="#0b2130" stroke="#244b64"/>
+  <text x="306" y="412" text-anchor="middle" font-family="Arial, sans-serif" font-size="32" font-weight="800" fill="#f2f7ff">Reviewed</text>
+  <text x="306" y="452" text-anchor="middle" font-family="Arial, sans-serif" font-size="22" fill="#39e6ff">Sponsored education label</text>
+  <text x="126" y="604" font-family="Arial, sans-serif" font-size="16" fill="#64f3c8">Placeholder only - sponsored content must be reviewed before display</text>
+</svg>

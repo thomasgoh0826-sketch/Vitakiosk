@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="720" viewBox="0 0 1280 720" role="img" aria-label="VitaFlow purchase workflow placeholder">
+  <rect width="1280" height="720" fill="#050814"/>
+  <rect x="74" y="86" width="1132" height="548" rx="28" fill="#07131f" stroke="#8b5cff" stroke-opacity=".42" stroke-width="2"/>
+  <text x="124" y="154" font-family="Arial, sans-serif" font-size="38" font-weight="800" fill="#f2f7ff">Purchase Workflow</text>
+  <text x="124" y="198" font-family="Arial, sans-serif" font-size="21" fill="#a7b7d6">Purchasing query to reviewed stock workflow</text>
+  <path d="M172 382h936" stroke="#244b64" stroke-width="5" stroke-linecap="round"/>
+  <g font-family="Arial, sans-serif" text-anchor="middle">
+    <circle cx="204" cy="382" r="54" fill="#0b2130" stroke="#39e6ff" stroke-width="3"/><text x="204" y="390" font-size="18" fill="#f2f7ff">Query</text>
+    <circle cx="436" cy="382" r="54" fill="#0b2130" stroke="#64f3c8" stroke-width="3"/><text x="436" y="390" font-size="18" fill="#f2f7ff">Review</text>
+    <circle cx="668" cy="382" r="54" fill="#0b2130" stroke="#8b5cff" stroke-width="3"/><text x="668" y="390" font-size="18" fill="#f2f7ff">Order</text>
+    <circle cx="900" cy="382" r="54" fill="#0b2130" stroke="#ffb84d" stroke-width="3"/><text x="900" y="390" font-size="18" fill="#f2f7ff">Receive</text>
+    <circle cx="1108" cy="382" r="54" fill="#0b2130" stroke="#39e6ff" stroke-width="3"/><text x="1108" y="390" font-size="18" fill="#f2f7ff">Sync</text>
+  </g>
+  <text x="124" y="594" font-family="Arial, sans-serif" font-size="16" fill="#64f3c8">Placeholder only - no supplier or private purchase data</text>
+</svg>

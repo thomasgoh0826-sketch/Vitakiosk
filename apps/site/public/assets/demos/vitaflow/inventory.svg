@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="720" viewBox="0 0 1280 720" role="img" aria-label="VitaFlow inventory placeholder">
+  <rect width="1280" height="720" fill="#050814"/>
+  <rect x="80" y="80" width="1120" height="560" rx="26" fill="#07131f" stroke="#64f3c8" stroke-opacity=".42" stroke-width="2"/>
+  <text x="124" y="150" font-family="Arial, sans-serif" font-size="38" font-weight="800" fill="#f2f7ff">Inventory + Stock Movement</text>
+  <text x="124" y="192" font-family="Arial, sans-serif" font-size="21" fill="#a7b7d6">Branch-aware product data placeholder</text>
+  <g fill="#0b2130" stroke="#244b64">
+    <rect x="124" y="250" width="1032" height="56" rx="10"/>
+    <rect x="124" y="326" width="1032" height="56" rx="10"/>
+    <rect x="124" y="402" width="1032" height="56" rx="10"/>
+    <rect x="124" y="478" width="1032" height="56" rx="10"/>
+  </g>
+  <g font-family="Arial, sans-serif" font-size="17" fill="#d9e9f2">
+    <text x="152" y="285">Product</text><text x="470" y="285">Branch</text><text x="670" y="285">Stock</text><text x="840" y="285">Shelf</text><text x="1010" y="285">Source</text>
+    <text x="152" y="361">Demo item</text><text x="470" y="361">SG-001</text><text x="670" y="361">--</text><text x="840" y="361">--</text><text x="1010" y="361">Placeholder</text>
+  </g>
+  <text x="124" y="606" font-family="Arial, sans-serif" font-size="16" fill="#64f3c8">Replace with approved demo data only</text>
+</svg>

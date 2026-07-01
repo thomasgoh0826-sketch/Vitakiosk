@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 760" role="img" aria-labelledby="title desc">
+  <title id="title">Clinic Queue poster</title><desc id="desc">Product education before the counter</desc>
+  <defs><radialGradient id="g" cx="62%" cy="42%" r="62%"><stop offset="0" stop-color="#35f4e8" stop-opacity=".82"/><stop offset=".34" stop-color="#35f4e8" stop-opacity=".18"/><stop offset="1" stop-color="#03080d" stop-opacity="0"/></radialGradient><linearGradient id="p" x1="0" x2="1"><stop stop-color="#061820"/><stop offset="1" stop-color="#10113a"/></linearGradient></defs>
+  <rect width="1200" height="760" fill="#03080d"/><rect width="1200" height="760" fill="url(#g)"/>
+  <g opacity=".24" stroke="#35f4e8"><path d="M0 152h1200M0 304h1200M0 456h1200M0 608h1200"/><path d="M152 0v760M304 0v760M456 0v760M608 0v760M760 0v760M912 0v760M1064 0v760"/></g>
+  <g transform="translate(230 146)"><rect x="270" y="0" width="430" height="280" rx="34" fill="url(#p)" stroke="#35f4e8" stroke-width="4"/><rect x="0" y="74" width="320" height="210" rx="30" fill="#07131c" stroke="#35f4e8" stroke-opacity=".42"/><rect x="660" y="92" width="280" height="190" rx="28" fill="#07131c" stroke="#9b7cff" stroke-opacity=".5"/><circle cx="486" cy="140" r="74" fill="#35f4e8" opacity=".2"/><rect x="426" y="112" width="118" height="86" rx="28" fill="#35f4e8" opacity=".85"/><path d="M462 166c42-42 76-40 94-83-8 64-46 88-94 83Z" fill="#061820" opacity=".9"/></g>
+  <text x="72" y="620" fill="#35f4e8" font-family="Arial, sans-serif" font-size="18" font-weight="900" letter-spacing="3">MUTED PREVIEW</text>
+  <text x="72" y="674" fill="#f5fbff" font-family="Arial, sans-serif" font-size="58" font-weight="900">Clinic Queue</text>
+  <text x="74" y="718" fill="#cde4ec" font-family="Arial, sans-serif" font-size="24">Product education before the counter</text>
+</svg>

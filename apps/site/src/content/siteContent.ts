@@ -41,7 +41,7 @@ export const businessLines = [
   {
     id: "vitaflow",
     title: "VitaFlow ERP",
-    phrase: "Source of truth",
+    phrase: "Product data hub",
     Icon: BarChart3,
     href: "/vitaflow",
     copy:
@@ -127,7 +127,7 @@ export const storyScenes = [
     number: "06",
     title: "Choose the next deployment path.",
     summary:
-      "Start with a demo, quote, lesson slot, or website inquiry. Payment and onboarding are confirmed manually after discussion.",
+      "Start with a demo, a quote, a lesson, a website project, or manual payment confirmation. Online payment gateway is not enabled yet.",
     visual: "Pricing, order, booking, and lead workflow.",
     Icon: CalendarCheck,
   },
@@ -135,11 +135,11 @@ export const storyScenes = [
 
 export const showcaseItems = [
   {
-    id: "ipad",
-    title: "VitaKiosk iPad",
+    id: "tablet",
+    title: "VitaKiosk Tablet",
     strap: "Counter-adjacent product education",
     description:
-      "Shows the current mock demo as an iPad/tablet experience with product facts, promotions, shelf guidance, and staff escalation.",
+      "Shows the current public demo as a tablet experience with product facts, promotions, shelf guidance, and staff escalation.",
   },
   {
     id: "large",
@@ -208,7 +208,7 @@ export const formTypes = [
   { id: "partner", label: "Clinic/hospital partner placement inquiry", Icon: Handshake },
   { id: "lesson", label: "AI lesson booking form", Icon: GraduationCap },
   { id: "website", label: "AI website project intake form", Icon: MessageSquareText },
-  { id: "checkout", label: "Manual payment confirmation", Icon: CreditCard },
+  { id: "checkout", label: "Manual confirmation framework", Icon: CreditCard },
   { id: "unknown", label: "Purchasing query instead of product guess", Icon: PackageSearch },
   { id: "automation", label: "AI workflow and automation", Icon: BrainCircuit },
 ];
