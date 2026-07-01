@@ -1,6 +1,6 @@
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { App } from "./App";
 import { demoAssets, videoHubAssets } from "./content/demoAssets";
 import { getPricingByCategory, pricingItems } from "./content/pricing";
@@ -8,6 +8,10 @@ import { createPaymentProvider } from "./lib/payments";
 import { defaultFormValues, sanitizeText, validateSiteForm } from "./lib/forms";
 
 describe("VitaKiosk Asia site", () => {
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
   it("renders the immersive homepage with the four business lines", () => {
     render(<App />);
 
@@ -39,6 +43,36 @@ describe("VitaKiosk Asia site", () => {
 
     expect(screen.getByText(/Enter a contact name/i)).toBeInTheDocument();
     expect(screen.getByText(/Enter a valid email/i)).toBeInTheDocument();
+  });
+
+  it("submits public forms to the backend site endpoint", async () => {
+    const fetchMock = vi.spyOn(globalThis, "fetch").mockResolvedValue(
+      new Response(
+        JSON.stringify({
+          id: "lead-1",
+          status: "inquiry_submitted",
+          reference_id: "VK-LEAD-2026-0001",
+          next_step: "We will contact you manually.",
+        }),
+        { status: 201, headers: { "content-type": "application/json" } },
+      ),
+    );
+
+    render(<App />);
+    await userEvent.type(screen.getByPlaceholderText(/Your name/i), "Demo User");
+    await userEvent.type(screen.getByPlaceholderText(/name@business.com/i), "demo@example.com");
+    await userEvent.type(screen.getByPlaceholderText(/\+60/i), "60123456789");
+    await userEvent.type(screen.getByPlaceholderText(/Tell us about/i), "I want a demo");
+    await userEvent.click(screen.getByRole("button", { name: /Send inquiry/i }));
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      "http://127.0.0.1:8001/api/site/lead",
+      expect.objectContaining({
+        method: "POST",
+        body: expect.stringContaining("\"name\":\"Demo User\""),
+      }),
+    );
+    expect(await screen.findByText(/VK-LEAD-2026-0001/i)).toBeInTheDocument();
   });
 });
 

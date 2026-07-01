@@ -1,4 +1,4 @@
-import { buildSubmission, SiteFormValues } from "./forms";
+import { buildSubmission, sanitizeText, SiteFormValues } from "./forms";
 import { CheckoutSession } from "./payments";
 
 const apiBase =
@@ -39,7 +39,60 @@ export async function submitSiteForm(values: SiteFormValues): Promise<SiteFormRe
     lesson: "/api/site/bookings",
     website: "/api/site/projects",
   };
-  return postJson<SiteFormResponse>(endpointByKind[values.kind], buildSubmission(values));
+  return postJson<SiteFormResponse>(endpointByKind[values.kind], buildSiteApiSubmission(values));
+}
+
+export function buildSiteApiSubmission(values: SiteFormValues): Record<string, string> {
+  const clean = buildSubmission(values);
+  const name = sanitizeText(values.fullName);
+  const organization = sanitizeText(values.organization);
+  const businessType = sanitizeText(values.businessType);
+  const selectedPackage = sanitizeText(values.packageId);
+  const message = clean.message;
+  const common = {
+    email: clean.email,
+    phone: clean.phone,
+  };
+
+  if (values.kind === "lead") {
+    return {
+      name,
+      ...common,
+      company: organization,
+      interest: businessType,
+      message,
+    };
+  }
+
+  if (values.kind === "lesson") {
+    return {
+      name,
+      ...common,
+      topic: selectedPackage,
+      notes: message,
+    };
+  }
+
+  if (values.kind === "website") {
+    return {
+      businessName: organization || name,
+      contactPerson: name,
+      ...common,
+      industry: businessType,
+      selectedPackage,
+      notes: message,
+    };
+  }
+
+  return {
+    buyerType: values.kind,
+    companyName: organization || `${name} ${businessType}`,
+    contactPerson: name,
+    ...common,
+    selectedPlan: selectedPackage,
+    businessType,
+    notes: message,
+  };
 }
 
 export async function createManualConfirmation(

@@ -31,19 +31,46 @@ def test_site_lead_sanitizes_control_characters(client: TestClient) -> None:
 
     assert response.status_code == 201
     payload = response.json()
-    assert payload["id"].startswith("LEAD-")
+    assert payload["id"]
     assert payload["status"] == "inquiry_submitted"
-    assert payload["reference_id"].startswith("VKA-")
+    assert payload["reference_id"].startswith("VK-LEAD-")
     assert "WhatsApp" in payload["next_step"]
     assert payload["payload"]["name"] == "Demo User"
     assert payload["payload"]["message"] == "Interested in VitaKiosk"
-    assert payload["source"] == "mock_memory"
+    assert payload["source"] == "mock"
 
 
 def test_site_forms_validate_email(client: TestClient) -> None:
     response = client.post(
         "/api/site/bookings",
         json={"name": "Demo", "email": "not-email", "topic": "AI lesson"},
+    )
+
+    assert response.status_code == 422
+
+
+def test_site_forms_reject_unexpected_fields(client: TestClient) -> None:
+    response = client.post(
+        "/api/site/lead",
+        json={
+            "name": "Demo User",
+            "email": "demo@example.com",
+            "message": "Interested",
+            "card_number": "4111111111111111",
+        },
+    )
+
+    assert response.status_code == 422
+
+
+def test_site_forms_reject_oversized_payloads(client: TestClient) -> None:
+    response = client.post(
+        "/api/site/lead",
+        json={
+            "name": "Demo User",
+            "email": "demo@example.com",
+            "message": "x" * 2_000,
+        },
     )
 
     assert response.status_code == 422

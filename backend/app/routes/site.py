@@ -1,14 +1,13 @@
 from __future__ import annotations
 
-from dataclasses import asdict
 from typing import Annotated, Any, Literal
 
 from fastapi import APIRouter, Body
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
+from backend.app.site_database import site_database
 from backend.app.site_payments import CheckoutOrder, get_payment_provider
 from backend.app.site_pricing import MANUAL_PAYMENT_NOTICE, SITE_PRICING_PLANS
-from backend.app.site_store import site_store
 
 
 router = APIRouter(prefix="/api/site", tags=["site"])
@@ -18,7 +17,11 @@ ShortText = Annotated[str, Field(min_length=1, max_length=240)]
 OptionalText = Annotated[str | None, Field(default=None, max_length=1_000)]
 
 
-class LeadRequest(BaseModel):
+class StrictSiteRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+
+class LeadRequest(StrictSiteRequest):
     name: ShortText
     email: EmailField
     phone: str | None = Field(default=None, max_length=80)
@@ -27,7 +30,7 @@ class LeadRequest(BaseModel):
     message: ShortText
 
 
-class OrderRequest(BaseModel):
+class OrderRequest(StrictSiteRequest):
     buyerType: str | None = Field(default=None, max_length=120)
     companyName: ShortText
     contactPerson: ShortText
@@ -43,7 +46,7 @@ class OrderRequest(BaseModel):
     notes: OptionalText = None
 
 
-class BookingRequest(BaseModel):
+class BookingRequest(StrictSiteRequest):
     name: ShortText
     email: EmailField
     phone: str | None = Field(default=None, max_length=80)
@@ -55,7 +58,7 @@ class BookingRequest(BaseModel):
     notes: OptionalText = None
 
 
-class ProjectRequest(BaseModel):
+class ProjectRequest(StrictSiteRequest):
     businessName: ShortText
     industry: str | None = Field(default=None, max_length=120)
     contactPerson: ShortText
@@ -67,7 +70,7 @@ class ProjectRequest(BaseModel):
     notes: OptionalText = None
 
 
-class CheckoutCreateRequest(BaseModel):
+class CheckoutCreateRequest(StrictSiteRequest):
     order_id: ShortText
     plan_id: ShortText
     customer_email: EmailField
@@ -77,7 +80,7 @@ class CheckoutCreateRequest(BaseModel):
 
 
 def record_response(record: Any) -> dict[str, Any]:
-    return {**asdict(record), "source": "mock_memory"}
+    return record.to_response()
 
 
 @router.get("/pricing")
@@ -89,6 +92,7 @@ def pricing() -> dict[str, Any]:
         "notes": [
             "Final pricing subject to scope.",
             "Payment and onboarding are confirmed manually after discussion.",
+            "Database provider is mock/local unless Supabase env is configured.",
             "Manual bank transfer or DuitNow instructions are shared only after discussion.",
             "Sponsored healthcare campaigns require approval and compliance review.",
         ],
@@ -97,25 +101,25 @@ def pricing() -> dict[str, Any]:
 
 @router.post("/lead", status_code=201)
 def create_lead(request: LeadRequest) -> dict[str, Any]:
-    record = site_store.create("lead", "inquiry_submitted", request.model_dump())
+    record = site_database.create("lead", "inquiry_submitted", request.model_dump())
     return record_response(record)
 
 
 @router.post("/orders", status_code=201)
 def create_order(request: OrderRequest) -> dict[str, Any]:
-    record = site_store.create("order", "quote_requested", request.model_dump())
+    record = site_database.create("order", "quote_requested", request.model_dump())
     return record_response(record)
 
 
 @router.post("/bookings", status_code=201)
 def create_booking(request: BookingRequest) -> dict[str, Any]:
-    record = site_store.create("booking", "inquiry_submitted", request.model_dump())
+    record = site_database.create("booking", "inquiry_submitted", request.model_dump())
     return record_response(record)
 
 
 @router.post("/projects", status_code=201)
 def create_project(request: ProjectRequest) -> dict[str, Any]:
-    record = site_store.create("project", "inquiry_submitted", request.model_dump())
+    record = site_database.create("project", "inquiry_submitted", request.model_dump())
     return record_response(record)
 
 
