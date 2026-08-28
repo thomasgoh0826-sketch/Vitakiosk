@@ -1,7 +1,7 @@
 # VitaFlow and VitaKiosk Map Parity Design
 
 Date: 2026-08-28
-Status: approved direction; awaiting written-spec review
+Status: approved by user
 
 ## Objective
 
