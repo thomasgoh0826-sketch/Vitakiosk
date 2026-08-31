@@ -1,8 +1,8 @@
 # VitaKiosk AI Pharmacy Kiosk
 
-VitaKiosk is a mock-first, live-ready pharmacy kiosk demo for iPad landscape use. It combines a Lottie assistant, tap-to-speak browser voice capture with silence auto-stop, accessible typed input with an optional kiosk keyboard, a safety-first intent pipeline, fictional VitaFlow-shaped data, mock WAV speech, and session-scoped WebSocket updates.
+VitaKiosk is a voice-first, vision-aware AI pharmacy kiosk for landscape tablet browsers, including iPadOS, Android, and Windows tablets. The reviewed live demo combines an interactive VRM assistant, ElevenLabs speech-to-text and text-to-speech, Agnes conversational AI and product vision, and branch-scoped product, price, stock, promotion, campaign, and shelf-location facts from the VitaFlow ERP API.
 
-By default, the demo does not call OpenAI, ElevenLabs, Ollama, or VitaFlow ERP. It does not read customer or sales records. OpenAI Whisper STT, local faster-whisper STT, and local Ollama AI wording are available only for reviewed local testing through explicit provider values in `.env`.
+The repository remains safe by default: a fresh clone uses mock adapters and never activates a live provider merely because a credential exists. The competition live-demo profile is enabled explicitly, one layer at a time, through the provider selectors documented below. VitaFlow remains the source of truth, catalog access is read-only, and only the separately selected pharmacist-assistance connector may create a minimal assistance case.
 
 ## Safety rules
 
@@ -30,34 +30,58 @@ Copy `.env.example` to a local `.env` only when local overrides are needed:
 Copy-Item .env.example .env
 ```
 
-Mock mode requires no key. Keep these secret fields empty for the demo:
+### Safe repository defaults
+
+A fresh clone and all automated tests use the following no-key defaults. These are fallback and CI settings, **not the competition live-demo profile**:
 
 - `STT_PROVIDER=mock`
 - `TTS_PROVIDER=mock`
 - `AI_PROVIDER=mock`
 - `VITAFLOW_PROVIDER=mock`
 - `VISION_PROVIDER=mock`
-- `OPENAI_API_KEY`
+- `OPENAI_API_KEY=`
 - `FASTER_WHISPER_MODEL_SIZE=small`
 - `FASTER_WHISPER_DEVICE=cpu`
 - `FASTER_WHISPER_COMPUTE_TYPE=int8`
 - `FASTER_WHISPER_MODEL_DIR=.models/whisper`
 - `FASTER_WHISPER_LANGUAGE=auto`
 - `STT_LOW_CONFIDENCE_THRESHOLD=0.55`
-- `ELEVENLABS_API_KEY`
-- `ELEVENLABS_VOICE_ID`
+- `ELEVENLABS_API_KEY=`
+- `ELEVENLABS_VOICE_ID=`
 - `OLLAMA_BASE_URL=http://localhost:11434`
 - `OLLAMA_MODEL=qwen2.5:7b`
 - `OLLAMA_TIMEOUT_SECONDS=20`
-- `VITAFLOW_API_BASE_URL`
+- `VITAFLOW_API_BASE_URL=`
 - `VITAFLOW_API_TOKEN` optional local pairing token for ERP catalog access
 - `VITE_API_BASE_URL=http://127.0.0.1:8000`
 - `VITE_WS_BASE_URL=ws://127.0.0.1:8000`
-- `VITE_AVATAR_RENDERER` may be left empty for the default Lottie avatar; set `VITE_AVATAR_RENDERER=threejs` or `VITE_AVATAR_RENDERER=vrm` only for reviewed local 3D avatar testing.
+- `VITE_AVATAR_RENDERER=` uses the lightweight fallback avatar; the reviewed live demo selects `vrm`.
 - `VITE_ENABLE_TYPED_INPUT=true` keeps the accessibility typed input visible.
 - `VITE_TEXT_INPUT_MODE=native` is the default and relies on the device/browser keyboard; set `VITE_TEXT_INPUT_MODE=popup` only when a focused full-screen typing modal is needed.
 
 `.env` is ignored. Never stage it.
+
+### Competition live-demo profile
+
+The reviewed live profile uses these explicit selectors in the ignored local `.env` and `frontend/.env.local` files:
+
+| Layer | Live selector | Role |
+|---|---|---|
+| Speech-to-text | `STT_PROVIDER=elevenlabs` | ElevenLabs Scribe transcription |
+| Text-to-speech | `TTS_PROVIDER=elevenlabs` | ElevenLabs multilingual voice output |
+| Conversational AI | `AI_PROVIDER=agnes` | Safety-constrained responses using VitaFlow facts |
+| Product vision | `VISION_PROVIDER=agnes` | Agnes image analysis with local matching fallback |
+| VitaFlow catalog | `VITAFLOW_PROVIDER=readonly_api` | Read-only product, price, stock, leaflet, and shelf data |
+| Pharmacist assistance | `VITAFLOW_ASSISTANCE_PROVIDER=vitaflow_api` | Minimal assistance-case creation only |
+| Avatar | `VITE_AVATAR_RENDERER=vrm` | Self-hosted `vita-new` VRM assistant |
+
+The live launcher requires Agnes, ElevenLabs, the JK branch, the VitaFlow API, and fixed backend/frontend ports to be ready before reporting success:
+
+```powershell
+.\scripts\start-live-demo.ps1
+```
+
+`VITAKIOSK_PROVIDER_MODE=mock` remains a repository-wide safety/compatibility guard. The actual active services are determined by the five per-layer selectors above and are reported by `/api/runtime/status`; therefore that legacy value does not mean a correctly configured live demo is using mock speech, AI, vision, or ERP data.
 
 ### Optional local Whisper STT test
 
@@ -196,9 +220,9 @@ $env:VITE_WS_BASE_URL="ws://127.0.0.1:8000"
 npm.cmd run dev --prefix frontend -- --host 127.0.0.1 --port 5175 --strictPort
 ```
 
-Open [http://127.0.0.1:5175](http://127.0.0.1:5175). Use an iPad landscape viewport such as 1024×768 for kiosk review. Browser microphone permission is required for Tap to Speak. The main button starts recording; sustained silence stops recording automatically, and the smaller `Start` control resets the kiosk for a fresh customer session without refreshing.
+Open [http://127.0.0.1:5175](http://127.0.0.1:5175). Use a landscape tablet viewport such as 1024×768 for kiosk review. VitaKiosk is browser-based and is not limited to iPad; it also supports compatible Android and Windows tablets. Browser microphone permission is required for Tap to Speak. The main button starts recording; sustained silence stops recording automatically, and the smaller `Start` control resets the kiosk for a fresh customer session without refreshing.
 
-The typed input panel below Shelf navigation is available by default for customers who cannot or prefer not to speak. The default is `VITE_TEXT_INPUT_MODE=native`, which relies on the iPad, Windows touch keyboard, external keyboard, copy-paste, and the operating system IME for pinyin/Chinese input. The compact keyboard icon opens an EN QWERTY virtual keyboard backup for English and Bahasa Melayu only; there is no custom Chinese keyboard toggle, phrase dictionary, or pinyin candidate system. Chinese text remains supported through the normal input field using the device keyboard or OS IME. If a deployment needs a focused kiosk typing screen, opt in with `VITE_TEXT_INPUT_MODE=popup`; the popup preserves the draft when closed and still uses the same safe typed workflow rather than fake product/promotion shortcuts.
+The typed input panel below Shelf navigation is available by default for customers who cannot or prefer not to speak. The default is `VITE_TEXT_INPUT_MODE=native`, which relies on the tablet or desktop operating system keyboard, an external keyboard, copy-paste, and the operating system IME for pinyin/Chinese input. The compact keyboard icon opens an EN QWERTY virtual keyboard backup for English and Bahasa Melayu only; there is no custom Chinese keyboard toggle, phrase dictionary, or pinyin candidate system. Chinese text remains supported through the normal input field using the device keyboard or OS IME. If a deployment needs a focused kiosk typing screen, opt in with `VITE_TEXT_INPUT_MODE=popup`; the popup preserves the draft when closed and still uses the same safe typed workflow rather than fake product/promotion shortcuts.
 
 The Vite dev server is pinned to `127.0.0.1:5175` with strict port mode. If port 5175 is occupied, Vite fails clearly instead of silently switching to 5176, 5177, or 5178. Find the old dev server and close it before restarting:
 
@@ -245,19 +269,19 @@ This endpoint returns provider names, Ollama reachability, and the selected Olla
 
 ## API surface
 
-| Method | Path | Mock behavior |
+| Method | Path | Behavior |
 |---|---|---|
 | GET | `/health` | Reports service, provider mode, and provider summary for dev diagnostics |
 | GET | `/api/runtime/status` | Reports safe local provider diagnostics without secrets or business data |
-| POST | `/api/voice/transcribe` | Returns deterministic mock transcript plus provider/language/confidence/correction/clarification metadata; optional OpenAI Whisper or local faster-whisper STT only when explicitly enabled locally |
-| POST | `/api/ai/respond` | Runs safety and mock intent workflow; optional local Ollama wording only when `AI_PROVIDER=ollama` is explicitly selected |
-| POST | `/api/voice/tts` | Returns a generated WAV tone |
-| GET | `/api/products/search` | Searches fictional branch-scoped products |
-| GET | `/api/promotions/match` | Filters active branch-aware promotions |
+| POST | `/api/voice/transcribe` | Uses the selected STT adapter; the live profile uses ElevenLabs Scribe |
+| POST | `/api/ai/respond` | Runs safety guardrails, VitaFlow-grounded intent handling, and the selected AI adapter; the live profile uses Agnes |
+| POST | `/api/voice/tts` | Uses the selected TTS adapter; the live profile uses ElevenLabs |
+| GET | `/api/products/search` | Searches the selected branch-scoped VitaFlow adapter; the live profile is read-only |
+| GET | `/api/promotions/match` | Filters active, branch-valid promotion and campaign data from the selected VitaFlow adapter |
 | GET | `/api/posters/idle` | Returns eligible idle posters |
 | GET | `/api/leaflets/active` | Returns current active leaflets for one branch |
 | POST | `/api/purchasing-query` | Creates an in-memory mock query |
-| POST | `/api/escalate-pharmacist` | Creates an in-memory mock escalation |
+| POST | `/api/escalate-pharmacist` | Uses the selected assistance adapter; the live profile creates a minimal VitaFlow assistance case |
 | WS | `/ws/kiosk/{session_id}` | Sends session-scoped avatar states |
 
 ## Test and build
@@ -274,17 +298,19 @@ node scripts/check-staged-files.mjs
 
 Before every commit, inspect staged paths and run the staged-file check. If `.env`, a database, SQLite file, log, backup, customer data, or sales data appears, stop without committing.
 
-## Adapter replacement path
+## Provider adapters
 
-Consumers depend on interfaces in `services/contracts.py` and `frontend/src/components/avatar/AvatarRenderer.ts`. Current and future adapters include:
+Consumers depend on interfaces in `services/contracts.py` and `frontend/src/components/avatar/AvatarRenderer.ts`. Implemented adapters include:
 
 - OpenAI/Whisper STT adapter for explicit local testing through `STT_PROVIDER=openai_whisper`.
 - Local faster-whisper STT adapter for explicit local testing through `STT_PROVIDER=faster_whisper`, with correction metadata from mock VitaFlow product names and a local pharmacy term lexicon.
-- Ollama local AI adapter for explicit local testing through `AI_PROVIDER=ollama`; OpenAI AI remains a future reviewed placeholder.
-- ElevenLabs TTS adapter for explicit local testing through `TTS_PROVIDER=elevenlabs`; keys stay in local root `.env` only.
-- VitaFlow HTTP API connector as future reviewed work.
+- ElevenLabs STT through `STT_PROVIDER=elevenlabs` and Scribe v2.
+- Ollama local AI through `AI_PROVIDER=ollama`; Agnes live AI through `AI_PROVIDER=agnes`.
+- ElevenLabs TTS through `TTS_PROVIDER=elevenlabs`; keys stay in local root `.env` only.
+- Read-only VitaFlow HTTP catalog, promotion, leaflet, map, and shelf connector through `VITAFLOW_PROVIDER=readonly_api`.
+- Agnes product vision through `VISION_PROVIDER=agnes`, with local product matching fallback and no camera-frame persistence by default.
 - Rive, Three.js GLB, or Three.js VRM avatar renderer.
-  - Lottie is the default.
+  - A lightweight avatar is the safe fallback; the reviewed live demo uses the self-hosted VRM renderer.
   - Three.js is optional through `VITE_AVATAR_RENDERER=threejs`.
   - VRM is optional through `VITE_AVATAR_RENDERER=vrm`.
   - When `frontend/src/assets/avatar/vitakiosk-avatar.glb` exists, the Three.js renderer loads the GLB humanoid avatar.
@@ -297,17 +323,17 @@ Provider selection must be explicit. Adding a credential alone must never activa
 
 Controlled provider mode is per layer:
 
-| Layer | Default | Future selector |
-|---|---|---|
-| STT | `STT_PROVIDER=mock` | `openai_whisper` or `faster_whisper` |
-| TTS | `TTS_PROVIDER=mock` | `elevenlabs` |
-| AI | `AI_PROVIDER=mock` | `openai` or `ollama` |
-| VitaFlow | `VITAFLOW_PROVIDER=mock` | `readonly_api` |
-| Vision | `VISION_PROVIDER=mock` | `local_product_scan` or `barcode_ocr` |
+| Layer | Safe default | Implemented selectors | Competition live demo |
+|---|---|---|---|
+| STT | `mock` | `openai_whisper`, `faster_whisper`, `elevenlabs` | `elevenlabs` |
+| TTS | `mock` | `elevenlabs`, `piper` | `elevenlabs` |
+| AI | `mock` | `ollama`, `agnes`; `openai` is a guarded placeholder | `agnes` |
+| VitaFlow | `mock` | `readonly_api` | `readonly_api` |
+| Vision | `mock` | `local_product_scan`, `barcode_ocr`, `agnes` | `agnes` |
 
-To test a live or local provider locally, edit only one selector in local `.env`, provide only that provider's required key, endpoint, or model settings, and rerun backend safety, non-invention, and source-of-truth tests. The STT adapter can call OpenAI only when `STT_PROVIDER=openai_whisper` is explicitly selected; faster-whisper runs locally and stores model files under the ignored `.models/` path. The Ollama AI adapter can call local Ollama only when `AI_PROVIDER=ollama` is explicitly selected, and it falls back to the mock workflow if the local server is offline or returns invalid/unsafe JSON. The ElevenLabs TTS adapter can call ElevenLabs only when `TTS_PROVIDER=elevenlabs` is explicitly selected and local credentials are present. The local camera product scan adapter runs only when `VISION_PROVIDER=local_product_scan` is explicitly selected; it must not save raw camera frames by default and product facts still come only from VitaFlow/mock data. OpenAI AI, VitaFlow, and non-local vision live classes remain placeholders until separate reviewed tasks implement them.
+Provider selection is explicit. The ElevenLabs STT/TTS, Agnes AI/vision, and VitaFlow read-only adapters activate only when their selectors and required ignored local credentials are present. Product facts always come from VitaFlow in the competition profile; Agnes may interpret a request or camera image but cannot replace VitaFlow price, stock, promotion, or shelf data. Provider timeouts and invalid responses fail closed or use a controlled safe fallback rather than inventing facts.
 
-The first VitaFlow live task must use a reviewed read-only API or sanitized copy. It must not write to VitaFlow and must not read the ERP release directory or database directly.
+The VitaFlow catalog connector is read-only and does not write sales, stock, purchasing, promotions, customer records, or shelf data. Pharmacist assistance uses a separate explicitly selected connector and may create only the minimum assistance-case payload.
 
 The separate ERP release directory `C:\Users\Admin\Documents\Playground\release` is not an integration endpoint and must not be accessed or modified.
 
