@@ -3,8 +3,8 @@ import { createServer } from "vite";
 const localVrmEnv = {
   VITE_AVATAR_RENDERER: "vrm",
   VITE_VRM_MODEL: "vita-new",
-  VITE_API_BASE_URL: "http://127.0.0.1:8001",
-  VITE_WS_BASE_URL: "ws://127.0.0.1:8001",
+  VITE_API_BASE_URL: "auto",
+  VITE_WS_BASE_URL: "auto",
   VITE_TEXT_INPUT_MODE: "native",
 };
 
@@ -12,8 +12,18 @@ for (const [key, value] of Object.entries(localVrmEnv)) {
   process.env[key] ||= value;
 }
 
+const devHost = process.env.VITAKIOSK_DEV_HOST || "127.0.0.1";
+const devPort = Number.parseInt(process.env.VITAKIOSK_DEV_PORT || "5175", 10);
+
+if (!Number.isInteger(devPort) || devPort < 1 || devPort > 65535) {
+  throw new Error("VITAKIOSK_DEV_PORT must be a valid TCP port.");
+}
+
 console.log("Starting VitaKiosk frontend local VRM demo.");
-console.log("Frontend URL: http://127.0.0.1:5175");
+console.log(`Frontend URL: http://${devHost}:${devPort}`);
+if (devHost === "0.0.0.0") {
+  console.log(`VitaKiosk LAN URL: http://<PC-LAN-IP>:${devPort}`);
+}
 console.log("Backend URL: http://127.0.0.1:8001");
 console.log(`Avatar renderer: ${process.env.VITE_AVATAR_RENDERER}`);
 console.log(`VRM model: ${process.env.VITE_VRM_MODEL}`);
@@ -26,8 +36,8 @@ let server;
 try {
   server = await createServer({
     server: {
-      host: "127.0.0.1",
-      port: 5175,
+      host: devHost,
+      port: devPort,
       strictPort: true,
     },
   });
@@ -36,14 +46,14 @@ try {
   server.printUrls();
 } catch (error) {
   const message = error instanceof Error ? error.message : String(error);
-  if (message.includes("Port 5175 is already in use")) {
-    console.error("Port 5175 is already in use.");
+  if (message.includes(`Port ${devPort} is already in use`)) {
+    console.error(`Port ${devPort} is already in use.`);
     console.error("Close the old VitaKiosk frontend dev server, then rerun:");
     console.error("npm.cmd run dev:vrm --prefix frontend");
     console.error("PowerShell check:");
-    console.error("Get-NetTCPConnection -LocalPort 5175 -State Listen");
+    console.error(`Get-NetTCPConnection -LocalPort ${devPort} -State Listen`);
     console.error(
-      "Get-NetTCPConnection -LocalPort 5175 -State Listen | Select-Object LocalAddress,LocalPort,OwningProcess",
+      `Get-NetTCPConnection -LocalPort ${devPort} -State Listen | Select-Object LocalAddress,LocalPort,OwningProcess`,
     );
   } else {
     console.error("VitaKiosk VRM dev server failed to start.");

@@ -3,8 +3,12 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "check:repo": "node scripts/check-repository.mjs",
     "site:dev": "npm run dev --prefix apps/site -- --host 127.0.0.1 --port 5176 --strictPort",
     "site:build": "npm run build --prefix apps/site",
     "site:test": "npm run test:run --prefix apps/site"
+  },
+  "dependencies": {
+    "nodemailer": "^9.0.3"
   }
 }

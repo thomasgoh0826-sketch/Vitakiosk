@@ -6,11 +6,16 @@ from dataclasses import dataclass
 from dotenv import load_dotenv
 
 
-ALLOWED_STT_PROVIDERS = frozenset({"mock", "openai_whisper", "faster_whisper"})
-ALLOWED_TTS_PROVIDERS = frozenset({"mock", "elevenlabs"})
-ALLOWED_AI_PROVIDERS = frozenset({"mock", "openai", "ollama"})
+ALLOWED_STT_PROVIDERS = frozenset(
+    {"mock", "openai_whisper", "faster_whisper", "elevenlabs"}
+)
+ALLOWED_TTS_PROVIDERS = frozenset({"mock", "elevenlabs", "piper"})
+ALLOWED_AI_PROVIDERS = frozenset({"mock", "openai", "ollama", "agnes"})
 ALLOWED_VITAFLOW_PROVIDERS = frozenset({"mock", "readonly_api"})
-ALLOWED_VISION_PROVIDERS = frozenset({"mock", "local_product_scan", "barcode_ocr"})
+ALLOWED_VITAFLOW_ASSISTANCE_PROVIDERS = frozenset({"mock", "vitaflow_api"})
+ALLOWED_VISION_PROVIDERS = frozenset(
+    {"mock", "local_product_scan", "barcode_ocr", "agnes"}
+)
 
 
 def _env_choice(name: str, default: str) -> str:
@@ -65,6 +70,7 @@ class Settings:
     tts_provider: str
     ai_provider: str
     vitaflow_provider: str
+    vitaflow_assistance_provider: str
     vision_provider: str
     openai_api_key: str
     faster_whisper_model_size: str
@@ -76,10 +82,21 @@ class Settings:
     elevenlabs_api_key: str
     elevenlabs_voice_id: str
     elevenlabs_model_id: str
+    elevenlabs_stt_model_id: str
+    piper_command: str
+    piper_model_path: str
+    piper_config_path: str
+    piper_speaker: str
     ollama_base_url: str
     ollama_model: str
     ollama_timeout_seconds: int
+    agnes_api_key: str
+    agnes_base_url: str
+    agnes_model: str
+    agnes_timeout_seconds: int
+    agnes_vision_model: str
     vitaflow_api_base_url: str
+    vitaflow_api_token: str
 
     @classmethod
     def from_environment(cls) -> "Settings":
@@ -90,6 +107,10 @@ class Settings:
             tts_provider=_env_choice("TTS_PROVIDER", "mock"),
             ai_provider=_env_choice("AI_PROVIDER", "mock"),
             vitaflow_provider=_env_choice("VITAFLOW_PROVIDER", "mock"),
+            vitaflow_assistance_provider=_env_choice(
+                "VITAFLOW_ASSISTANCE_PROVIDER",
+                "mock",
+            ),
             vision_provider=_env_choice("VISION_PROVIDER", "mock"),
             openai_api_key=_env_text("OPENAI_API_KEY"),
             faster_whisper_model_size=_env_text("FASTER_WHISPER_MODEL_SIZE", "small"),
@@ -113,10 +134,30 @@ class Settings:
                 "ELEVENLABS_MODEL_ID",
                 "eleven_multilingual_v2",
             ),
+            elevenlabs_stt_model_id=_env_text(
+                "ELEVENLABS_STT_MODEL_ID",
+                "scribe_v2",
+            ),
+            piper_command=_env_text("PIPER_COMMAND", "piper"),
+            piper_model_path=_env_text("PIPER_MODEL_PATH"),
+            piper_config_path=_env_text("PIPER_CONFIG_PATH"),
+            piper_speaker=_env_text("PIPER_SPEAKER"),
             ollama_base_url=_env_text("OLLAMA_BASE_URL", "http://localhost:11434"),
             ollama_model=_env_text("OLLAMA_MODEL", "qwen2.5:7b"),
             ollama_timeout_seconds=_env_int("OLLAMA_TIMEOUT_SECONDS", 20),
+            agnes_api_key=_env_text("AGNES_API_KEY"),
+            agnes_base_url=_env_text(
+                "AGNES_BASE_URL",
+                "https://apihub.agnes-ai.com",
+            ),
+            agnes_model=_env_text("AGNES_MODEL", "agnes-2.0-flash"),
+            agnes_timeout_seconds=_env_int("AGNES_TIMEOUT_SECONDS", 20),
+            agnes_vision_model=_env_text(
+                "AGNES_VISION_MODEL",
+                "agnes-2.5-flash",
+            ),
             vitaflow_api_base_url=_env_text("VITAFLOW_API_BASE_URL"),
+            vitaflow_api_token=_env_text("VITAFLOW_API_TOKEN"),
         )
 
     @property
@@ -142,6 +183,11 @@ class Settings:
             "VITAFLOW_PROVIDER",
             self.vitaflow_provider,
             ALLOWED_VITAFLOW_PROVIDERS,
+        )
+        _validate_choice(
+            "VITAFLOW_ASSISTANCE_PROVIDER",
+            self.vitaflow_assistance_provider,
+            ALLOWED_VITAFLOW_ASSISTANCE_PROVIDERS,
         )
         _validate_choice(
             "VISION_PROVIDER",

@@ -1,4 +1,7 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
+import { statSync } from "node:fs";
+import { dirname, resolve } from "node:path";
+import { fileURLToPath } from "node:url";
 
 import {
   DEFAULT_AVATAR_MODEL_MODULE_KEY,
@@ -36,9 +39,12 @@ describe("avatar model asset resolution", () => {
 
   it("resolves the preferred VitaKiosk VRM avatar path when it exists", () => {
     expect(
-      getVrmAvatarModelUrlFromModules({
-        [DEFAULT_VRM_AVATAR_MODEL_MODULE_KEY]: "/assets/vita.vrm",
-      }),
+      getVrmAvatarModelUrlFromModules(
+        {
+          [DEFAULT_VRM_AVATAR_MODEL_MODULE_KEY]: "/assets/vita.vrm",
+        },
+        "vita",
+      ),
     ).toBe("/assets/vita.vrm");
   });
 
@@ -89,5 +95,12 @@ describe("avatar model asset resolution", () => {
         "vita-new",
       ),
     ).toBeNull();
+  });
+
+  it("keeps the tablet demo VRM below the reviewed 10 MB transfer budget", () => {
+    const currentDir = dirname(fileURLToPath(import.meta.url));
+    const modelPath = resolve(currentDir, "../../assets/avatar/vita-new.vrm");
+
+    expect(statSync(modelPath).size).toBeLessThanOrEqual(10 * 1024 * 1024);
   });
 });

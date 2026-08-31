@@ -1,7 +1,7 @@
 import { Suspense, lazy, type CSSProperties, useEffect, useState } from "react";
 
 import { translations, type KioskTranslations } from "../i18n";
-import type { AvatarState } from "../types";
+import type { AvatarPresentation, AvatarState } from "../types";
 import {
   getConfiguredAvatarRenderer,
   type AvatarRendererKind,
@@ -18,6 +18,7 @@ interface AvatarAssistantProps {
   connected: boolean;
   renderer?: AvatarRendererKind;
   labels?: KioskTranslations;
+  presentation?: AvatarPresentation;
 }
 
 function getStateLabel(state: AvatarState, labels: KioskTranslations) {
@@ -154,6 +155,7 @@ function AvatarAssistant({
   connected,
   renderer,
   labels = translations.en,
+  presentation,
 }: AvatarAssistantProps) {
   const stateLabel = getStateLabel(state, labels);
   const rendererKind = renderer ?? getConfiguredAvatarRenderer();
@@ -204,7 +206,7 @@ function AvatarAssistant({
             />
           }
         >
-          <VrmAvatarRenderer state={state} audioActivity={audioActivity} />
+          <VrmAvatarRenderer state={state} audioActivity={audioActivity} presentation={presentation} />
         </Suspense>
       );
     }
@@ -223,12 +225,12 @@ function AvatarAssistant({
             />
           }
         >
-          <ThreeAvatarRenderer state={state} audioActivity={audioActivity} />
+          <ThreeAvatarRenderer state={state} audioActivity={audioActivity} presentation={presentation} />
         </Suspense>
       );
     }
 
-    return <LottieAvatarRenderer state={state} audioActivity={audioActivity} />;
+    return <LottieAvatarRenderer state={state} audioActivity={audioActivity} presentation={presentation} />;
   })();
 
   return (
@@ -249,7 +251,7 @@ function AvatarAssistant({
         </span>
         {avatarRenderer}
         <span className="avatar-bay-label avatar-bay-label-right" aria-hidden="true">
-          MOCK 01
+          KIOSK 01
         </span>
         {showRendererDebug ? (
           <span className="avatar-renderer-debug" aria-label={`Current avatar renderer ${rendererKind}`}>

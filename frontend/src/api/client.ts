@@ -2,18 +2,32 @@ import type {
   AIResponse,
   HealthResponse,
   ItemListResponse,
+  Leaflet,
   MockActionResponse,
   Poster,
   ProductScanResponse,
   ProductSearchResponse,
   Promotion,
   RuntimeStatusResponse,
+  ShelfMapResponse,
   TranscriptionResponse,
 } from "../types";
 import type { PreferredLanguage } from "../i18n";
 
 
 const DEFAULT_API_BASE_URL = "http://localhost:8000";
+
+export function resolveApiBaseUrl(value: string | undefined): string {
+  if (value && value !== "auto") {
+    return value;
+  }
+
+  if (typeof window !== "undefined" && window.location?.origin) {
+    return window.location.origin;
+  }
+
+  return DEFAULT_API_BASE_URL;
+}
 
 export class ApiError extends Error {
   constructor(
@@ -34,20 +48,26 @@ export interface VitaKioskApiClient {
     text: string,
     branchId: string,
     preferredLanguage?: PreferredLanguage,
+    currentProductId?: string,
   ): Promise<AIResponse>;
   synthesize(sessionId: string, text: string): Promise<Blob>;
   searchProducts(query: string, branchId: string): Promise<ProductSearchResponse>;
   scanProduct(image: Blob, branchId: string, mode?: string): Promise<ProductScanResponse>;
   matchPromotions(productId: string, branchId: string): Promise<ItemListResponse<Promotion>>;
+  activeLeaflets?(branchId: string): Promise<ItemListResponse<Leaflet>>;
   idlePosters(branchId: string): Promise<ItemListResponse<Poster>>;
+  shelfMap?(branchId: string): Promise<ShelfMapResponse>;
   createPurchasingQuery(query: string, branchId: string): Promise<MockActionResponse>;
   escalatePharmacist(reason: string, branchId: string, sessionId?: string): Promise<MockActionResponse>;
 }
 
 async function safeErrorMessage(response: Response): Promise<string> {
   try {
-    const payload = (await response.json()) as { detail?: unknown };
-    return typeof payload.detail === "string" ? payload.detail : "Request failed";
+    const payload = (await response.json()) as { detail?: unknown; message?: unknown };
+    if (typeof payload.detail === "string") {
+      return payload.detail;
+    }
+    return typeof payload.message === "string" ? payload.message : "Request failed";
   } catch {
     return "Request failed";
   }
@@ -84,6 +104,7 @@ export class VitaKioskApi implements VitaKioskApiClient {
     text: string,
     branchId: string,
     preferredLanguage: PreferredLanguage = "auto",
+    currentProductId?: string,
   ): Promise<AIResponse> {
     return this.json("/api/ai/respond", {
       method: "POST",
@@ -93,6 +114,7 @@ export class VitaKioskApi implements VitaKioskApiClient {
         text,
         branch_id: branchId,
         preferred_language: preferredLanguage,
+        ...(currentProductId ? { current_product_id: currentProductId } : {}),
       }),
     });
   }
@@ -131,9 +153,19 @@ export class VitaKioskApi implements VitaKioskApiClient {
     return this.json(`/api/promotions/match?${params}`);
   }
 
+  activeLeaflets(branchId: string): Promise<ItemListResponse<Leaflet>> {
+    const params = new URLSearchParams({ branch_id: branchId });
+    return this.json(`/api/leaflets/active?${params}`);
+  }
+
   idlePosters(branchId: string): Promise<ItemListResponse<Poster>> {
     const params = new URLSearchParams({ branch_id: branchId });
     return this.json(`/api/posters/idle?${params}`);
+  }
+
+  shelfMap(branchId: string): Promise<ShelfMapResponse> {
+    const params = new URLSearchParams({ branch_id: branchId });
+    return this.json(`/api/shelf-map?${params}`);
   }
 
   createPurchasingQuery(query: string, branchId: string): Promise<MockActionResponse> {
@@ -158,5 +190,5 @@ export class VitaKioskApi implements VitaKioskApiClient {
 }
 
 export const api = new VitaKioskApi(
-  import.meta.env.VITE_API_BASE_URL || DEFAULT_API_BASE_URL,
+  resolveApiBaseUrl(import.meta.env.VITE_API_BASE_URL),
 );

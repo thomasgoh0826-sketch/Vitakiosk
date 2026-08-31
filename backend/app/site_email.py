@@ -214,7 +214,7 @@ def create_site_email_provider() -> SiteEmailProvider:
             or os.getenv("SITE_OWNER_EMAIL")
             or SITE_OWNER_EMAIL
         ).strip()
-        app_password = (os.getenv("SITE_EMAIL_SMTP_APP_PASSWORD") or "").strip()
+        app_password = re.sub(r"\s+", "", os.getenv("SITE_EMAIL_SMTP_APP_PASSWORD") or "")
         if not username or not app_password:
             logger.warning("Gmail email provider selected but SMTP app password is missing.")
             return DisabledSiteEmailProvider()

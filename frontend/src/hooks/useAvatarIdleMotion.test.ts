@@ -3,12 +3,28 @@ import { describe, expect, it } from "vitest";
 import {
   getAvatarExpressionWeights,
   getAvatarExpressionForState,
+  getGesturePoseOffset,
   getIdleMotionFrame,
   getRelaxedAvatarPose,
 } from "./useAvatarIdleMotion";
 
 
 describe("avatar idle motion helpers", () => {
+  it.each([
+    ["product", "present_product"],
+    ["promotion", "present_promotion"],
+    ["shelf", "guide_shelf"],
+  ] as const)("turns toward right-side %s content", (focusTarget, gesture) => {
+    const pose = getGesturePoseOffset({
+      expression: "friendly_explaining",
+      focusTarget,
+      gesture,
+    });
+
+    expect(pose.head.y).toBeLessThan(0);
+    expect(pose.neck.y).toBeLessThan(0);
+  });
+
   it("maps avatar states to intentional facial expressions", () => {
     expect(getAvatarExpressionForState("idle")).toBe("relaxed");
     expect(getAvatarExpressionForState("listening")).toBe("attentive");
@@ -54,11 +70,25 @@ describe("avatar idle motion helpers", () => {
     expect(Math.abs(listening.head.y)).toBeLessThan(0.12);
   });
 
-  it("keeps pharmacist escalation serious instead of friendly or smiling", () => {
+  it("keeps speaking expressions mouth-neutral so lip sync controls mouth movement", () => {
     const speaking = getAvatarExpressionWeights("speaking", 0);
+    const highlight = getAvatarExpressionWeights("speaking", 0, {
+      expression: "happy_highlight",
+      focusTarget: "promotion",
+      gesture: "present_promotion",
+    });
+
+    expect(speaking.happy).toBe(0);
+    expect(speaking.surprised).toBe(0);
+    expect(speaking.relaxed + speaking.neutral).toBeGreaterThan(0);
+    expect(highlight.happy).toBe(0);
+    expect(highlight.surprised).toBe(0);
+    expect(highlight.relaxed + highlight.neutral).toBeGreaterThan(0);
+  });
+
+  it("keeps pharmacist escalation serious instead of friendly or smiling", () => {
     const escalation = getAvatarExpressionWeights("pharmacist_escalation", 0);
 
-    expect(speaking.happy).toBeGreaterThan(0);
     expect(escalation.happy).toBe(0);
     expect(escalation.relaxed).toBe(0);
     expect(escalation.neutral).toBeGreaterThan(0);

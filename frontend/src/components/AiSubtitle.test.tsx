@@ -57,6 +57,17 @@ describe("AiSubtitle", () => {
 
     rerender(
       <AiSubtitle
+        state="idle"
+        responseText="Hi, I am VitaKiosk. You can ask me about product price."
+        error={null}
+      />,
+    );
+    expect(screen.getByTestId("ai-subtitle-line")).toHaveTextContent(
+      "Hi, I am VitaKiosk. You can ask me about product price.",
+    );
+
+    rerender(
+      <AiSubtitle
         state="pharmacist_escalation"
         responseText="A pharmacist has been asked to assist."
         error={null}
@@ -64,6 +75,23 @@ describe("AiSubtitle", () => {
     );
     expect(screen.getByTestId("ai-subtitle-line")).toHaveTextContent(
       "For your safety, I will request pharmacist assistance.",
+    );
+  });
+
+  it("uses full-wrap compact styling for longer assistant subtitles", () => {
+    render(
+      <AiSubtitle
+        state="idle"
+        responseText="Hi, I am VitaKiosk. You can ask me about product price, stock, promotions, shelf location, or show me a product to scan."
+        error={null}
+      />,
+    );
+
+    expect(screen.getByRole("region", { name: /AI assistant subtitles/i })).toHaveClass(
+      "ai-subtitle-long",
+    );
+    expect(screen.getByTestId("ai-subtitle-line")).toHaveTextContent(
+      "show me a product to scan.",
     );
   });
 });

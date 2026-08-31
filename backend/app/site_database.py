@@ -151,8 +151,9 @@ class SupabaseSiteDatabaseProvider:
         self._fallback_counter = count(1)
 
     def _reference_code(self, kind: SiteRecordKind) -> str:
-        year = datetime.now(UTC).year
-        return f"{reference_prefix(kind)}-{year}-{next(self._fallback_counter):04d}"
+        now = datetime.now(UTC)
+        token = uuid4().hex[:6].upper()
+        return f"{reference_prefix(kind)}-{now.year}-{now:%m%d%H%M%S}-{next(self._fallback_counter):02d}-{token}"
 
     def create(
         self,
@@ -163,21 +164,32 @@ class SupabaseSiteDatabaseProvider:
         reference_id: str | None = None,
     ) -> SiteRecord:
         safe_payload = sanitize_payload(payload)
+        max_attempts = 3 if reference_id is None else 1
+        inserted: dict[str, Any] | None = None
+        row: dict[str, Any] = {}
         reference_code = reference_id or self._reference_code(kind)
-        table, row = self._row_for_record(kind, status, reference_code, safe_payload)
-        response = self.http_client.post(
-            f"{self.supabase_url}/rest/v1/{table}",
-            headers={
-                "apikey": self.api_key,
-                "authorization": f"Bearer {self.api_key}",
-                "content-type": "application/json",
-                "prefer": "return=representation",
-            },
-            json=row,
-        )
-        response.raise_for_status()
-        data = response.json()
-        inserted = data[0] if isinstance(data, list) and data else row
+        for attempt in range(max_attempts):
+            if attempt > 0:
+                reference_code = self._reference_code(kind)
+            table, row = self._row_for_record(kind, status, reference_code, safe_payload)
+            response = self.http_client.post(
+                f"{self.supabase_url}/rest/v1/{table}",
+                headers={
+                    "apikey": self.api_key,
+                    "authorization": f"Bearer {self.api_key}",
+                    "content-type": "application/json",
+                    "prefer": "return=representation",
+                },
+                json=row,
+            )
+            if response.status_code == 409 and reference_id is None and attempt < max_attempts - 1:
+                continue
+            response.raise_for_status()
+            data = response.json()
+            inserted = data[0] if isinstance(data, list) and data else row
+            break
+        if inserted is None:
+            inserted = row
         return SiteRecord(
             id=str(inserted.get("id") or uuid4()),
             kind=kind,

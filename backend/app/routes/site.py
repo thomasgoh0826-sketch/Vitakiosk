@@ -10,6 +10,7 @@ from pydantic import BaseModel, ConfigDict, Field
 
 from backend.app.site_database import site_database
 from backend.app.site_email import build_site_email_message, site_email
+from backend.app.site_chat import answer_site_chat
 from backend.app.site_payments import CheckoutOrder, get_payment_provider
 from backend.app.site_pricing import MANUAL_PAYMENT_NOTICE, SITE_PRICING_PLANS
 
@@ -96,6 +97,16 @@ class CheckoutCreateRequest(StrictSiteRequest):
     amount_label: ShortText
     mode: Literal["subscription", "one_time", "deposit", "quote"] = "deposit"
     provider: Literal["manual_mock", "mock", "stripe", "billplz", "manual_bank_transfer"] = "manual_mock"
+
+
+class ChatHistoryItem(BaseModel):
+    role: Literal["assistant", "user"]
+    text: Annotated[str, Field(min_length=1, max_length=800)]
+
+
+class ChatRequest(StrictSiteRequest):
+    message: Annotated[str, Field(min_length=1, max_length=800)]
+    history: list[ChatHistoryItem] = Field(default_factory=list, max_length=8)
 
 
 class SiteRateLimiter:
@@ -194,6 +205,15 @@ def pricing() -> dict[str, Any]:
             "Sponsored healthcare campaigns require approval and compliance review.",
         ],
     }
+
+
+@router.post("/chat")
+async def site_chat(request_data: ChatRequest, request: Request) -> dict[str, Any]:
+    rate_limit_request(request)
+    return await answer_site_chat(
+        request_data.message,
+        [item.model_dump() for item in request_data.history],
+    )
 
 
 @router.post("/lead", status_code=201)

@@ -1,0 +1,19 @@
+[build]
+  command = "npm run site:build"
+  publish = "apps/site/dist"
+  functions = "netlify/functions"
+
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Robots-Tag = "index, follow"
+
+[[redirects]]
+  from = "/api/site/*"
+  to = "/.netlify/functions/site-api/:splat"
+  status = 200
+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200

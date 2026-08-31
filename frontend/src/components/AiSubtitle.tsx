@@ -16,7 +16,7 @@ function getStaticSubtitle(
   error: string | null,
   labels: KioskTranslations,
 ) {
-  if (state === "error" || error) {
+  if ((state === "error" || error) && !responseText) {
     return labels.errorSubtitle;
   }
   if (state === "pharmacist_escalation") {
@@ -30,6 +30,9 @@ function getStaticSubtitle(
   }
   if (state === "speaking") {
     return responseText || labels.thinkingSubtitle;
+  }
+  if (responseText) {
+    return responseText;
   }
   return labels.idleSubtitle;
 }
@@ -50,25 +53,28 @@ function AiSubtitle({
   state,
   responseText,
   error,
-  audioPlaybackBlocked = false,
   labels = translations.en,
 }: AiSubtitleProps) {
   const playback = useSubtitlePlayback({
     text: responseText,
     state,
   });
-  const subtitle = audioPlaybackBlocked && responseText
-    ? responseText
-    : state === "speaking"
+  const subtitle = state === "speaking"
     ? playback.subtitle || labels.thinkingSubtitle
     : getStaticSubtitle(state, responseText, error, labels);
-  const stateLabel = audioPlaybackBlocked ? labels.tapToPlayVoice : getStateLabel(state, labels);
+  const stateLabel = getStateLabel(state, labels);
+  const subtitleLength = subtitle.trim().length;
+  const subtitleDensityClass = subtitleLength > 150
+    ? " ai-subtitle-extra-long"
+    : subtitleLength > 80
+    ? " ai-subtitle-long"
+    : "";
 
   return (
     <section
       className={`ai-subtitle-panel ai-subtitle-${state}${
         playback.isStreaming ? " is-streaming" : ""
-      }`}
+      }${subtitleDensityClass}`}
       role="region"
       aria-label="AI assistant subtitles"
     >

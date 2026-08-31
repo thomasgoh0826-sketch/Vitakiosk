@@ -31,6 +31,8 @@ hardcoded product image paths or any vision-generated product facts.
 
 A live connector must implement `VitaFlowAdapter`, use an approved HTTP API, be selected explicitly, and never inspect an ERP release directory or database directly. The first live option is `VITAFLOW_PROVIDER=readonly_api` only.
 
+The adapter contract includes product lookup, shelf map, product promotion matching, and branch-valid promotion/campaign leaflet reads. In `readonly_api` mode, the AI leaflet engine delegates to these adapter results and never falls back to mock leaflet records. Date-only VitaFlow validity values are normalized to UTC before current-window checks.
+
 ## Acceptance criteria
 
 - Mock mode starts without `VITAFLOW_API_BASE_URL`.
@@ -47,6 +49,12 @@ A live connector must implement `VitaFlowAdapter`, use an approved HTTP API, be 
 - Product image URLs, thumbnails, and image lists are returned only from the
   adapter/backend response. The frontend must fall back safely if a URL is
   absent, invalid, unsafe, or fails to load.
+- Self-service product descriptions, ingredients, how-to-use wording, best-for wording, size, storage, and safety notes are returned only from adapter-provided `productSummary` fields. VitaKiosk may select the requested field but must not synthesize missing product information.
+- Relative image and map assets from `readonly_api` are exposed to the browser
+  through the read-only same-origin `/api/vitaflow-assets/*` endpoint. The
+  endpoint may fetch only a normalized path beneath the configured VitaFlow
+  base URL, accepts only successful `image/*` responses, follows no redirects,
+  and must never expose the workstation-only VitaFlow origin to an iPad.
 - Near-match candidates such as `Relief Bomb` -> `Relief Balm` do not create a
   purchasing query until the adapter returns no candidate.
 - Tests must not call VitaFlow ERP or any real ERP database/API.

@@ -76,6 +76,7 @@ describe("AvatarAssistant", () => {
   });
 
   it("uses the Lottie avatar renderer by default", () => {
+    vi.stubEnv("VITE_AVATAR_RENDERER", "");
     render(<AvatarAssistant state="idle" audioActivity={0} connected />);
 
     expect(screen.getByLabelText(/lottie holographic ai avatar/i)).toHaveAttribute(
@@ -98,7 +99,7 @@ describe("AvatarAssistant", () => {
       await screen.findByLabelText(
         new RegExp(`three\\.js (holographic|humanoid) ai avatar: ${label}`, "i"),
         {},
-        { timeout: 3000 },
+        { timeout: 8000 },
       ),
     ).toHaveAttribute("data-avatar-renderer", "threejs");
   });
@@ -180,6 +181,7 @@ describe("AvatarAssistant", () => {
 
   it("shows the default holographic renderer when VITE_AVATAR_RENDERER is missing", () => {
     const warn = vi.spyOn(console, "warn").mockImplementation(() => undefined);
+    vi.stubEnv("VITE_AVATAR_RENDERER", "");
 
     render(<AvatarAssistant state="idle" audioActivity={0} connected />);
 

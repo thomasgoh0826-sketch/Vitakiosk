@@ -67,7 +67,7 @@ const leaflets: Leaflet[] = [
     valid_from: "2025-01-01T00:00:00Z",
     valid_to: "2030-12-31T23:59:00Z",
     image_url: "/assets/leaflets/mock-hydration-campaign.svg",
-    product_ids: ["MOCK-P002"],
+    product_ids: [],
     category_tags: ["hydration"],
     display_priority: 30,
     source: "mock_vitaflow",
@@ -115,7 +115,7 @@ describe("PromotionPoster leaflet display", () => {
     expect(onOpenLeaflet).toHaveBeenCalledWith(leaflets[0]);
   });
 
-  it("renders clean side-by-side-capable leaflet cards without collapsed metadata", () => {
+  it("renders a clean product-specific promotion preview without unrelated collapsed metadata", () => {
     renderPromotionPoster();
 
     const buttons = leafletButtons();
@@ -134,7 +134,35 @@ describe("PromotionPoster leaflet display", () => {
     expect(panel).not.toHaveTextContent("Valid");
   });
 
-  it("defaults product-without-promotion mode to a related campaign first while preserving responsive leaflet options", () => {
+  it("keeps up to three clean collapsed leaflet cards available for responsive layouts", () => {
+    const extraBranchCampaign: Leaflet = {
+      id: "MOCK-LF-CAMP-002",
+      kind: "campaign",
+      title: "Branch Wellness Campaign",
+      description: "Branch-wide wellness campaign.",
+      branch_id: "SG-001",
+      active: true,
+      valid_from: "2025-01-01T00:00:00Z",
+      valid_to: "2030-12-31T23:59:00Z",
+      image_url: "/assets/leaflets/mock-hydration-campaign.svg",
+      product_ids: [],
+      category_tags: ["wellness"],
+      display_priority: 40,
+      source: "mock_vitaflow",
+    };
+
+    renderPromotionPoster({ leaflets: [...leaflets, extraBranchCampaign] });
+
+    const buttons = leafletButtons();
+    expect(buttons).toHaveLength(3);
+    expect(buttons.map((button) => button.getAttribute("aria-label"))).toEqual([
+      "Open Relief Balm Demo Leaflet leaflet",
+      "Open Supplement Savings Demo leaflet",
+      "Open Hydration Health Campaign leaflet",
+    ]);
+  });
+
+  it("defaults product-without-promotion mode to a related campaign fallback", () => {
     const { onOpenLeaflet } = renderPromotionPoster({
       mode: "product_options",
       product: productWithoutPromotion,
@@ -142,7 +170,7 @@ describe("PromotionPoster leaflet display", () => {
 
     const panel = screen.getByRole("region", { name: "Promotion" });
     const buttons = within(panel).getAllByRole("button", { name: /open .* leaflet/i });
-    expect(buttons).toHaveLength(3);
+    expect(buttons).toHaveLength(1);
     expect(buttons[0]).toHaveAccessibleName(/open Hydration Health Campaign/i);
 
     fireEvent.click(within(panel).getByRole("button", {
@@ -152,7 +180,7 @@ describe("PromotionPoster leaflet display", () => {
     expect(onOpenLeaflet).toHaveBeenCalledWith(leaflets[2]);
   });
 
-  it("shows a campaign leaflet first for product-not-found or no-product states without hiding other active leaflets", () => {
+  it("shows a campaign leaflet first for product-not-found or no-product states", () => {
     renderPromotionPoster({
       mode: "idle",
       product: null,
@@ -160,7 +188,7 @@ describe("PromotionPoster leaflet display", () => {
 
     const panel = screen.getByRole("region", { name: "Promotion" });
     const buttons = within(panel).getAllByRole("button", { name: /open .* leaflet/i });
-    expect(buttons).toHaveLength(3);
+    expect(buttons).toHaveLength(1);
     expect(buttons[0]).toHaveAccessibleName(/open Hydration Health Campaign/i);
   });
 

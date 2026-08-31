@@ -16,7 +16,17 @@ requests, and manual customer assistance requests.
   promotion matching, shelf navigation, unknown-product handling, and
   purchasing-query creation.
 - Diagnosis requests do not produce a diagnosis.
-- Escalation creates an `ESC-####` mock record.
+- With `VITAFLOW_ASSISTANCE_PROVIDER=mock`, escalation creates an `ESC-####`
+  local mock record and never contacts VitaFlow.
+- With the explicitly reviewed `VITAFLOW_ASSISTANCE_PROVIDER=vitaflow_api`
+  selector and `VITAFLOW_PROVIDER=readonly_api`, escalation creates a
+  branch-scoped VitaFlow VitaKiosk queue case containing only the branch,
+  session identifier, request reason, priority, and source. It must not send
+  customer identity, audio, transcript history, stock, sales, or medical advice.
+- The Kiosk may say "A pharmacist has been notified" only after VitaFlow returns
+  an authoritative case code. Missing acknowledgement returns a service error
+  and the UI presents an explicit notification failure instead of an `ESC`
+  placeholder.
 - WebSocket emits `pharmacist_escalation` for the correct session.
 - UI presents an alert and keeps the pharmacist panel visible.
 - UI shows a confirmation state with "Pharmacist assistance requested",

@@ -1,5 +1,5 @@
 export type DemoAssetKind = "approved_reference" | "placeholder" | "generated" | "concept";
-export type DemoAssetChannel = "reference" | "poster" | "video" | "loop" | "screenshot" | "avatar";
+export type DemoAssetChannel = "reference" | "poster" | "video" | "loop" | "screenshot" | "avatar" | "model3d";
 
 export interface DemoMedia {
   id: string;
@@ -19,6 +19,8 @@ export interface DemoVideoMedia extends Omit<DemoMedia, "channel" | "src"> {
   poster: string;
   previewSrc: string;
   fullSrc: string;
+  previewType?: "video/webm" | "video/mp4";
+  fullType?: "video/webm" | "video/mp4";
   duration: string;
   summary: string;
   category: string;
@@ -28,26 +30,31 @@ export interface DemoVideoMedia extends Omit<DemoMedia, "channel" | "src"> {
 const media = {
   approvedKioskReference: "/assets/reference/vitakiosk-demo-approved.png",
   aiPharmacyAssistantAvatar: "/assets/avatar/ai-pharmacy-assistant-avatar.png",
+  vitakioskTabletModel: "/assets/3d/vitakiosk-tablet.glb",
+  vitakioskKioskModel: "/assets/3d/vitakiosk-kiosk.glb",
   vitaflowDashboard: "/assets/demos/vitaflow/dashboard.svg",
   vitaflowInventory: "/assets/demos/vitaflow/inventory.svg",
   vitaflowPurchase: "/assets/demos/vitaflow/purchase.svg",
   vitaflowPromotion: "/assets/demos/vitaflow/promotion.svg",
   vitaflowFollowUp: "/assets/demos/vitaflow/follow-up.svg",
   vitaflowPoster: "/assets/demos/vitaflow/poster.svg",
-  videoClinicQueuePoster: "/assets/posters/higgsfield/clinic-queue-problem.svg",
-  videoPartnerPoster: "/assets/posters/higgsfield/pharmacy-partner-discovery.svg",
-  videoRetailPoster: "/assets/posters/higgsfield/retail-pharmacy-promotion.svg",
+  vitaflowOrbitReports: "/assets/demos/vitaflow/orbit/reports.png",
+  vitaflowOrbitPosCheckout: "/assets/demos/vitaflow/orbit/pos-checkout.png",
+  vitaflowOrbitHqLive: "/assets/demos/vitaflow/orbit/hq-live.png",
+  videoClinicQueuePoster: "/assets/posters/jimeng/clinic-queue-problem-storyboard.jpg",
+  videoPartnerPoster: "/assets/posters/jimeng/pharmacy-partner-discovery-15s.jpg",
+  videoRetailPoster: "/assets/posters/jimeng/retail-pharmacy-promotion-15s.jpg",
   videoKioskPoster: "/assets/posters/higgsfield/vitakiosk-interactive-demo.svg",
   videoVitaflowPoster: "/assets/posters/higgsfield/vitaflow-source-of-truth.svg",
   videoWebsitePoster: "/assets/posters/higgsfield/ai-website-studio.svg",
-  videoAcademyPoster: "/assets/posters/higgsfield/ai-academy.svg",
-  videoClinicQueue: "/assets/videos/higgsfield/clinic-queue-problem.webm",
-  videoPartner: "/assets/videos/higgsfield/pharmacy-partner-discovery.webm",
-  videoRetail: "/assets/videos/higgsfield/retail-pharmacy-promotion.webm",
+  videoAcademyPoster: "/assets/posters/jimeng/ai-academy-32s.jpg",
+  videoClinicQueue: "/assets/videos/jimeng/clinic-queue-problem-storyboard.mp4",
+  videoPartner: "/assets/videos/jimeng/pharmacy-partner-discovery-15s.mp4",
+  videoRetail: "/assets/videos/jimeng/retail-pharmacy-promotion-15s.mp4",
   videoKiosk: "/assets/videos/higgsfield/vitakiosk-interactive-demo.webm",
   videoVitaflow: "/assets/videos/higgsfield/vitaflow-source-of-truth.webm",
   videoWebsite: "/assets/videos/higgsfield/ai-website-studio.webm",
-  videoAcademy: "/assets/videos/higgsfield/ai-academy.webm",
+  videoAcademy: "/assets/videos/jimeng/ai-academy-32s.mp4",
 };
 
 export const demoAssetRoots = {
@@ -55,8 +62,11 @@ export const demoAssetRoots = {
   avatars: "/assets/avatar/",
   vitaflow: "/assets/demos/vitaflow/",
   videos: "/assets/videos/higgsfield/",
+  jimengVideos: "/assets/videos/jimeng/",
   posters: "/assets/posters/higgsfield/",
+  jimengPosters: "/assets/posters/jimeng/",
   heroLoops: "/assets/loops/hero/",
+  models: "/assets/3d/",
 } as const;
 
 export const aiPharmacyAssistantAvatar: DemoMedia = {
@@ -80,12 +90,77 @@ export const approvedVitaKioskReference: DemoMedia = {
   kind: "approved_reference",
   channel: "reference",
   label: "Approved Reference",
-  notes: "Visual reference only. The public site demo is implemented as interactive React UI and must not depend on this image as a flat screen.",
+  notes: "Approved public website visual for the demo stage. The live interactive local demo opens separately from the 5177 link.",
   aspect: "landscape",
   replacementPath: "apps/site/public/assets/reference/vitakiosk-demo-approved.png",
 };
 
+export const vitakioskTabletModel: DemoMedia = {
+  id: "vitakiosk-tablet-3d-model",
+  title: "VitaKiosk tablet 3D model",
+  src: media.vitakioskTabletModel,
+  alt: "Draggable 3D tablet model showing the VitaKiosk AI Pharmacy Assistant interface.",
+  kind: "generated",
+  channel: "model3d",
+  label: "3D Model",
+  notes: "Meshy-generated GLB model for the Tablet showcase scene. Keep web exports optimized before replacing.",
+  aspect: "landscape",
+  replacementPath: "apps/site/public/assets/3d/vitakiosk-tablet.glb",
+};
+
+export const vitakioskKioskModel: DemoMedia = {
+  id: "vitakiosk-kiosk-3d-model",
+  title: "VitaKiosk large kiosk 3D model",
+  src: media.vitakioskKioskModel,
+  alt: "Draggable 3D large VitaKiosk model for waiting areas and campaign placements.",
+  kind: "generated",
+  channel: "model3d",
+  label: "3D Model",
+  notes: "Meshy-generated GLB model for the Large Kiosk showcase scene. Compress if mobile loading becomes slow.",
+  aspect: "landscape",
+  replacementPath: "apps/site/public/assets/3d/vitakiosk-kiosk.glb",
+};
+
+
 export const vitaflowAssets = {
+  orbitScreenshots: [
+    {
+      id: "vitaflow-orbit-reports",
+      title: "Reports screen",
+      src: media.vitaflowOrbitReports,
+      alt: "VitaFlow ERP reports screen with sales, profit, date filters, and report panels.",
+      kind: "approved_reference",
+      channel: "screenshot",
+      label: "Reports",
+      notes: "User-provided ERP screenshot for the website cylindrical media orbit.",
+      aspect: "landscape",
+      replacementPath: "apps/site/public/assets/demos/vitaflow/orbit/reports.png",
+    },
+    {
+      id: "vitaflow-orbit-pos-checkout",
+      title: "POS Checkout screen",
+      src: media.vitaflowOrbitPosCheckout,
+      alt: "VitaFlow POS checkout screen with basket controls, payment panel, and checkout summary.",
+      kind: "approved_reference",
+      channel: "screenshot",
+      label: "POS Checkout",
+      notes: "User-provided ERP screenshot for the website cylindrical media orbit.",
+      aspect: "landscape",
+      replacementPath: "apps/site/public/assets/demos/vitaflow/orbit/pos-checkout.png",
+    },
+    {
+      id: "vitaflow-orbit-hq-live",
+      title: "HQ Live screen",
+      src: media.vitaflowOrbitHqLive,
+      alt: "VitaFlow HQ Live screen with branch sales, margin, reservations, transfers, and weekly comparison.",
+      kind: "approved_reference",
+      channel: "screenshot",
+      label: "HQ Live",
+      notes: "User-provided ERP screenshot for the website cylindrical media orbit.",
+      aspect: "landscape",
+      replacementPath: "apps/site/public/assets/demos/vitaflow/orbit/hq-live.png",
+    },
+  ] satisfies DemoMedia[],
   screenshots: [
     {
       id: "vitaflow-dashboard-placeholder",
@@ -167,16 +242,22 @@ export const demoVideoAssets = {
     poster: media.videoClinicQueuePoster,
     previewSrc: media.videoClinicQueue,
     fullSrc: media.videoClinicQueue,
+    previewType: "video/mp4",
+    fullType: "video/mp4",
   },
   pharmacyPartner: {
     poster: media.videoPartnerPoster,
     previewSrc: media.videoPartner,
     fullSrc: media.videoPartner,
+    previewType: "video/mp4",
+    fullType: "video/mp4",
   },
   retailPromotion: {
     poster: media.videoRetailPoster,
     previewSrc: media.videoRetail,
     fullSrc: media.videoRetail,
+    previewType: "video/mp4",
+    fullType: "video/mp4",
   },
   vitakioskInteractive: {
     poster: media.videoKioskPoster,
@@ -197,12 +278,16 @@ export const demoVideoAssets = {
     poster: media.videoAcademyPoster,
     previewSrc: media.videoAcademy,
     fullSrc: media.videoAcademy,
+    previewType: "video/mp4",
+    fullType: "video/mp4",
   },
 } as const;
 
 export const demoAssets = {
   aiPharmacyAssistantAvatar,
   approvedVitaKioskReference,
+  vitakioskTabletModel,
+  vitakioskKioskModel,
   vitaflow: vitaflowAssets,
   videos: demoVideoAssets,
 };

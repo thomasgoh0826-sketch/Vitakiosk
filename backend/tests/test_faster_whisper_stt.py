@@ -57,10 +57,41 @@ def test_faster_whisper_detects_multilingual_pharmacy_speech(
     [
         ("where is pana doll", "where is Panadol", "Panadol"),
         ("Where is Relief Bomb?", "Where is Relief Balm?", "Relief Balm"),
+        (
+            "Where is Black Moss buffered C?",
+            "Where is Blackmores Buffered C?",
+            "Blackmores",
+        ),
+        (
+            "Where is Blackmoor's Bufford, C?",
+            "Where is Blackmores Buffered C?",
+            "Blackmores",
+        ),
+        (
+            "Where is Blackmoor's buffered sea?",
+            "Where is Blackmores Buffered C?",
+            "Blackmores",
+        ),
+        (
+            "Do you have Black Morse buffered see?",
+            "Do you have Blackmores Buffered C?",
+            "Blackmores",
+        ),
+        (
+            "Do you have black mars buffer seed?",
+            "Do you have Blackmores Buffered C?",
+            "Blackmores",
+        ),
+        ("Buffer the C product", "Buffered C product", "Buffered C"),
         ("do you have probio gut", "do you have ProbioGut", "ProbioGut"),
         ("ada ubat batok", "ada ubat batuk", "ubat batuk"),
         ("Aida you bat batuck", "ada ubat batuk", "ubat batuk"),
         ("any cough medicine?", "any cough medicine?", "cough medicine"),
+        ("where is fisher man", "where is Fisherman's Friend", "Fisherman's Friend"),
+        ("do you have fishermen", "do you have Fisherman's Friend", "Fisherman's Friend"),
+        ("fish man", "Fisherman's Friend", "Fisherman's Friend"),
+        ("帮我找维他命C", "帮我找vitamin C", "vitamin C"),
+        ("我要维生素C", "我要vitamin C", "vitamin C"),
     ],
 )
 def test_product_dictionary_correction_uses_mock_pharmacy_terms(
@@ -73,6 +104,13 @@ def test_product_dictionary_correction_uses_mock_pharmacy_terms(
     assert correction.corrected_transcript == expected_text
     assert expected_term in correction.detected_terms
     assert correction.possible_product_matches[0]["name"] == expected_term
+
+
+def test_product_dictionary_does_not_turn_unrelated_black_item_into_blackmores() -> None:
+    correction = correct_transcript("Do you have black pepper in stock?")
+
+    assert correction.corrected_transcript == "Do you have black pepper in stock?"
+    assert "Blackmores" not in correction.detected_terms
 
 
 def test_faster_whisper_returns_correction_metadata() -> None:

@@ -1,7 +1,7 @@
 import { act, renderHook } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import useKioskSocket from "./useKioskSocket";
+import useKioskSocket, { resolveWebSocketBaseUrl } from "./useKioskSocket";
 
 
 class FakeWebSocket {
@@ -47,6 +47,13 @@ describe("useKioskSocket", () => {
   beforeEach(() => {
     FakeWebSocket.instances = [];
     vi.stubGlobal("WebSocket", FakeWebSocket);
+  });
+
+  it("uses a secure same-origin socket when the kiosk is served through HTTPS", () => {
+    expect(resolveWebSocketBaseUrl("auto", {
+      protocol: "https:",
+      host: "kiosk.trycloudflare.com",
+    })).toBe("wss://kiosk.trycloudflare.com");
   });
 
   it("uses session-scoped server avatar states and can send local state", () => {

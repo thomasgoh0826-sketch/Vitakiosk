@@ -4,7 +4,7 @@ import { useRef, type RefObject } from "react";
 import { Euler, Quaternion } from "three";
 import type { Group } from "three";
 
-import type { AvatarState } from "../types";
+import type { AvatarExpressionState, AvatarFocusTarget, AvatarPresentation, AvatarState } from "../types";
 
 
 export type AvatarExpression =
@@ -13,7 +13,9 @@ export type AvatarExpression =
   | "focused"
   | "friendly"
   | "concerned"
-  | "serious";
+  | "serious"
+  | "happy_highlight"
+  | "focused_guidance";
 
 const CONTROLLED_FACE_EXPRESSIONS = [
   "relaxed",
@@ -32,6 +34,12 @@ const EXPRESSION_BY_STATE: Record<AvatarState, AvatarExpression> = {
   speaking: "friendly",
   error: "concerned",
   pharmacist_escalation: "serious",
+};
+
+const DEFAULT_PRESENTATION: AvatarPresentation = {
+  expression: "neutral_idle",
+  focusTarget: "center",
+  gesture: "none",
 };
 
 const VRM_PORTRAIT_BASE_Y = -2.88;
@@ -57,11 +65,38 @@ export function getAvatarExpressionForState(state: AvatarState): AvatarExpressio
   return EXPRESSION_BY_STATE[state];
 }
 
+export function getAvatarExpressionForPresentation(
+  state: AvatarState,
+  presentation: AvatarPresentation = DEFAULT_PRESENTATION,
+): AvatarExpression {
+  if (state === "pharmacist_escalation" || presentation.expression === "safety_alert") {
+    return "serious";
+  }
+  if (state === "error") {
+    return "concerned";
+  }
+  if (state !== "thinking" && state !== "speaking") {
+    return getAvatarExpressionForState(state);
+  }
+  switch (presentation.expression) {
+    case "friendly_explaining":
+      return "friendly";
+    case "happy_highlight":
+      return "happy_highlight";
+    case "focused_guidance":
+      return "focused_guidance";
+    case "neutral_idle":
+    default:
+      return getAvatarExpressionForState(state);
+  }
+}
+
 export type AvatarExpressionWeights = Record<(typeof CONTROLLED_FACE_EXPRESSIONS)[number], number>;
 
 export function getAvatarExpressionWeights(
   state: AvatarState,
   blink: number,
+  presentation: AvatarPresentation = DEFAULT_PRESENTATION,
 ): AvatarExpressionWeights {
   const weights: AvatarExpressionWeights = {
     relaxed: 0,
@@ -73,20 +108,28 @@ export function getAvatarExpressionWeights(
     blink,
   };
 
-  switch (getAvatarExpressionForState(state)) {
+  switch (getAvatarExpressionForPresentation(state, presentation)) {
     case "relaxed":
       weights.relaxed = 0.38;
       break;
     case "attentive":
-      weights.surprised = 0.14;
-      weights.neutral = 0.16;
+      weights.relaxed = 0.1;
+      weights.neutral = 0.18;
       break;
     case "focused":
       weights.neutral = 0.32;
       break;
     case "friendly":
-      weights.happy = 0.3;
-      weights.relaxed = 0.12;
+      weights.neutral = 0.18;
+      weights.relaxed = 0.18;
+      break;
+    case "happy_highlight":
+      weights.neutral = 0.16;
+      weights.relaxed = 0.2;
+      break;
+    case "focused_guidance":
+      weights.neutral = 0.28;
+      weights.relaxed = 0.08;
       break;
     case "concerned":
       weights.sad = 0.42;
@@ -98,6 +141,22 @@ export function getAvatarExpressionWeights(
   }
 
   return weights;
+}
+
+function focusYaw(target: AvatarFocusTarget): number {
+  switch (target) {
+    case "product":
+      return -0.13;
+    case "promotion":
+      return -0.22;
+    case "shelf":
+      return -0.18;
+    case "pharmacist":
+      return -0.08;
+    case "center":
+    default:
+      return 0;
+  }
 }
 
 function rotation(x = 0, y = 0, z = 0): BoneRotation {
@@ -117,6 +176,48 @@ export function getRelaxedAvatarPose(state: AvatarState): RelaxedAvatarPose {
     leftUpperArm: rotation(0.04, 0.02, -1.18),
     rightUpperArm: rotation(0.04, -0.02, 1.18),
   };
+}
+
+export function getGesturePoseOffset(
+  presentation: AvatarPresentation = DEFAULT_PRESENTATION,
+): Pick<RelaxedAvatarPose, "chest" | "neck" | "head" | "leftUpperArm" | "rightUpperArm"> {
+  const yaw = focusYaw(presentation.focusTarget);
+  const base = {
+    chest: rotation(0, yaw * 0.4, 0),
+    neck: rotation(0, yaw * 0.45, 0),
+    head: rotation(0, yaw, 0),
+    leftUpperArm: rotation(0, 0, 0),
+    rightUpperArm: rotation(0, 0, 0),
+  };
+
+  switch (presentation.gesture) {
+    case "present_product":
+      return {
+        ...base,
+        chest: rotation(-0.018, yaw * 0.55, -0.012),
+        rightUpperArm: rotation(-0.05, -0.08, -0.08),
+      };
+    case "present_promotion":
+      return {
+        ...base,
+        chest: rotation(-0.014, yaw * 0.55, 0.012),
+        leftUpperArm: rotation(-0.05, 0.08, 0.08),
+      };
+    case "guide_shelf":
+      return {
+        ...base,
+        neck: rotation(-0.015, yaw * 0.55, 0),
+        rightUpperArm: rotation(-0.08, -0.04, -0.05),
+      };
+    case "safety_handoff":
+      return {
+        ...base,
+        chest: rotation(-0.018, yaw * 0.3, 0),
+      };
+    case "none":
+    default:
+      return base;
+  }
 }
 
 export function getIdleMotionFrame({
@@ -174,11 +275,13 @@ export function useAvatarIdleMotion({
   rootRef,
   state,
   vrm,
+  presentation = DEFAULT_PRESENTATION,
 }: {
   reducedMotion: boolean;
   rootRef: RefObject<Group>;
   state: AvatarState;
   vrm: VRM | null;
+  presentation?: AvatarPresentation;
 }) {
   const nextBlinkAt = useRefNumber(1.8);
   const blinkUntil = useRefNumber(0);
@@ -204,35 +307,52 @@ export function useAvatarIdleMotion({
 
     if (vrm) {
       const pose = getRelaxedAvatarPose(state);
+      const gesture = getGesturePoseOffset(presentation);
+      const speakingNod = state === "speaking" && !reducedMotion ? Math.sin(elapsed * 3.2) * 0.012 : 0;
       vrm.humanoid.setNormalizedPose({
         hips: { rotation: toQuaternionTuple(pose.hips) },
         chest: {
           rotation: toQuaternionTuple({
-            x: pose.chest.x,
-            y: pose.chest.y,
+            x: pose.chest.x + gesture.chest.x,
+            y: pose.chest.y + gesture.chest.y,
             z: pose.chest.z + Math.sin(elapsed * 0.45) * 0.018,
           }),
         },
         upperChest: { rotation: toQuaternionTuple(pose.upperChest) },
         neck: {
           rotation: toQuaternionTuple({
-            x: pose.neck.x + frame.headPitch * 0.22,
-            y: pose.neck.y + frame.headYaw * 0.24,
+            x: pose.neck.x + gesture.neck.x + frame.headPitch * 0.22 + speakingNod,
+            y: pose.neck.y + gesture.neck.y + frame.headYaw * 0.24,
             z: pose.neck.z,
           }),
         },
         head: {
           rotation: toQuaternionTuple({
-            x: pose.head.x + frame.headPitch,
-            y: pose.head.y + frame.headYaw,
+            x: pose.head.x + gesture.head.x + frame.headPitch + speakingNod,
+            y: pose.head.y + gesture.head.y + frame.headYaw,
             z: pose.head.z,
           }),
         },
-        leftUpperArm: { rotation: toQuaternionTuple(pose.leftUpperArm) },
-        rightUpperArm: { rotation: toQuaternionTuple(pose.rightUpperArm) },
+        leftUpperArm: {
+          rotation: toQuaternionTuple({
+            x: pose.leftUpperArm.x + gesture.leftUpperArm.x,
+            y: pose.leftUpperArm.y + gesture.leftUpperArm.y,
+            z: pose.leftUpperArm.z + gesture.leftUpperArm.z,
+          }),
+        },
+        rightUpperArm: {
+          rotation: toQuaternionTuple({
+            x: pose.rightUpperArm.x + gesture.rightUpperArm.x,
+            y: pose.rightUpperArm.y + gesture.rightUpperArm.y,
+            z: pose.rightUpperArm.z + gesture.rightUpperArm.z,
+          }),
+        },
       });
 
-      applyExpressionWeights(vrm, state, blink);
+      const weights = getAvatarExpressionWeights(state, blink, presentation);
+      CONTROLLED_FACE_EXPRESSIONS.forEach((expression) => {
+        vrm.expressionManager?.setValue(expression, weights[expression]);
+      });
     }
   });
 }

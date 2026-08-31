@@ -14,6 +14,19 @@ class ProductImage:
 
 
 @dataclass(frozen=True)
+class ProductLocation:
+    regionName: str | None = None
+    areaZone: str | None = None
+    shelfRackBay: str | None = None
+    rowLevel: str | None = None
+    binPosition: str | None = None
+    locationCode: str | None = None
+    locationNote: str | None = None
+    pinX: float | None = None
+    pinY: float | None = None
+
+
+@dataclass(frozen=True)
 class Product:
     id: str
     name: str
@@ -29,6 +42,44 @@ class Product:
     imageUrl: str | None = None
     thumbnailUrl: str | None = None
     images: tuple[ProductImage, ...] = ()
+    location: ProductLocation | None = None
+    kiosk_category: str | None = None
+
+
+@dataclass(frozen=True)
+class ShelfMapPoint:
+    x: float
+    y: float
+    label: str = ""
+
+
+@dataclass(frozen=True)
+class ShelfMapRegion:
+    id: str
+    name: str
+    type: str = "region"
+    x: float = 0
+    y: float = 0
+    width: float = 10
+    height: float = 10
+    label: str | None = None
+    color: str | None = None
+    shape: str = "rounded"
+    rotation: float = 0
+    z_index: int = 0
+    layer_kind: str | None = None
+
+
+@dataclass(frozen=True)
+class BranchShelfMap:
+    branch_id: str
+    map_id: str
+    name: str
+    source: str
+    image_url: str | None = None
+    entrance: ShelfMapPoint | None = None
+    regions: tuple[ShelfMapRegion, ...] = ()
+    unavailable_reason: str | None = None
 
 
 @dataclass(frozen=True)
@@ -65,6 +116,8 @@ class ProductScanResult:
     barcodeResult: str | None = None
     ocrText: str | None = None
     correctedText: str | None = None
+    purchasingQueryId: str | None = None
+    purchasingRequestStatus: str | None = None
 
 
 @dataclass(frozen=True)
@@ -105,6 +158,7 @@ class UiActionType(str, Enum):
     SHOW_PRODUCT = "SHOW_PRODUCT"
     HIGHLIGHT_PRODUCT = "HIGHLIGHT_PRODUCT"
     OPEN_PRODUCT_DETAIL = "OPEN_PRODUCT_DETAIL"
+    OPEN_PRODUCT_SUMMARY = "OPEN_PRODUCT_SUMMARY"
     SHOW_PROMOTION_LEAFLET = "SHOW_PROMOTION_LEAFLET"
     HIGHLIGHT_PROMOTION = "HIGHLIGHT_PROMOTION"
     OPEN_PROMOTION_MODAL = "OPEN_PROMOTION_MODAL"
@@ -114,6 +168,8 @@ class UiActionType(str, Enum):
     SHOW_CAMPAIGN_GALLERY = "SHOW_CAMPAIGN_GALLERY"
     HIGHLIGHT_SHELF_ROUTE = "HIGHLIGHT_SHELF_ROUTE"
     OPEN_SHELF_MAP = "OPEN_SHELF_MAP"
+    OPEN_PRODUCT_SCAN = "OPEN_PRODUCT_SCAN"
+    START_PRODUCT_SCAN = "START_PRODUCT_SCAN"
     ASK_PHARMACIST_CONFIRMATION = "ASK_PHARMACIST_CONFIRMATION"
     REQUEST_PHARMACIST_ASSISTANCE = "REQUEST_PHARMACIST_ASSISTANCE"
     CLOSE_ACTIVE_OVERLAY = "CLOSE_ACTIVE_OVERLAY"
@@ -185,6 +241,8 @@ class Intent(str, Enum):
     PROMOTION_CHECK = "promotion_check"
     CAMPAIGN_CHECK = "campaign_check"
     SHELF_LOCATION = "shelf_location"
+    GREETING = "greeting"
+    GENERAL_CONVERSATION = "general_conversation"
     UNKNOWN_PRODUCT = "unknown_product"
     RED_FLAG = "red_flag"
 

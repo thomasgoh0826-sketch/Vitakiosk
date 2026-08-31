@@ -4,6 +4,7 @@ $ErrorActionPreference = "Stop"
 $repoRoot = Split-Path -Parent $PSScriptRoot
 $backendEnv = Join-Path $repoRoot ".env"
 $frontendEnv = Join-Path $repoRoot "frontend\.env.local"
+$backendPython = Join-Path $repoRoot ".venv\Scripts\python.exe"
 $frontendUrl = "http://127.0.0.1:5175"
 $backendUrl = "http://127.0.0.1:8001"
 
@@ -67,6 +68,11 @@ if (-not (Test-Path -LiteralPath $frontendEnv)) {
   exit 1
 }
 
+if (-not (Test-Path -LiteralPath $backendPython)) {
+  Write-Warning "The project Python runtime was not found at .venv\Scripts\python.exe. Create the backend virtual environment and install its dependencies before starting VitaKiosk."
+  exit 1
+}
+
 Test-EnvLine -Path $frontendEnv -Line "VITE_AVATAR_RENDERER=vrm" -Description "VRM renderer config"
 Test-EnvLine -Path $frontendEnv -Line "VITE_VRM_MODEL=vita-new" -Description "VRM model config"
 Test-EnvLine -Path $frontendEnv -Line "VITE_API_BASE_URL=http://127.0.0.1:8001" -Description "Frontend API base URL"
@@ -76,7 +82,7 @@ Test-EnvLine -Path $frontendEnv -Line "VITE_TEXT_INPUT_MODE=native" -Description
 Test-PortFree -Port 8001 -Name "Backend"
 Test-PortFree -Port 5175 -Name "Frontend"
 
-$backendCommand = "cd `"$repoRoot`"; python -m uvicorn backend.app.main:app --reload --host 127.0.0.1 --port 8001"
+$backendCommand = "cd `"$repoRoot`"; & `"$backendPython`" -m uvicorn backend.app.main:app --reload --host 127.0.0.1 --port 8001"
 $frontendCommand = "cd `"$repoRoot`"; npm.cmd run dev:vrm --prefix frontend"
 
 Write-Host "Starting backend on 127.0.0.1:8001..."

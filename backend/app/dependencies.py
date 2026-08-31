@@ -7,6 +7,7 @@ provider_bundle = create_provider_bundle(settings)
 
 vitaflow = provider_bundle.vitaflow
 promotion_engine = provider_bundle.promotion_engine
+leaflet_engine = provider_bundle.leaflet_engine
 poster_engine = provider_bundle.poster_engine
 guardrails = provider_bundle.guardrails
 purchasing_store = provider_bundle.purchasing_store

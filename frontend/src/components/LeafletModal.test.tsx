@@ -256,6 +256,36 @@ describe("LeafletModal holographic gallery", () => {
       .toHaveTextContent("Supplement Wellness Campaign");
   });
 
+  it("brings a visible side leaflet to the front when clicked", () => {
+    const { onSelect } = renderModal("LF-002");
+
+    fireEvent.click(screen.getByRole("option", { name: /Vitamin C Demo Promo, 3 of 3/i }));
+
+    expect(onSelect).toHaveBeenCalledWith("LF-003");
+    expect(screen.getByRole("option", { name: /Vitamin C Demo Promo, 3 of 3/i }))
+      .toHaveAttribute("aria-current", "true");
+    expect(screen.getByRole("complementary", { name: /active leaflet metadata/i }))
+      .toHaveTextContent("Vitamin C Demo Promo");
+  });
+
+  it("closes when clicking blank stage space instead of treating it as hidden carousel navigation", () => {
+    vi.useFakeTimers();
+    const { onClose, onSelect } = renderModal("LF-002");
+
+    fireEvent.click(screen.getByLabelText("Floating holographic leaflet card"), { clientX: 820 });
+
+    expect(onSelect).not.toHaveBeenCalled();
+    expect(screen.getByRole("dialog", { name: /leaflet preview/i }))
+      .toHaveAttribute("data-animation-state", "closing");
+
+    act(() => {
+      vi.advanceTimersByTime(260);
+    });
+
+    expect(onClose).toHaveBeenCalledTimes(1);
+    vi.useRealTimers();
+  });
+
   it("snaps a long drag directly across multiple leaflets instead of forcing one-by-one navigation", () => {
     const { onSelect } = renderModal("LF-003");
     const stage = screen.getByLabelText("Floating holographic leaflet card");
@@ -340,13 +370,56 @@ describe("LeafletModal holographic gallery", () => {
     const { onClose } = renderModal("LF-001");
     const dialog = screen.getByRole("dialog", { name: /leaflet preview/i });
     const stage = screen.getByLabelText("Floating holographic leaflet card");
+    const outsideClickListener = vi.fn();
+    document.addEventListener("click", outsideClickListener);
 
     fireEvent.mouseDown(stage, { clientX: 320 });
     expect(onClose).not.toHaveBeenCalled();
 
     fireEvent.mouseDown(dialog, { clientX: 8 });
+    fireEvent.click(dialog, { clientX: 8 });
     expect(dialog).toHaveAttribute("data-animation-state", "closing");
     expect(onClose).not.toHaveBeenCalled();
+    expect(outsideClickListener).not.toHaveBeenCalled();
+
+    act(() => {
+      vi.advanceTimersByTime(260);
+    });
+
+    expect(onClose).toHaveBeenCalledTimes(1);
+    document.removeEventListener("click", outsideClickListener);
+    vi.useRealTimers();
+  });
+
+  it("closes from a direct backdrop click without reopening content behind the viewer", () => {
+    vi.useFakeTimers();
+    const { onClose } = renderModal("LF-001");
+    const dialog = screen.getByRole("dialog", { name: /leaflet preview/i });
+    const outsideClickListener = vi.fn();
+    document.addEventListener("click", outsideClickListener);
+
+    fireEvent.click(dialog, { clientX: 8 });
+
+    expect(dialog).toHaveAttribute("data-animation-state", "closing");
+    expect(outsideClickListener).not.toHaveBeenCalled();
+
+    act(() => {
+      vi.advanceTimersByTime(260);
+    });
+
+    expect(onClose).toHaveBeenCalledTimes(1);
+    document.removeEventListener("click", outsideClickListener);
+    vi.useRealTimers();
+  });
+
+  it("closes from pointer-based outside taps before they can click through", () => {
+    vi.useFakeTimers();
+    const { onClose } = renderModal("LF-001");
+    const dialog = screen.getByRole("dialog", { name: /leaflet preview/i });
+
+    fireEvent.pointerDown(dialog, { clientX: 8, pointerId: 1 });
+
+    expect(dialog).toHaveAttribute("data-animation-state", "closing");
 
     act(() => {
       vi.advanceTimersByTime(260);

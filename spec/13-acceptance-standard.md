@@ -35,6 +35,13 @@ A feature is accepted only when:
   shelf/location prompts to open the enlarged Shelf Navigation map with
   `OPEN_SHELF_MAP`, and pharmacist/red-flag actions to suppress product,
   promotion, and shelf auto-open behavior.
+- AI assistant expression acceptance requires approved UI actions to drive a
+  separate avatar presentation layer without allowing arbitrary model-controlled
+  UI. Product detail/summary actions map to a friendly explaining presentation,
+  promotion/campaign leaflet actions map to a happy highlight presentation,
+  shelf route actions map to focused guidance, and pharmacist actions map to a
+  serious safety handoff. VRM speaking must use audio-gated multi-shape mouth
+  movement with a smooth closed-mouth rest state when playback stops.
 - Subtitle acceptance requires cinematic AI subtitle mode: the main kiosk UI
   hides the customer transcript and any `YOU` bubble, shows only the current AI
   phrase or sentence with at most 1-2 lines, uses `aria-live`, supports
@@ -183,6 +190,7 @@ A feature is accepted only when:
 - A white/light SaaS dashboard treatment or a small secondary `Hold to Speak` fallback is not accepted.
 - Responsive kiosk acceptance evidence must include screenshot or browser-measured evidence for at least 1024x768, 1366x768, and 1920x1080.
 - The responsive layout is not accepted if any required landscape viewport has horizontal overflow, document scrolling in the normal kiosk path, overlapping product/promotion/shelf/ERP/safety panels, or a hidden/unusable primary `Tap to Speak` control.
+- An ERP-backed shelf map is not accepted if hidden regions render, a region extends outside the visible map bounds, or the reference image and interactive region coordinates use different drawing surfaces. An authored branch-layout image may be combined with only the selected product target/route; an ERP neutral reference shell must render all visible ERP regions on the same 1200:720 coordinate surface so the map is not blank.
 - AI subtitle/Product layout acceptance requires browser bounding-box evidence that
   `productPanel.top >= subtitlePanel.bottom + 12px` at 1024x768, 1366x768,
   and 1920x1080. Product source badges must be measured fully inside the Product
@@ -343,11 +351,24 @@ A feature is accepted only when:
 - Heavy 3D models are not accepted for the iPad landscape kiosk path.
 - Local product scan acceptance requires an explicit `VISION_PROVIDER=local_product_scan`
   selector, browser camera access only after the customer taps `Scan Product`,
-  stream cleanup after capture/cancel/close, no raw image persistence by default,
+  the customer-facing `user` camera as the default capture device on tablets,
+  stream cleanup after automatic capture/close, no raw image persistence by default,
   barcode exact matches through VitaFlow/mock barcode lookup, OCR/image-similarity
   matches through the existing product candidate confirmation panel, customer-safe
   match labels, controlled camera/invalid-image errors, and tests proving CI
   remains mock-safe without camera hardware or cloud OCR.
+- Real local label acceptance requires optional RapidOCR installation outside the
+  default mock CI dependencies, a decoded JPEG/PNG/WebP camera frame, and a
+  candidate whose product facts resolve only through the configured VitaFlow
+  adapter. OCR text alone must never synthesize a product, price, stock, image,
+  promotion, or shelf location. Scan-overlay copy must be excluded from label
+  queries, and multi-line brand/product labels must work across ERP products
+  without product-specific matching code.
+- Agnes vision acceptance requires a decoded in-memory camera frame, tolerant
+  handling of null identity fields that are genuinely not visible (for example
+  pack size or barcode), and product resolution only through the configured
+  VitaFlow adapter. A partial visual signal must never become a fabricated
+  product fact.
 
 ## Test evidence
 

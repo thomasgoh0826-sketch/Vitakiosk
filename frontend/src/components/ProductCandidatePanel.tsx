@@ -1,5 +1,6 @@
 import type { KioskTranslations } from "../i18n";
 import { translations } from "../i18n";
+import { formatCurrencyRm } from "../formatters";
 import type { ProductSearchCandidate } from "../types";
 import ProductImage from "./ProductImage";
 
@@ -10,7 +11,7 @@ interface ProductCandidatePanelProps {
 }
 
 function formatPrice(value: number | null, labels: KioskTranslations) {
-  return value === null ? labels.unavailable : `$${value.toFixed(2)}`;
+  return formatCurrencyRm(value, labels.unavailable);
 }
 
 function sourceLabel(source: string, labels: KioskTranslations) {

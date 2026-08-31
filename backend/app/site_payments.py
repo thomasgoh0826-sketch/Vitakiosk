@@ -111,7 +111,7 @@ class DisabledLivePaymentProvider(MockPaymentProvider):
 
 
 class ManualBankTransferProvider(MockPaymentProvider):
-    name: PaymentProviderName = "manual_mock"
+    name: PaymentProviderName = "manual_bank_transfer"
 
     def create_checkout_session(self, order: CheckoutOrder) -> CheckoutSession:
         base_url = os.getenv("SITE_BASE_URL", "http://127.0.0.1:5176").rstrip("/")
@@ -121,7 +121,7 @@ class ManualBankTransferProvider(MockPaymentProvider):
             provider=self.name,
             checkout_url=(
                 f"{base_url}/checkout/success?ref={reference_id}"
-                "&provider=manual_mock"
+                "&provider=manual_bank_transfer"
             ),
             payment_id=f"MANUAL-{order.order_id}",
             status=status,

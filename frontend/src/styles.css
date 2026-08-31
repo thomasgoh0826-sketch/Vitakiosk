@@ -417,6 +417,9 @@ button:focus-visible {
 
 .shelf-map-canvas {
   position: relative;
+  display: grid;
+  place-items: center;
+  aspect-ratio: 5 / 3;
   min-height: 140px;
   margin-top: 7px;
   overflow: hidden;
@@ -426,13 +429,36 @@ button:focus-visible {
   box-shadow: inset 0 0 24px rgba(40, 220, 234, 0.08), 0 0 16px rgba(35, 208, 226, 0.08);
 }
 
+.map-plan-surface {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 100%;
+  max-width: 100%;
+  height: auto;
+  max-height: 100%;
+  aspect-ratio: 5 / 3;
+  overflow: hidden;
+  border: 1px solid rgba(69, 85, 82, 0.24);
+  border-radius: 10px;
+  background:
+    linear-gradient(rgba(246, 242, 232, 0.9), rgba(232, 230, 222, 0.94)),
+    #eeeae1;
+  box-shadow: inset 0 0 22px rgba(24, 49, 47, 0.08);
+  transform: translate(-50%, -50%);
+}
+
+.map-plan-surface-neutral {
+  background-color: #eeeae1;
+}
+
 .map-grid {
   position: absolute;
   inset: 0;
-  opacity: 0.16;
+  opacity: 0.28;
   background-image:
-    linear-gradient(rgba(86, 226, 236, 0.24) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(86, 226, 236, 0.24) 1px, transparent 1px);
+    linear-gradient(rgba(65, 82, 82, 0.13) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(65, 82, 82, 0.13) 1px, transparent 1px);
   background-size: 20px 20px;
 }
 
@@ -440,12 +466,115 @@ button:focus-visible {
   position: absolute;
   display: grid;
   place-items: center;
-  border: 1px solid rgba(118, 149, 190, 0.36);
-  background: linear-gradient(135deg, rgba(34, 54, 82, 0.88), rgba(14, 27, 52, 0.94));
-  box-shadow: inset 0 0 12px rgba(94, 139, 183, 0.12);
-  color: #8ea8c5;
+  border: 1.5px solid color-mix(in srgb, var(--region-color, #6d8092) 74%, #243733 26%);
+  background: color-mix(in srgb, var(--region-color, #6d8092) 25%, rgba(250, 248, 241, 0.94) 75%);
+  box-shadow: 0 2px 8px rgba(38, 50, 48, 0.12);
+  color: #263936;
   font-size: 0.52rem;
   letter-spacing: 0.08em;
+}
+
+.map-reference-image {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0.16;
+  object-fit: contain;
+  pointer-events: none;
+}
+
+.map-erp-region {
+  z-index: 2;
+  min-width: 0;
+  min-height: 0;
+  padding: clamp(2px, 0.4vw, 6px);
+  overflow: hidden;
+  text-align: center;
+  pointer-events: none;
+}
+
+.map-shape-square { border-radius: 4px; }
+.map-shape-rounded { border-radius: 12px; }
+.map-shape-pill { border-radius: 999px; }
+
+.map-erp-region span {
+  display: block;
+  font-size: 0.42rem;
+  font-weight: 800;
+}
+
+.map-erp-region strong {
+  display: block;
+  max-width: 100%;
+  max-height: 2.4em;
+  overflow: hidden;
+  font: inherit;
+  line-height: 1.2;
+  overflow-wrap: anywhere;
+  text-wrap: balance;
+}
+
+.shelf-map-canvas[data-map-density="compact"] .map-erp-region {
+  padding: 1px 2px;
+  font-size: 0.43rem;
+  letter-spacing: 0.015em;
+  line-height: 1.05;
+}
+
+.shelf-map-canvas[data-map-density="compact"] .map-erp-region strong {
+  max-height: 3.15em;
+  overflow-wrap: normal;
+  word-break: normal;
+}
+
+.shelf-map-canvas[data-map-density="compact"] .map-marker {
+  font-size: 0.44rem;
+}
+
+.shelf-map-canvas[data-map-density="compact"] .map-marker small {
+  display: none;
+}
+
+.shelf-map-canvas[data-map-density="compact"] .map-marker i {
+  width: 12px;
+  height: 12px;
+  margin-bottom: 2px;
+}
+
+.shelf-map-canvas[data-map-density="compact"] .map-marker i::after {
+  width: 4px;
+  height: 4px;
+  margin: 4px;
+}
+
+.map-region-aisle,
+.map-region-promo-display {
+  border-style: dashed;
+  background: color-mix(in srgb, var(--region-color, #839486) 13%, rgba(250, 248, 241, 0.9) 87%);
+  box-shadow: inset 0 0 10px rgba(56, 74, 68, 0.05);
+}
+
+.map-region-loading-bay,
+.map-region-counselling-room,
+.map-region-poison-store {
+  background: color-mix(in srgb, var(--region-color, #768b91) 22%, rgba(250, 248, 241, 0.92) 78%);
+}
+
+.map-region-shelf,
+.map-region-counter {
+  background: color-mix(in srgb, var(--region-color, #627f91) 30%, rgba(250, 248, 241, 0.94) 70%);
+  box-shadow:
+    inset 0 0 12px rgba(255, 255, 255, 0.18),
+    0 2px 8px rgba(37, 49, 48, 0.15);
+}
+
+.map-region-target {
+  border-color: rgba(166, 95, 255, 0.94);
+  box-shadow:
+    inset 0 0 18px rgba(136, 87, 255, 0.22),
+    0 0 18px rgba(139, 84, 255, 0.32);
+  color: #e4dbff;
 }
 
 .map-wall-top {
@@ -491,7 +620,7 @@ button:focus-visible {
 
 .map-route-line {
   position: absolute;
-  z-index: 2;
+  z-index: 20;
   inset: 0;
   width: 100%;
   height: 100%;
@@ -523,7 +652,7 @@ button:focus-visible {
 
 .map-marker {
   position: absolute;
-  z-index: 3;
+  z-index: 30;
   display: grid;
   justify-items: center;
   color: #edfaff;
@@ -572,6 +701,13 @@ button:focus-visible {
 .map-target {
   top: 10%;
   right: 9%;
+}
+
+.shelf-map-canvas-erp .map-you-are-here,
+.shelf-map-canvas-erp .map-target {
+  right: auto;
+  bottom: auto;
+  transform: translate(-50%, -50%);
 }
 
 .map-target i {
@@ -636,7 +772,8 @@ button:focus-visible {
   color: #ffd295;
 }
 
-.map-unavailable .map-fixture { opacity: 0.52; }
+.map-unavailable .map-fixture:not(.map-erp-region) { opacity: 0.52; }
+.map-unavailable .map-erp-region { opacity: 0.86; }
 
 .erp-panel dl { margin: 12px 0 0; }
 .erp-panel dl div { display: flex; justify-content: space-between; gap: 10px; margin: 7px 0; font-size: 0.73rem; }
@@ -1788,10 +1925,19 @@ button:focus-visible {
   display: flex;
   align-items: center;
   gap: 7px;
+  padding: clamp(2px, 0.35dvh, 4px) clamp(9px, 0.8dvw, 13px);
+  border: 1px solid rgba(66, 245, 255, 0.18);
+  border-radius: 999px;
+  background: rgba(3, 10, 24, 0.9);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.04),
+    0 0 12px rgba(66, 245, 255, 0.08);
   color: var(--text-primary) !important;
   font-size: 0.78rem !important;
+  line-height: 1;
   letter-spacing: 0.06em;
   text-transform: uppercase;
+  isolation: isolate;
 }
 
 .avatar-state-label > span {
@@ -2053,10 +2199,10 @@ button:focus-visible {
 .ai-subtitle-line {
   margin: 0;
   width: min(100%, 920px);
-  min-height: 2.5lh;
+  min-height: auto;
   align-self: center;
   justify-self: center;
-  overflow: hidden;
+  overflow: visible;
   color: var(--text-primary);
   font-size: clamp(1.05rem, 1.55dvw, 2.35rem);
   font-weight: 820;
@@ -2064,12 +2210,32 @@ button:focus-visible {
   letter-spacing: -0.02em;
   text-align: center;
   text-wrap: balance;
+  overflow-wrap: anywhere;
+  white-space: normal;
   text-shadow:
     0 0 14px rgba(66, 245, 255, 0.34),
     0 2px 12px rgba(0, 0, 0, 0.42);
-  display: -webkit-box;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 2;
+  display: block;
+}
+
+.ai-subtitle-panel.ai-subtitle-long {
+  gap: clamp(4px, 0.45dvw, 8px);
+}
+
+.ai-subtitle-panel.ai-subtitle-long .ai-subtitle-line {
+  font-size: clamp(0.9rem, 1.18dvw, 1.65rem);
+  line-height: 1.16;
+  max-width: min(100%, 980px);
+}
+
+.ai-subtitle-panel.ai-subtitle-extra-long {
+  gap: clamp(3px, 0.36dvw, 6px);
+}
+
+.ai-subtitle-panel.ai-subtitle-extra-long .ai-subtitle-line {
+  font-size: clamp(0.78rem, 1dvw, 1.32rem);
+  line-height: 1.14;
+  max-width: min(100%, 1020px);
 }
 
 .ai-subtitle-panel.is-streaming .ai-subtitle-line {
@@ -2368,7 +2534,7 @@ button:focus-visible {
 
 .camera-scan-reticle {
   position: absolute;
-  inset: 14%;
+  inset: 25%;
   border: 1px dashed rgba(35, 255, 245, 0.7);
   border-radius: 18px;
   box-shadow: 0 0 24px rgba(35, 255, 245, 0.18) inset;
@@ -3838,8 +4004,80 @@ body {
 }
 
 .pharmacist-panel button {
-  min-height: clamp(36px, 4.6dvh, 54px);
-  font-size: clamp(0.58rem, 0.62dvw, 0.82rem);
+  position: relative;
+  isolation: isolate;
+  min-height: clamp(48px, 5.7dvh, 62px);
+  padding: clamp(10px, 1.18dvh, 15px) clamp(16px, 1.5dvw, 24px);
+  border: 1px solid rgba(255, 118, 140, 0.72);
+  border-radius: 12px;
+  color: rgba(255, 235, 240, 0.94);
+  background:
+    linear-gradient(105deg, rgba(255, 73, 104, 0.2), rgba(168, 117, 255, 0.13)),
+    rgba(54, 12, 32, 0.66);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.08),
+    inset 0 -10px 22px rgba(20, 3, 18, 0.28),
+    0 0 0 1px rgba(255, 128, 154, 0.08),
+    0 0 16px rgba(255, 73, 104, 0.12);
+  font-size: clamp(0.75rem, 0.76dvw, 0.94rem);
+  letter-spacing: 0.01em;
+  cursor: pointer;
+  transition:
+    transform 160ms ease,
+    border-color 160ms ease,
+    box-shadow 160ms ease,
+    background 160ms ease;
+  touch-action: manipulation;
+}
+
+.pharmacist-panel button::before {
+  position: absolute;
+  inset: 1px;
+  z-index: -1;
+  border-radius: inherit;
+  background: linear-gradient(90deg, rgba(255, 255, 255, 0.08), transparent 34%, rgba(255, 255, 255, 0.04));
+  opacity: 0.58;
+  content: "";
+}
+
+.pharmacist-panel button span {
+  width: 26px;
+  height: 26px;
+  display: inline-grid;
+  place-items: center;
+  border-radius: 999px;
+  color: rgba(255, 233, 238, 0.96);
+  background: rgba(255, 128, 154, 0.14);
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 196, 208, 0.18),
+    0 0 10px rgba(255, 94, 125, 0.18);
+  font-size: 1rem;
+  line-height: 1;
+}
+
+.pharmacist-panel button:hover {
+  transform: translateY(-0.5px);
+  border-color: rgba(255, 148, 166, 0.82);
+  background:
+    linear-gradient(105deg, rgba(255, 73, 104, 0.25), rgba(168, 117, 255, 0.16)),
+    rgba(62, 14, 36, 0.72);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.1),
+    inset 0 -10px 22px rgba(20, 3, 18, 0.25),
+    0 0 0 1px rgba(255, 180, 194, 0.1),
+    0 0 18px rgba(255, 73, 104, 0.18);
+}
+
+.pharmacist-panel button:active {
+  transform: translateY(1px) scale(0.99);
+  box-shadow:
+    inset 0 8px 18px rgba(36, 4, 24, 0.34),
+    0 0 12px rgba(255, 73, 104, 0.14);
+}
+
+.pharmacist-panel button:focus-visible {
+  outline: 2px solid rgba(255, 214, 222, 0.92);
+  outline-offset: 3px;
 }
 
 .kiosk-footer {
@@ -4204,7 +4442,7 @@ body {
   display: none;
 }
 
-@container (min-width: 400px) and (min-height: 310px) {
+@container (min-width: 360px) and (min-height: 210px) {
   .leaflet-display-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
@@ -4214,7 +4452,7 @@ body {
   }
 }
 
-@container (min-width: 720px) and (min-height: 340px) {
+@container (min-width: 620px) and (min-height: 230px) {
   .leaflet-display-grid {
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
@@ -4420,7 +4658,6 @@ button.leaflet-card:focus-visible {
 
 .leaflet-viewer-backdrop[data-animation-state="closing"] {
   animation: leaflet-backdrop-leave 220ms ease-in forwards;
-  pointer-events: none;
 }
 
 @keyframes leaflet-deck-expand-from-source {
@@ -4665,6 +4902,8 @@ button.leaflet-card:focus-visible {
 
 .floating-leaflet-panel.is-neighbor {
   opacity: var(--leaflet-deck-opacity, 0.9);
+  pointer-events: auto;
+  cursor: pointer;
 }
 
 .leaflet-stage-scene[data-carousel-mode="single"] .floating-leaflet-panel {
@@ -5242,6 +5481,211 @@ button.leaflet-card:focus-visible {
   }
 }
 
+@media (max-width: 1100px) and (max-height: 760px) and (orientation: landscape) {
+  .kiosk-shell {
+    --kiosk-pad-x: clamp(6px, 0.8dvw, 10px);
+    --kiosk-pad-y: 5px;
+    --kiosk-gap: 6px;
+    gap: 4px;
+  }
+
+  .kiosk-header {
+    min-height: 24px;
+  }
+
+  .wordmark {
+    font-size: clamp(0.82rem, 1.1dvw, 1rem);
+  }
+
+  .connection-line {
+    padding: 5px 9px;
+    font-size: 0.52rem;
+  }
+
+  .kiosk-layout {
+    grid-template-columns:
+      minmax(238px, 0.86fr)
+      minmax(376px, 1.5fr)
+      minmax(206px, 0.74fr);
+  }
+
+  .panel {
+    padding: 8px;
+    border-radius: 13px;
+  }
+
+  .assistant-stage {
+    grid-template-rows: auto minmax(220px, 1fr) auto auto auto;
+    gap: 3px;
+    padding: 8px;
+  }
+
+  .assistant-stage-header h1 {
+    font-size: 0.82rem;
+  }
+
+  .assistant-link-state,
+  .assistant-safety-copy,
+  .voice-feedback,
+  .customer-reset {
+    font-size: 0.45rem;
+  }
+
+  .avatar-bay {
+    min-height: 220px;
+  }
+
+  .vrm-avatar-portrait {
+    width: min(96%, 284px);
+    height: 100%;
+  }
+
+  .vrm-avatar-portrait-shell {
+    inset: 7px clamp(10px, 6%, 26px) 28px;
+  }
+
+  .assistant-waveform {
+    min-height: 22px;
+  }
+
+  .avatar-state-label {
+    font-size: 0.62rem !important;
+  }
+
+  .tap-speak-button {
+    min-height: 46px;
+    padding: 6px 8px;
+  }
+
+  .tap-speak-orbit {
+    width: 36px;
+  }
+
+  .tap-speak-button strong {
+    font-size: 0.88rem;
+  }
+
+  .clinical-deck {
+    grid-template-rows:
+      minmax(62px, 0.28fr)
+      minmax(118px, 0.5fr)
+      minmax(150px, 0.82fr)
+      minmax(var(--typed-input-rail-min-height), auto)
+      minmax(42px, auto);
+  }
+
+  .ai-subtitle-panel {
+    min-height: 62px;
+  }
+
+  .ai-subtitle-line {
+    font-size: clamp(0.95rem, 1.55dvw, 1.18rem);
+  }
+
+  .product-panel {
+    gap: 6px;
+  }
+
+  .product-hero {
+    grid-template-columns: 70px minmax(0, 1fr);
+    gap: 8px;
+  }
+
+  .product-icon {
+    min-height: 70px;
+  }
+
+  .product-identity h3 {
+    font-size: 0.9rem;
+  }
+
+  .product-identity strong {
+    font-size: 1.45rem;
+  }
+
+  .product-facts div {
+    padding: 5px 6px;
+  }
+
+  .shelf-map-panel {
+    gap: 5px;
+  }
+
+  .shelf-map-panel > .shelf-map-canvas {
+    height: clamp(120px, 18dvh, 132px);
+  }
+
+  .shelf-map-panel > .map-location-data {
+    gap: 4px;
+  }
+
+  .map-route-summary {
+    font-size: 0.48rem;
+    line-height: 1.15;
+  }
+
+  .typed-input-panel {
+    padding: 4px 7px;
+  }
+
+  .typed-question-input {
+    height: 34px;
+    font-size: 0.68rem;
+  }
+
+  .typed-input-actions button {
+    min-height: 34px;
+  }
+
+  .scan-product-rail {
+    min-height: 42px;
+    padding: 6px 8px;
+  }
+
+  .scan-product-rail p {
+    font-size: 0.58rem;
+  }
+
+  .scan-product-button {
+    min-height: 34px;
+    padding: 0 12px;
+  }
+
+  .retail-safety-rail {
+    grid-template-rows:
+      minmax(220px, 1fr)
+      minmax(96px, 0.42fr)
+      minmax(116px, 0.52fr);
+  }
+
+  .promotion-panel {
+    padding: 7px;
+  }
+
+  .poster-frame {
+    padding: 8px;
+  }
+
+  .erp-panel dl div,
+  .pharmacist-copy p {
+    font-size: 0.5rem;
+  }
+
+  .pharmacist-copy h2 {
+    font-size: 0.72rem;
+  }
+
+  .pharmacist-panel button {
+    min-height: 42px;
+    padding: 8px 12px;
+  }
+
+  .kiosk-footer {
+    min-height: 14px;
+    font-size: 0.48rem;
+  }
+}
+
 @media (max-width: 850px), (orientation: portrait) {
   .clinical-deck {
     grid-template-rows: auto;
@@ -5672,9 +6116,6 @@ button.leaflet-card:focus-visible {
   position: relative;
   width: min(1180px, 94dvw);
   max-height: min(88dvh, 820px);
-  display: grid;
-  grid-template-rows: auto minmax(0, 1fr) auto;
-  gap: clamp(10px, 1.4dvh, 16px);
   padding: clamp(16px, 2.2dvw, 26px);
   border: 1px solid rgba(66, 245, 255, 0.56);
   border-radius: clamp(22px, 2dvw, 34px);
@@ -5687,7 +6128,25 @@ button.leaflet-card:focus-visible {
     inset 0 0 54px rgba(143, 108, 255, 0.08);
   transform-origin: center;
   animation: shelf-viewer-rise 340ms cubic-bezier(0.2, 0.9, 0.2, 1);
-  overflow: visible;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: none;
+  touch-action: pan-y;
+  -webkit-overflow-scrolling: touch;
+}
+
+.shelf-map-viewer-stage::-webkit-scrollbar {
+  display: none;
+}
+
+.shelf-map-viewer-content {
+  position: relative;
+  z-index: 2;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  gap: clamp(10px, 1.4dvh, 16px);
+  min-height: 0;
 }
 
 .shelf-map-viewer-stage::before {
@@ -5719,7 +6178,11 @@ button.leaflet-card:focus-visible {
 }
 
 .shelf-map-viewer-stage .shelf-map-canvas {
-  min-height: clamp(360px, 58dvh, 620px);
+  width: min(100%, 96.6667dvh);
+  height: auto;
+  min-height: 0;
+  aspect-ratio: 5 / 3;
+  justify-self: center;
   border-radius: clamp(18px, 1.8dvw, 28px);
   box-shadow:
     inset 0 0 52px rgba(66, 245, 255, 0.13),
@@ -5921,6 +6384,10 @@ body.product-expanded {
   overflow-x: hidden;
   overflow-y: auto;
   overscroll-behavior: contain;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  touch-action: pan-y;
+  -webkit-overflow-scrolling: touch;
   display: grid;
   gap: clamp(16px, 2dvw, 26px);
   padding: clamp(18px, 2.6dvw, 34px);
@@ -5936,6 +6403,11 @@ body.product-expanded {
     inset 0 0 48px rgba(66, 245, 255, 0.07);
   animation: product-viewer-lift 340ms cubic-bezier(0.2, 0.9, 0.18, 1);
   cursor: pointer;
+}
+
+.product-viewer-stage::-webkit-scrollbar {
+  width: 0;
+  height: 0;
 }
 
 .product-viewer-stage::before {
@@ -6213,6 +6685,147 @@ body.product-expanded {
   .product-transform-shell::before,
   .shelf-map-panel-interactive::after {
     transition: none;
+  }
+}
+
+/* Final short-landscape fit: keep the entire kiosk visible with a compact split map. */
+@media (min-width: 851px) and (max-height: 820px) and (orientation: landscape) {
+  .kiosk-shell {
+    --deck-card-gap: clamp(5px, 1dvh, 8px);
+    --product-panel-min-height: clamp(112px, 19dvh, 132px);
+    --shelf-panel-min-height: clamp(196px, 33dvh, 248px);
+  }
+
+  .clinical-deck {
+    grid-template-rows:
+      minmax(clamp(82px, 13dvh, 96px), 0.34fr)
+      minmax(var(--product-panel-min-height), 0.45fr)
+      minmax(var(--shelf-panel-min-height), 1fr)
+      minmax(48px, 52px)
+      minmax(50px, 56px);
+    gap: var(--deck-card-gap);
+    overflow: hidden;
+    touch-action: manipulation;
+  }
+
+  .conversation-panel {
+    height: 96px;
+    min-height: 96px;
+    padding: 5px 7px;
+  }
+
+  .ai-subtitle-panel {
+    height: 84px;
+    min-height: 84px;
+    padding: 7px 12px;
+  }
+
+  .product-panel[data-product-mode="empty"] .empty-product {
+    height: 80px;
+    min-height: 0;
+    gap: 4px;
+  }
+
+  .product-panel[data-product-mode="empty"] .empty-product-orbit {
+    width: 30px;
+  }
+
+  .product-panel {
+    padding: 7px 9px;
+  }
+
+  .product-panel .panel-title-row {
+    min-height: 24px;
+    margin: 0 0 4px;
+  }
+
+  .product-panel[data-product-mode="details"] .product-transform-shell {
+    display: grid;
+    grid-template-columns: minmax(0, 3fr) minmax(180px, 2fr);
+    gap: 8px;
+    align-items: center;
+  }
+
+  .product-panel[data-product-mode="details"] .product-hero {
+    grid-template-columns: 60px minmax(0, 1fr);
+    gap: 6px;
+  }
+
+  .product-panel[data-product-mode="details"] .product-art {
+    height: 60px;
+    min-height: 60px;
+  }
+
+  .product-panel[data-product-mode="details"] .product-identity h3 {
+    margin-top: 1px;
+    display: -webkit-box;
+    overflow: hidden;
+    font-size: 0.78rem;
+    line-height: 1.08;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+  }
+
+  .product-panel[data-product-mode="details"] .product-identity p {
+    margin: 1px 0 2px;
+    font-size: 0.48rem;
+  }
+
+  .product-panel[data-product-mode="details"] .product-identity strong {
+    font-size: 1.14rem;
+  }
+
+  .product-panel[data-product-mode="details"] .product-facts {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 3px;
+    margin: 0;
+  }
+
+  .product-panel[data-product-mode="details"] .product-facts div {
+    padding: 3px 4px;
+  }
+
+  .shelf-map-panel {
+    grid-template-columns: minmax(0, 5fr) minmax(150px, 3fr);
+    grid-template-rows: auto auto auto auto;
+    min-height: var(--shelf-panel-min-height);
+    gap: 6px 8px;
+    align-content: start;
+    padding: 9px 10px;
+  }
+
+  .shelf-map-heading {
+    grid-column: 1 / -1;
+  }
+
+  .shelf-map-panel > .shelf-map-canvas {
+    grid-column: 1;
+    grid-row: 2 / span 3;
+    width: 100%;
+    height: auto;
+    min-height: 0;
+    aspect-ratio: 5 / 3;
+    align-self: start;
+  }
+
+  .shelf-map-panel > .map-location-data {
+    grid-column: 2;
+    grid-template-columns: 1fr;
+    gap: 4px;
+    align-content: start;
+  }
+
+  .shelf-map-panel > .map-route-summary {
+    grid-column: 2;
+    min-height: 0;
+    font-size: 0.48rem;
+    line-height: 1.25;
+  }
+
+  .scan-product-rail {
+    height: 100%;
+    min-height: 50px;
+    max-height: 56px;
   }
 }
 

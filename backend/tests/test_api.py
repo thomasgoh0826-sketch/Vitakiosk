@@ -1,6 +1,67 @@
+from fastapi import HTTPException
 from fastapi.testclient import TestClient
+import pytest
+from types import SimpleNamespace
 
+from backend.app.routes import catalog as catalog_module
 from services.models import TranscriptionResult
+from services.models import Escalation
+
+
+def test_vitaflow_asset_proxy_serves_same_origin_images(
+    client: TestClient,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    requested: list[str] = []
+
+    class ImageResponse:
+        status_code = 200
+        content = b"mock-webp"
+        headers = {"content-type": "image/webp"}
+
+    def fake_get(url: str, **_kwargs: object) -> ImageResponse:
+        requested.append(url)
+        return ImageResponse()
+
+    monkeypatch.setattr(
+        catalog_module,
+        "settings",
+        SimpleNamespace(vitaflow_api_base_url="http://vitaflow.test"),
+    )
+    monkeypatch.setattr(catalog_module.httpx, "get", fake_get)
+
+    response = client.get("/api/vitaflow-assets/api/product-images/product.webp")
+
+    assert response.status_code == 200
+    assert response.content == b"mock-webp"
+    assert response.headers["content-type"] == "image/webp"
+    assert requested == ["http://vitaflow.test/api/product-images/product.webp"]
+
+
+def test_vitaflow_asset_proxy_rejects_traversal_and_non_images(
+    client: TestClient,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    with pytest.raises(HTTPException) as traversal:
+        catalog_module.vitaflow_asset("../secret")
+    assert traversal.value.status_code == 404
+
+    class JsonResponse:
+        status_code = 200
+        content = b'{}'
+        headers = {"content-type": "application/json"}
+
+    monkeypatch.setattr(
+        catalog_module,
+        "settings",
+        SimpleNamespace(vitaflow_api_base_url="http://vitaflow.test"),
+    )
+    monkeypatch.setattr(catalog_module.httpx, "get", lambda *_args, **_kwargs: JsonResponse())
+
+    response = client.get("/api/vitaflow-assets/api/not-an-image")
+
+    assert response.status_code == 404
+    assert response.json() == {"detail": "VitaFlow asset unavailable"}
 
 
 def test_transcribe_accepts_audio(client: TestClient) -> None:
@@ -133,11 +194,7 @@ def test_ai_response_returns_authoritative_product(client: TestClient) -> None:
         "shelf": None,
         "reason": None,
     }
-    assert [leaflet["id"] for leaflet in payload["leaflets"]] == [
-        "MOCK-LF-PROMO-001",
-        "MOCK-LF-PROMO-002",
-        "MOCK-LF-CAMP-001",
-    ]
+    assert [leaflet["id"] for leaflet in payload["leaflets"]] == ["MOCK-LF-PROMO-001"]
     assert payload["source"] == "mock_vitaflow"
 
 
@@ -162,6 +219,32 @@ def test_ai_response_accepts_preferred_language_without_changing_product_facts(
     assert payload["product"]["price"] == 12.5
     assert payload["product"]["shelf_location"] == "A-03"
     assert payload["source"] == "mock_vitaflow"
+    assert "VitaFlow mock" in payload["message"]
+    assert "价格" in payload["message"]
+    assert "RM12.50" in payload["message"]
+    assert "price for" not in payload["message"]
+
+
+def test_ai_response_uses_confirmed_scan_product_context_without_reopening_scanner(
+    client: TestClient,
+) -> None:
+    response = client.post(
+        "/api/ai/respond",
+        json={
+            "session_id": "session-scan-followup",
+            "text": "What is this product for, and how should I take it?",
+            "branch_id": "SG-001",
+            "current_product_id": "MOCK-P001",
+        },
+    )
+
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload["product"]["id"] == "MOCK-P001"
+    assert "OPEN_PRODUCT_SCAN" not in [
+        action["type"] for action in payload["ui_actions"]
+    ]
+    assert payload["requires_pharmacist"] is True
 
 
 def test_ai_red_flag_creates_escalation(client: TestClient) -> None:
@@ -199,11 +282,112 @@ def test_ai_general_campaign_returns_controlled_gallery_action(client: TestClien
     assert response.status_code == 200
     payload = response.json()
     assert payload["intent"] == "campaign_check"
+    assert "Hydration Health Campaign" in payload["message"]
+    assert "Relief Balm Demo Leaflet" not in payload["message"]
+    assert "Supplement Savings Demo" not in payload["message"]
     assert [action["type"] for action in payload["ui_actions"]] == [
-        "SHOW_CAMPAIGN_GALLERY"
+        "SHOW_CAMPAIGN_GALLERY",
+        "OPEN_CAMPAIGN_MODAL",
     ]
+    assert payload["ui_actions"][1]["campaignId"] == "MOCK-LF-CAMP-001"
     assert [leaflet["id"] for leaflet in payload["leaflets"]] == [
+        "MOCK-LF-PROMO-001",
+        "MOCK-LF-PROMO-002",
         "MOCK-LF-CAMP-001"
+    ]
+
+
+@pytest.mark.parametrize(
+    "text",
+    [
+        "what can you do for me",
+        "what is the weather today",
+        "tell me a joke",
+        "where is the toilet",
+        "are you an AI",
+    ],
+)
+def test_ai_non_product_questions_do_not_report_unknown_product(
+    client: TestClient,
+    text: str,
+) -> None:
+    response = client.post(
+        "/api/ai/respond",
+        json={
+            "session_id": f"session-general-{text}",
+            "text": text,
+            "branch_id": "SG-001",
+        },
+    )
+
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload["intent"] == "general_conversation"
+    assert payload["product"] is None
+    assert payload["purchasing_query_id"] is None
+    assert "not found" not in payload["message"].casefold()
+
+
+@pytest.mark.parametrize(
+    "text",
+    [
+        "promotion",
+        "有什么promotion",
+        "can you show me any promotion",
+        "can you help me find any promotion",
+        "could you help find available promotions",
+        "show all active branch promotion",
+        "show all active branch promot",
+    ],
+)
+def test_ai_general_promotion_names_only_active_promotions(
+    client: TestClient,
+    text: str,
+) -> None:
+    response = client.post(
+        "/api/ai/respond",
+        json={
+            "session_id": f"session-promotion-{text}",
+            "text": text,
+            "branch_id": "SG-001",
+        },
+    )
+
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload["intent"] == "promotion_check"
+    assert "Relief Balm Demo Leaflet" in payload["message"]
+    assert "Supplement Savings Demo" in payload["message"]
+    assert "Hydration Health Campaign" not in payload["message"]
+    assert [action["type"] for action in payload["ui_actions"]] == [
+        "SHOW_PROMOTION_GALLERY",
+        "OPEN_PROMOTION_MODAL",
+    ]
+
+
+@pytest.mark.parametrize("text", ["campaign", "caimpaign", "有什么campaign"])
+def test_ai_general_campaign_variants_name_only_active_campaigns(
+    client: TestClient,
+    text: str,
+) -> None:
+    response = client.post(
+        "/api/ai/respond",
+        json={
+            "session_id": f"session-campaign-{text}",
+            "text": text,
+            "branch_id": "SG-001",
+        },
+    )
+
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload["intent"] == "campaign_check"
+    assert "Hydration Health Campaign" in payload["message"]
+    assert "Relief Balm Demo Leaflet" not in payload["message"]
+    assert "Supplement Savings Demo" not in payload["message"]
+    assert [action["type"] for action in payload["ui_actions"]] == [
+        "SHOW_CAMPAIGN_GALLERY",
+        "OPEN_CAMPAIGN_MODAL",
     ]
 
 
@@ -304,6 +488,38 @@ def test_idle_posters_are_active_and_branch_aware(client: TestClient) -> None:
     ]
 
 
+def test_active_leaflets_are_current_and_branch_aware(client: TestClient) -> None:
+    response = client.get("/api/leaflets/active", params={"branch_id": "SG-001"})
+
+    assert response.status_code == 200
+    payload = response.json()
+    assert [item["id"] for item in payload["items"]] == [
+        "MOCK-LF-PROMO-001",
+        "MOCK-LF-PROMO-002",
+        "MOCK-LF-CAMP-001",
+    ]
+    assert all(item["active"] for item in payload["items"])
+    assert all(item["branch_id"] == "SG-001" for item in payload["items"])
+    assert payload["source"] == "mock_vitaflow"
+
+
+def test_shelf_map_returns_branch_map_with_regions(client: TestClient) -> None:
+    response = client.get("/api/shelf-map", params={"branch_id": "SG-001"})
+
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload["map"]["map_id"] == "MOCK-MAP-SG-001"
+    assert payload["map"]["branch_id"] == "SG-001"
+    assert payload["map"]["entrance"] == {"x": 8, "y": 84, "label": "Entrance"}
+    assert [region["name"] for region in payload["map"]["regions"]] == [
+        "Aisle 01",
+        "Aisle 02",
+        "Aisle 03",
+        "Pharmacist",
+    ]
+    assert payload["source"] == "mock_vitaflow"
+
+
 def test_purchasing_query_endpoint_creates_mock_record(client: TestClient) -> None:
     response = client.post(
         "/api/purchasing-query",
@@ -328,6 +544,40 @@ def test_escalation_endpoint_creates_mock_record(client: TestClient) -> None:
     assert payload["id"].startswith("ESC-")
     assert payload["status"] == "waiting_for_pharmacist"
     assert payload["source"] == "mock_memory"
+
+
+def test_escalation_endpoint_fails_closed_when_vitaflow_did_not_acknowledge(
+    client: TestClient,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from backend.app.routes import actions
+
+    class UnavailableEscalationStore:
+        def create(self, reason: str, branch_id: str, *, session_id: str | None = None) -> Escalation:
+            del session_id
+            return Escalation(
+                id="ERP-UNAVAILABLE",
+                reason=reason,
+                branch_id=branch_id,
+                status="unavailable",
+                source="vitaflow_erp_unavailable",
+            )
+
+    monkeypatch.setattr(actions, "escalation_store", UnavailableEscalationStore())
+
+    response = client.post(
+        "/api/escalate-pharmacist",
+        json={
+            "reason": "customer requested assistance",
+            "branch_id": "JK",
+            "session_id": "session-offline",
+        },
+    )
+
+    assert response.status_code == 503
+    assert response.json() == {
+        "detail": "VitaFlow did not acknowledge the pharmacist assistance request."
+    }
 
 
 def test_empty_product_query_is_rejected(client: TestClient) -> None:
@@ -450,6 +700,54 @@ def test_scan_product_rejects_malformed_image(client: TestClient) -> None:
         "ok": False,
         "error": "invalid_image",
         "message": "Image could not be decoded. Please try again.",
+    }
+
+
+def test_scan_product_rejects_oversized_frame(client: TestClient) -> None:
+    response = client.post(
+        "/api/vision/scan-product",
+        data={"branch_id": "SG-001", "mode": "auto"},
+        files={"image": ("scan.jpg", b"x" * (4 * 1024 * 1024 + 1), "image/jpeg")},
+    )
+
+    assert response.status_code == 422
+    assert response.json()["error"] == "invalid_image"
+
+
+@pytest.mark.parametrize(
+    "provider_error",
+    ["agnes_direct_image_input_not_supported", "agnes_product_vision_unavailable"],
+)
+def test_scan_product_agnes_unavailable_returns_controlled_error(
+    client: TestClient,
+    monkeypatch,
+    provider_error: str,
+) -> None:
+    from backend.app.routes import vision
+
+    class UnavailableAgnesVision:
+        provider_name = "agnes"
+
+        def scan_product(self, image, content_type, branch_id, mode, vitaflow):
+            del image, content_type, branch_id, mode, vitaflow
+            raise RuntimeError(provider_error)
+
+    monkeypatch.setattr(vision, "vision_adapter", UnavailableAgnesVision())
+
+    response = client.post(
+        "/api/vision/scan-product",
+        data={"branch_id": "SG-001", "mode": "auto"},
+        files={"image": ("scan.jpg", b"\xff\xd8\xff mock", "image/jpeg")},
+    )
+
+    assert response.status_code == 503
+    assert response.json() == {
+        "ok": False,
+        "error": provider_error,
+        "message": (
+            "Cloud product vision is unavailable. "
+            "Please scan again or search manually."
+        ),
     }
 
 

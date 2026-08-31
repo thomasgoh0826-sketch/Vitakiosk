@@ -13,6 +13,23 @@ const VALID_STATES = new Set<AvatarState>([
   "pharmacist_escalation",
 ]);
 
+export function resolveWebSocketBaseUrl(
+  value: string | undefined,
+  location: Pick<Location, "protocol" | "host"> | undefined =
+    typeof window !== "undefined" ? window.location : undefined,
+): string {
+  if (value && value !== "auto") {
+    return value;
+  }
+
+  if (location?.host) {
+    const protocol = location.protocol === "https:" ? "wss:" : "ws:";
+    return `${protocol}//${location.host}`;
+  }
+
+  return DEFAULT_WS_BASE_URL;
+}
+
 function parseStateEvent(value: unknown, sessionId: string): AvatarStateEvent | null {
   if (!value || typeof value !== "object") {
     return null;
@@ -38,7 +55,7 @@ function useKioskSocket(sessionId: string) {
     let disposed = false;
     let reconnectTimer = 0;
     let attempt = 0;
-    const baseUrl = import.meta.env.VITE_WS_BASE_URL || DEFAULT_WS_BASE_URL;
+    const baseUrl = resolveWebSocketBaseUrl(import.meta.env.VITE_WS_BASE_URL);
     setConnected(false);
     setState("idle");
 

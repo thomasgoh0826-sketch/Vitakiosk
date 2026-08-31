@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: http://127.0.0.1:5176/sitemap.xml
+Sitemap: https://www.vitakiosk.asia/sitemap.xml

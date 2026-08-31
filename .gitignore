@@ -52,6 +52,10 @@ private-data/
 recordings/
 generated-audio/
 tmp/
+tmp_higgsfield_review/
+tmp_higgsfield_review2/
+work/
+output/
 *.wav
 *.webm
 *.mp3
@@ -66,3 +70,6 @@ Thumbs.db
 
 # Local worktrees
 .worktrees/
+
+# Local Netlify folder
+.netlify

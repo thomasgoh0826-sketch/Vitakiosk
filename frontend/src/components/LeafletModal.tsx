@@ -37,6 +37,7 @@ interface LeafletModalProps {
   leaflets: Leaflet[];
   activeLeafletId: string | null;
   onClose: () => void;
+  onDismissStart?: () => void;
   onSelect: (leafletId: string) => void;
 }
 
@@ -106,6 +107,7 @@ function LeafletModal({
   leaflets,
   activeLeafletId,
   onClose,
+  onDismissStart,
   onSelect,
 }: LeafletModalProps) {
   const requestedIndex = indexForLeaflet(leaflets, activeLeafletId);
@@ -116,6 +118,8 @@ function LeafletModal({
   const sceneRef = useRef<HTMLElement | null>(null);
   const dragStartX = useRef<number | null>(null);
   const isDraggingRef = useRef(false);
+  const suppressNextClickRef = useRef(false);
+  const suppressClickTimerRef = useRef<number | null>(null);
   const stageMeasureFrameRef = useRef<number | null>(null);
   const openTimerRef = useRef<number | null>(null);
   const closeTimerRef = useRef<number | null>(null);
@@ -165,9 +169,16 @@ function LeafletModal({
   }, [scheduleStageWidthMeasure]);
 
   useEffect(() => {
+    if (requestedIndex < 0) {
+      return;
+    }
+    const currentLeafletId = leaflets[activeIndex]?.id ?? null;
+    if (currentLeafletId === activeLeafletId) {
+      return;
+    }
     setActiveIndex(requestedIndex);
     setDragOffset(0);
-  }, [requestedIndex]);
+  }, [activeLeafletId, leaflets, requestedIndex]);
 
   useEffect(() => {
     if (openTimerRef.current !== null) {
@@ -203,6 +214,11 @@ function LeafletModal({
     if (closeTimerRef.current !== null) {
       window.clearTimeout(closeTimerRef.current);
       closeTimerRef.current = null;
+    }
+
+    if (suppressClickTimerRef.current !== null) {
+      window.clearTimeout(suppressClickTimerRef.current);
+      suppressClickTimerRef.current = null;
     }
   }, []);
 
@@ -254,6 +270,8 @@ function LeafletModal({
       openTimerRef.current = null;
     }
 
+    onDismissStart?.();
+
     if (reducedMotion) {
       onClose();
       return;
@@ -264,7 +282,7 @@ function LeafletModal({
       closeTimerRef.current = null;
       onClose();
     }, CLOSE_ANIMATION_MS);
-  }, [animationState, onClose, reducedMotion]);
+  }, [animationState, onClose, onDismissStart, reducedMotion]);
 
   const goToIndex = (index: number) => {
     const nextIndex = clampIndex(index, leaflets.length);
@@ -365,9 +383,41 @@ function LeafletModal({
       return;
     }
 
+    suppressNextClickRef.current = true;
+    if (suppressClickTimerRef.current !== null) {
+      window.clearTimeout(suppressClickTimerRef.current);
+    }
+    suppressClickTimerRef.current = window.setTimeout(() => {
+      suppressNextClickRef.current = false;
+      suppressClickTimerRef.current = null;
+    }, 160);
     const rawIndexShift = Math.round(finalOffset / stepWidth);
     const indexShift = rawIndexShift === 0 ? (finalOffset < 0 ? -1 : 1) : rawIndexShift;
     goToIndex(activeIndex - indexShift);
+  };
+
+  const handleLeafletClick = (index: number) => {
+    if (suppressNextClickRef.current) {
+      suppressNextClickRef.current = false;
+      return;
+    }
+    if (index !== activeIndex) {
+      goToIndex(index);
+    }
+  };
+
+  const handleStageClick = (event: MouseEvent<HTMLElement>) => {
+    if (suppressNextClickRef.current) {
+      suppressNextClickRef.current = false;
+      return;
+    }
+
+    const target = event.target as HTMLElement;
+    if (target.closest(".floating-leaflet-panel") || target.closest(".leaflet-meta-panel")) {
+      return;
+    }
+
+    requestClose();
   };
 
   const handlePointerMove = (event: PointerEvent<HTMLElement>) => {
@@ -408,8 +458,28 @@ function LeafletModal({
 
   const handleBackdropMouseDown = (event: MouseEvent<HTMLDivElement>) => {
     if (event.target === event.currentTarget) {
+      event.preventDefault();
+      event.stopPropagation();
       requestClose();
     }
+  };
+
+  const handleBackdropPointerDown = (event: PointerEvent<HTMLDivElement>) => {
+    if (event.target === event.currentTarget) {
+      event.preventDefault();
+      event.stopPropagation();
+      requestClose();
+    }
+  };
+
+  const handleBackdropClick = (event: MouseEvent<HTMLDivElement>) => {
+    if (event.target !== event.currentTarget) {
+      return;
+    }
+
+    event.preventDefault();
+    event.stopPropagation();
+    requestClose();
   };
 
   const deckPositionLabel = (index: number) => {
@@ -476,6 +546,10 @@ function LeafletModal({
     } as CSSProperties;
   };
 
+  if (requestedIndex < 0 || !activeLeafletId) {
+    return null;
+  }
+
   const modal = (
     <div
       className="leaflet-viewer-backdrop"
@@ -484,7 +558,12 @@ function LeafletModal({
       aria-label="Leaflet preview"
       tabIndex={-1}
       data-animation-state={animationState}
+      onPointerDownCapture={handleBackdropPointerDown}
+      onPointerDown={handleBackdropPointerDown}
+      onMouseDownCapture={handleBackdropMouseDown}
       onMouseDown={handleBackdropMouseDown}
+      onClickCapture={handleBackdropClick}
+      onClick={handleBackdropClick}
     >
       <article
         className={`leaflet-floating-stage${isDragging ? " is-dragging" : ""}`}
@@ -497,6 +576,7 @@ function LeafletModal({
         onMouseMove={handleMouseMove}
         onMouseUp={handleMouseUp}
         onWheel={handleWheel}
+        onClick={handleStageClick}
       >
         <section
           ref={setSceneElement}
@@ -523,6 +603,7 @@ function LeafletModal({
                   aria-current={isActive ? "true" : undefined}
                   aria-label={`${leaflet.title}, ${index + 1} of ${leaflets.length}`}
                   data-deck-position={position}
+                  onClick={() => handleLeafletClick(index)}
                 >
                   <img src={leaflet.image_url} alt="" draggable={false} />
                   <span className="leaflet-card-glow" aria-hidden="true" />

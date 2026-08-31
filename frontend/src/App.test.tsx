@@ -54,10 +54,10 @@ describe("VitaKiosk shell", () => {
     expect(screen.queryByText(/Hold to Speak/i)).not.toBeInTheDocument();
   });
 
-  it("labels all visible domain data as fictional mock data", () => {
+  it("labels mock-provider data as fictional after provider status loads", async () => {
     render(<App />);
 
-    expect(screen.getAllByText(/Mock VitaFlow/i).length).toBeGreaterThan(0);
-    expect(screen.getByText(/Fictional demo data/i)).toBeInTheDocument();
+    expect((await screen.findAllByText(/Mock VitaFlow/i)).length).toBeGreaterThan(0);
+    expect(await screen.findByText(/Fictional demo data/i)).toBeInTheDocument();
   });
 });

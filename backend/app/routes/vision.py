@@ -13,6 +13,7 @@ from backend.app.dependencies import vitaflow
 router = APIRouter(prefix="/api/vision", tags=["vision"])
 
 SUPPORTED_IMAGE_TYPES = {"image/jpeg", "image/png", "image/webp"}
+MAX_SCAN_BYTES = 4 * 1024 * 1024
 
 
 def invalid_image_error() -> JSONResponse:
@@ -35,8 +36,8 @@ async def scan_product(
     if image.content_type not in SUPPORTED_IMAGE_TYPES:
         return invalid_image_error()
 
-    frame = await image.read()
-    if not frame:
+    frame = await image.read(MAX_SCAN_BYTES + 1)
+    if not frame or len(frame) > MAX_SCAN_BYTES:
         return invalid_image_error()
 
     try:
@@ -55,6 +56,21 @@ async def scan_product(
                     "ok": False,
                     "error": "local_product_image_scan_not_configured",
                     "message": "Local product image scan is not configured.",
+                },
+            )
+        if str(exc) in {
+            "agnes_direct_image_input_not_supported",
+            "agnes_product_vision_unavailable",
+        }:
+            return JSONResponse(
+                status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+                content={
+                    "ok": False,
+                    "error": str(exc),
+                    "message": (
+                        "Cloud product vision is unavailable. "
+                        "Please scan again or search manually."
+                    ),
                 },
             )
         raise

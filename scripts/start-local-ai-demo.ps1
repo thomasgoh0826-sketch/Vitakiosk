@@ -2,6 +2,7 @@ Set-StrictMode -Version Latest
 $ErrorActionPreference = "Stop"
 
 $repoRoot = Split-Path -Parent $PSScriptRoot
+$backendPython = Join-Path $repoRoot ".venv\Scripts\python.exe"
 $frontendEnv = Join-Path $repoRoot "frontend\.env.local"
 $backendEnv = Join-Path $repoRoot ".env"
 
@@ -34,7 +35,12 @@ if ($frontendPort) {
   exit 1
 }
 
-$backendCommand = "cd `"$repoRoot`"; python -m uvicorn backend.app.main:app --reload --host 127.0.0.1 --port 8001"
+if (-not (Test-Path -LiteralPath $backendPython)) {
+  Write-Warning "The project Python runtime was not found at .venv\Scripts\python.exe. Create the backend virtual environment and install its dependencies first."
+  exit 1
+}
+
+$backendCommand = "cd `"$repoRoot`"; & `"$backendPython`" -m uvicorn backend.app.main:app --reload --host 127.0.0.1 --port 8001"
 $frontendCommand = "cd `"$repoRoot`"; npm.cmd run dev:vrm --prefix frontend"
 
 Write-Host "Starting backend on 127.0.0.1:8001..."

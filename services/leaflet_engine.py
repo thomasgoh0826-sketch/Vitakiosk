@@ -4,6 +4,7 @@ from collections.abc import Iterable
 from datetime import UTC, datetime
 
 from services.mock_data import MOCK_LEAFLETS
+from services.contracts import VitaFlowAdapter
 from services.models import Leaflet, LeafletKind
 
 
@@ -61,3 +62,27 @@ class LeafletEngine:
             ),
             None,
         )
+
+
+class VitaFlowLeafletEngine(LeafletEngine):
+    """Leaflet selector backed only by the configured VitaFlow adapter."""
+
+    def __init__(self, vitaflow: VitaFlowAdapter) -> None:
+        self._vitaflow = vitaflow
+
+    def eligible_for_branch(
+        self,
+        branch_id: str,
+        *,
+        kind: LeafletKind | None = None,
+        now: datetime | None = None,
+    ) -> list[Leaflet]:
+        current_time = now or datetime.now(UTC)
+        matches = [
+            leaflet
+            for leaflet in self._vitaflow.eligible_leaflets(branch_id, kind=kind)
+            if leaflet.active
+            and leaflet.branch_id == branch_id
+            and leaflet.valid_from <= current_time <= leaflet.valid_to
+        ]
+        return sorted(matches, key=lambda item: (item.display_priority, item.title))

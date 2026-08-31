@@ -25,11 +25,32 @@ function isProductLinked(leaflet: Leaflet, product: Product | null | undefined) 
   return Boolean(product && leaflet.product_ids.includes(product.id));
 }
 
-function firstProductLinked(
+function productLinkedLeaflets(
   leaflets: Leaflet[],
   product: Product | null | undefined,
 ) {
-  return leaflets.find((leaflet) => isProductLinked(leaflet, product)) ?? null;
+  return product
+    ? leaflets.filter((leaflet) => leaflet.product_ids.includes(product.id))
+    : [];
+}
+
+function campaignFallbackLeaflets(
+  campaignLeaflets: Leaflet[],
+  product: Product | null | undefined,
+) {
+  if (!product) {
+    return campaignLeaflets;
+  }
+
+  const linkedCampaigns = productLinkedLeaflets(campaignLeaflets, product);
+  return uniqueLeaflets([
+    ...linkedCampaigns,
+    ...campaignLeaflets.filter((leaflet) => leaflet.product_ids.length === 0),
+  ]);
+}
+
+function branchWideLeaflets(leaflets: Leaflet[]) {
+  return leaflets.filter((leaflet) => leaflet.product_ids.length === 0);
 }
 
 function uniqueLeaflets(leaflets: Array<Leaflet | null | undefined>) {
@@ -46,20 +67,20 @@ function uniqueLeaflets(leaflets: Array<Leaflet | null | undefined>) {
 
 function orderedDisplayLeaflets({
   mode,
-  leaflets,
   promotionLeaflets,
   campaignLeaflets,
-  productPromotionLeaflet,
-  productCampaignLeaflet,
+  productPromotionLeaflets,
+  productCampaignLeaflets,
   selectedLeafletFromAction,
+  product,
 }: {
   mode: PromotionPanelMode;
-  leaflets: Leaflet[];
   promotionLeaflets: Leaflet[];
   campaignLeaflets: Leaflet[];
-  productPromotionLeaflet: Leaflet | null;
-  productCampaignLeaflet: Leaflet | null;
+  productPromotionLeaflets: Leaflet[];
+  productCampaignLeaflets: Leaflet[];
   selectedLeafletFromAction: Leaflet | null;
+  product?: Product | null;
 }) {
   if (mode === "promotion_gallery") {
     return promotionLeaflets;
@@ -69,28 +90,28 @@ function orderedDisplayLeaflets({
     return campaignLeaflets;
   }
 
-  const hasProductPromotion = Boolean(productPromotionLeaflet);
-  const defaultCampaign = productCampaignLeaflet ?? campaignLeaflets[0] ?? null;
-  const primaryLeaflets =
-    hasProductPromotion
-      ? [
-          selectedLeafletFromAction,
-          mode === "product_campaign" ? productCampaignLeaflet : null,
-          productPromotionLeaflet,
-          productCampaignLeaflet,
-          ...promotionLeaflets,
-          ...campaignLeaflets,
-        ]
-      : [
-          selectedLeafletFromAction,
-          defaultCampaign,
-          ...campaignLeaflets,
-          ...promotionLeaflets,
-        ];
+  if (mode === "product_campaign") {
+    return uniqueLeaflets([
+      selectedLeafletFromAction,
+      ...productCampaignLeaflets,
+      ...campaignFallbackLeaflets(campaignLeaflets, product),
+    ]);
+  }
+
+  if (productPromotionLeaflets.length > 0) {
+    return uniqueLeaflets([
+      selectedLeafletFromAction,
+      ...productPromotionLeaflets,
+      ...productCampaignLeaflets,
+      ...branchWideLeaflets(promotionLeaflets),
+      ...campaignFallbackLeaflets(campaignLeaflets, product),
+    ]);
+  }
 
   return uniqueLeaflets([
-    ...primaryLeaflets,
-    ...leaflets,
+    selectedLeafletFromAction,
+    ...productCampaignLeaflets,
+    ...campaignFallbackLeaflets(campaignLeaflets, product),
   ]);
 }
 
@@ -107,18 +128,18 @@ function PromotionPoster({
 }: PromotionPosterProps) {
   const promotionLeaflets = leaflets.filter((leaflet) => leaflet.kind === "promotion");
   const campaignLeaflets = leaflets.filter((leaflet) => leaflet.kind === "campaign");
-  const productPromotionLeaflet = firstProductLinked(promotionLeaflets, product);
-  const productCampaignLeaflet = firstProductLinked(campaignLeaflets, product);
+  const productPromotionLeaflets = productLinkedLeaflets(promotionLeaflets, product);
+  const productCampaignLeaflets = productLinkedLeaflets(campaignLeaflets, product);
   const selectedLeafletFromAction =
     leaflets.find((leaflet) => leaflet.id === selectedLeafletId) ?? null;
   const displayLeaflets = orderedDisplayLeaflets({
     mode,
-    leaflets,
     promotionLeaflets,
     campaignLeaflets,
-    productPromotionLeaflet,
-    productCampaignLeaflet,
+    productPromotionLeaflets,
+    productCampaignLeaflets,
     selectedLeafletFromAction,
+    product,
   });
 
   if (safetyOverride) {

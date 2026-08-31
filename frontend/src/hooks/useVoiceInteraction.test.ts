@@ -108,6 +108,23 @@ class GestureBlockedOnceAudio {
   }
 }
 
+class PlaybackErrorAudio {
+  static instances: PlaybackErrorAudio[] = [];
+  onended: (() => void) | null = null;
+  onerror: (() => void) | null = null;
+  currentTime = 0;
+  play = vi.fn(() => Promise.resolve());
+  pause = vi.fn();
+
+  constructor(_url: string) {
+    PlaybackErrorAudio.instances.push(this);
+  }
+
+  fail() {
+    this.onerror?.();
+  }
+}
+
 class FakeAnalyser {
   fftSize = 256;
 
@@ -121,8 +138,11 @@ class FakeAnalyser {
 }
 
 class FakeAudioContext {
+  static startedSources: FakeBufferSource[] = [];
+  static autoEndSources = true;
   analyser = new FakeAnalyser();
   destination = {};
+  state = "running";
 
   createMediaStreamSource(_stream: MediaStream) {
     return { connect: vi.fn(), disconnect: vi.fn() };
@@ -136,9 +156,37 @@ class FakeAudioContext {
     return this.analyser;
   }
 
+  createBufferSource() {
+    const source = new FakeBufferSource();
+    FakeAudioContext.startedSources.push(source);
+    return source;
+  }
+
+  decodeAudioData(_buffer: ArrayBuffer) {
+    return Promise.resolve({ duration: 1 } as AudioBuffer);
+  }
+
+  resume() {
+    this.state = "running";
+    return Promise.resolve();
+  }
+
   close() {
     return Promise.resolve();
   }
+}
+
+class FakeBufferSource {
+  buffer: AudioBuffer | null = null;
+  onended: (() => void) | null = null;
+  connect = vi.fn();
+  disconnect = vi.fn();
+  start = vi.fn(() => {
+    if (FakeAudioContext.autoEndSources) {
+      window.setTimeout(() => this.onended?.(), 20);
+    }
+  });
+  stop = vi.fn();
 }
 
 class ActiveFakeAnalyser extends FakeAnalyser {
@@ -181,7 +229,7 @@ function buildApi(redFlag = false, unclear = false, correctedTranscript?: string
           }
         : {
             intent: "price_check",
-            message: "VitaFlow mock price for Relief Balm: $12.50.",
+            message: "VitaFlow mock price for Relief Balm: RM12.50.",
             requires_pharmacist: false,
             product,
             promotions: [promotion],
@@ -238,6 +286,8 @@ function buildApi(redFlag = false, unclear = false, correctedTranscript?: string
 
 describe("useVoiceInteraction", () => {
   beforeEach(() => {
+    FakeAudioContext.startedSources = [];
+    FakeAudioContext.autoEndSources = true;
     const stopTrack = vi.fn();
     Object.defineProperty(navigator, "mediaDevices", {
       configurable: true,
@@ -250,6 +300,12 @@ describe("useVoiceInteraction", () => {
     vi.stubGlobal("MediaRecorder", FakeMediaRecorder);
     vi.stubGlobal("Audio", FakeAudio);
     vi.stubGlobal("AudioContext", FakeAudioContext);
+    (globalThis as typeof globalThis & { AudioContext?: typeof AudioContext }).AudioContext =
+      FakeAudioContext as unknown as typeof AudioContext;
+    Object.defineProperty(window, "AudioContext", {
+      configurable: true,
+      value: FakeAudioContext,
+    });
     URL.createObjectURL = vi.fn(() => "blob:mock-audio");
     URL.revokeObjectURL = vi.fn();
   });
@@ -294,6 +350,7 @@ describe("useVoiceInteraction", () => {
   });
 
   it("enters speaking while successful TTS audio plays and returns ready when audio ends", async () => {
+    FakeAudioContext.autoEndSources = false;
     DeferredFakeAudio.instances = [];
     vi.stubGlobal("Audio", DeferredFakeAudio);
     const api = buildApi();
@@ -315,21 +372,29 @@ describe("useVoiceInteraction", () => {
 
     await waitFor(() => expect(result.current.state).toBe("speaking"));
     expect(result.current.audioPlaybackBlocked).toBe(false);
-    expect(DeferredFakeAudio.instances[0].play).toHaveBeenCalledTimes(1);
+    await waitFor(() =>
+      expect(FakeAudioContext.startedSources.at(-1)?.start).toHaveBeenCalledTimes(1),
+    );
+    expect(DeferredFakeAudio.instances.at(-1)?.play).toHaveBeenCalledTimes(1);
     expect(sendState).toHaveBeenCalledWith("speaking");
 
-    act(() => DeferredFakeAudio.instances[0].finish());
+    act(() => FakeAudioContext.startedSources.at(-1)?.onended?.());
     await act(async () => {
       await workflow;
     });
 
     expect(result.current.state).toBe("idle");
     expect(result.current.error).toBeNull();
-    expect(URL.revokeObjectURL).toHaveBeenCalledWith("blob:mock-audio");
+    expect(URL.createObjectURL).not.toHaveBeenCalled();
     expect(sendState).toHaveBeenCalledWith("idle");
   });
 
-  it("keeps the answer and offers controlled replay when browser blocks audio autoplay", async () => {
+  it("automatically retries voice playback when the first browser play call is blocked", async () => {
+    vi.stubGlobal("AudioContext", undefined);
+    Object.defineProperty(window, "AudioContext", {
+      configurable: true,
+      value: undefined,
+    });
     GestureBlockedOnceAudio.instances = [];
     vi.stubGlobal("Audio", GestureBlockedOnceAudio);
     const api = buildApi();
@@ -344,30 +409,86 @@ describe("useVoiceInteraction", () => {
       }),
     );
 
-    await act(async () => result.current.submitText("Where is Relief Balm?"));
-
-    expect(result.current.state).toBe("idle");
-    expect(result.current.error).toBeNull();
-    expect(result.current.responseText).toBe("VitaFlow mock price for Relief Balm: $12.50.");
-    expect(result.current.audioPlaybackBlocked).toBe(true);
-    expect(sendState).toHaveBeenCalledWith("idle");
-
-    let replay: Promise<void> | undefined;
+    let workflow: Promise<void> | undefined;
     act(() => {
-      replay = result.current.playBlockedAudio();
+      workflow = result.current.submitText("Where is Relief Balm?");
     });
 
     await waitFor(() => expect(result.current.state).toBe("speaking"));
-    expect(GestureBlockedOnceAudio.instances[0].playCalls).toBe(2);
+    expect(result.current.error).toBeNull();
+    expect(result.current.responseText).toBe("VitaFlow mock price for Relief Balm: RM12.50.");
+    expect(GestureBlockedOnceAudio.instances.at(-1)?.playCalls).toBe(2);
 
-    act(() => GestureBlockedOnceAudio.instances[0].finish());
+    act(() => GestureBlockedOnceAudio.instances.at(-1)?.finish());
     await act(async () => {
-      await replay;
+      await workflow;
     });
 
     expect(result.current.state).toBe("idle");
     expect(result.current.audioPlaybackBlocked).toBe(false);
     expect(result.current.error).toBeNull();
+  });
+
+  it("keeps the typed AI answer visible when ElevenLabs TTS is unavailable", async () => {
+    const api = buildApi();
+    api.synthesize.mockRejectedValueOnce(new Error("TTS provider request failed"));
+    const sendState = vi.fn();
+    const { result } = renderHook(() =>
+      useVoiceInteraction({
+        sessionId: "session-tts-unavailable",
+        branchId: "SG-001",
+        api,
+        serverState: "idle" as AvatarState,
+        sendState,
+      }),
+    );
+
+    await act(async () => result.current.submitText("Where is Relief Balm?"));
+
+    expect(result.current.state).toBe("idle");
+    expect(result.current.error).toBeNull();
+    expect(result.current.responseText).toBe("VitaFlow mock price for Relief Balm: RM12.50.");
+    expect(result.current.product).toEqual(product);
+    expect(sendState).toHaveBeenCalledWith("idle");
+  });
+
+  it("keeps the typed AI answer visible without switching to error or tap-to-play when audio playback fails", async () => {
+    vi.stubGlobal("AudioContext", undefined);
+    Object.defineProperty(window, "AudioContext", {
+      configurable: true,
+      value: undefined,
+    });
+    PlaybackErrorAudio.instances = [];
+    vi.stubGlobal("Audio", PlaybackErrorAudio);
+    const api = buildApi();
+    const sendState = vi.fn();
+    const { result } = renderHook(() =>
+      useVoiceInteraction({
+        sessionId: "session-audio-error",
+        branchId: "SG-001",
+        api,
+        serverState: "idle" as AvatarState,
+        sendState,
+      }),
+    );
+
+    let workflow: Promise<void> | undefined;
+    act(() => {
+      workflow = result.current.submitText("Where is Relief Balm?");
+    });
+
+    await waitFor(() => expect(result.current.state).toBe("speaking"));
+    act(() => PlaybackErrorAudio.instances.at(-1)?.fail());
+    await act(async () => {
+      await workflow;
+    });
+
+    expect(result.current.state).toBe("idle");
+    expect(result.current.error).toBeNull();
+    expect(result.current.audioPlaybackBlocked).toBe(false);
+    expect(result.current.responseText).toBe("VitaFlow mock price for Relief Balm: RM12.50.");
+    expect(result.current.product).toEqual(product);
+    expect(sendState).toHaveBeenCalledWith("idle");
   });
 
   it("auto-stops recording after sustained microphone silence", async () => {
@@ -404,6 +525,10 @@ describe("useVoiceInteraction", () => {
         "auto",
       );
       expect(api.synthesize).toHaveBeenCalledTimes(1);
+      await act(async () => {
+        vi.advanceTimersByTime(30);
+        await Promise.resolve();
+      });
       expect(result.current.state).toBe("idle");
       expect(sendState).toHaveBeenCalledWith("thinking");
       expect(sendState).toHaveBeenCalledWith("idle");
@@ -463,7 +588,7 @@ describe("useVoiceInteraction", () => {
     expect(api.synthesize).not.toHaveBeenCalled();
   });
 
-  it("asks for clarification and does not call AI when speech is unclear", async () => {
+  it("speaks a clarification and does not call AI when speech is unclear", async () => {
     const api = buildApi(false, true);
     const sendState = vi.fn();
     const { result } = renderHook(() =>
@@ -479,6 +604,9 @@ describe("useVoiceInteraction", () => {
     await act(async () => result.current.startRecording());
     await act(async () => result.current.stopRecording());
 
+    await waitFor(() => expect(api.synthesize).toHaveBeenCalledTimes(1));
+    await waitFor(() => expect(result.current.state).toBe("idle"));
+
     expect(result.current.state).toBe("idle");
     expect(result.current.transcript).toBe("");
     expect(result.current.responseText).toBe(
@@ -486,7 +614,11 @@ describe("useVoiceInteraction", () => {
     );
     expect(result.current.hasResult).toBe(false);
     expect(api.respond).not.toHaveBeenCalled();
-    expect(api.synthesize).not.toHaveBeenCalled();
+    expect(api.synthesize).toHaveBeenCalledWith(
+      "session-unclear",
+      "I did not catch that clearly. Please tap to speak and try again.",
+    );
+    expect(sendState).toHaveBeenCalledWith("speaking");
     expect(sendState).toHaveBeenCalledWith("idle");
   });
 
@@ -622,6 +754,128 @@ describe("useVoiceInteraction", () => {
     expect(api.synthesize).toHaveBeenCalledTimes(1);
   });
 
+  it("keeps the current product when an affirmative reply opens branch leaflets", async () => {
+    const api = buildApi();
+    api.respond
+      .mockResolvedValueOnce({
+        intent: "product_search",
+        message:
+          "This product does not have a specific promotion now. I can show other active promotions or health campaigns if you are interested.",
+        requires_pharmacist: false,
+        product,
+        promotions: [],
+        leaflets: [],
+        ui_actions: [{ type: "SHOW_PRODUCT", productId: "MOCK-P001" }],
+        product_candidates: [],
+        purchasing_query_id: null,
+        escalation_id: null,
+        safety_reason: null,
+        source: "mock_vitaflow",
+      })
+      .mockResolvedValueOnce({
+        intent: "promotion_check",
+        message: "Here are the active branch promotion leaflets.",
+        requires_pharmacist: false,
+        product: null,
+        promotions: [],
+        leaflets: [
+          {
+            id: "MOCK-LF-PROMO-001",
+            kind: "promotion",
+            title: "Relief Balm Demo Leaflet",
+            description: "Active branch promotion for Relief Balm.",
+            branch_id: "SG-001",
+            active: true,
+            valid_from: "2025-01-01T00:00:00Z",
+            valid_to: "2030-12-31T23:59:00Z",
+            image_url: "/assets/leaflets/mock-relief-balm-promo.svg",
+            product_ids: ["MOCK-P001"],
+            category_tags: ["pain-relief"],
+            display_priority: 10,
+            source: "mock_vitaflow",
+          },
+        ],
+        ui_actions: [
+          { type: "SHOW_PROMOTION_GALLERY" },
+          { type: "OPEN_PROMOTION_MODAL", promotionId: "MOCK-LF-PROMO-001" },
+        ],
+        product_candidates: [],
+        purchasing_query_id: null,
+        escalation_id: null,
+        safety_reason: null,
+        source: "mock_vitaflow",
+      });
+    const { result } = renderHook(() =>
+      useVoiceInteraction({
+        sessionId: "session-leaflet-yes",
+        branchId: "SG-001",
+        api,
+        serverState: "idle" as AvatarState,
+        sendState: vi.fn(),
+      }),
+    );
+
+    await act(async () => result.current.submitText("buffered c"));
+    await waitFor(() => expect(result.current.product?.id).toBe("MOCK-P001"));
+
+    await act(async () => result.current.submitText("yes interested"));
+    await waitFor(() => expect(result.current.responseText).toContain("active branch promotion"));
+
+    expect(result.current.product?.id).toBe("MOCK-P001");
+    expect(result.current.purchasingQueryId).toBeNull();
+  });
+
+  it("clears a stale product when a different explicit product query needs clarification", async () => {
+    const api = buildApi();
+    api.respond
+      .mockResolvedValueOnce({
+        intent: "product_search",
+        message: "I found Buffered C.",
+        requires_pharmacist: false,
+        product,
+        promotions: [],
+        leaflets: [],
+        ui_actions: [{ type: "SHOW_PRODUCT", productId: product.id }],
+        product_candidates: [],
+        purchasing_query_id: null,
+        escalation_id: null,
+        safety_reason: null,
+        source: "vitaflow_erp",
+      })
+      .mockResolvedValueOnce({
+        intent: "product_search",
+        message:
+          "Please give me a product name, brand, barcode, or label details so I can check VitaFlow.",
+        requires_pharmacist: false,
+        product: null,
+        promotions: [],
+        leaflets: [],
+        ui_actions: [],
+        product_candidates: [],
+        purchasing_query_id: null,
+        escalation_id: null,
+        safety_reason: null,
+        source: "vitaflow_erp",
+      });
+    const { result } = renderHook(() =>
+      useVoiceInteraction({
+        sessionId: "session-product-switch",
+        branchId: "JK",
+        api,
+        serverState: "idle" as AvatarState,
+        sendState: vi.fn(),
+      }),
+    );
+
+    await act(async () => result.current.submitText("buffered c"));
+    await waitFor(() => expect(result.current.product?.id).toBe(product.id));
+
+    await act(async () => result.current.submitText("fisher man"));
+    await waitFor(() => expect(result.current.responseText).toContain("product name"));
+
+    expect(result.current.product).toBeNull();
+  });
+
   it("preserves fuzzy product candidates without creating a purchasing query", async () => {
     const api = buildApi();
     api.respond.mockResolvedValueOnce({
@@ -702,6 +956,33 @@ describe("useVoiceInteraction", () => {
       "Where is Panadol?",
       "SG-001",
       "zh",
+    );
+  });
+
+  it("sends a confirmed scanned product as context for the next follow-up", async () => {
+    const api = buildApi();
+    const { result } = renderHook(() =>
+      useVoiceInteraction({
+        sessionId: "session-scan-followup",
+        branchId: "SG-001",
+        api,
+        serverState: "idle" as AvatarState,
+        sendState: vi.fn(),
+      }),
+    );
+
+    act(() => result.current.adoptConfirmedProduct(product));
+    await act(async () =>
+      result.current.submitText("What is this product for, and how should I take it?"),
+    );
+    await waitFor(() => expect(result.current.state).toBe("idle"));
+
+    expect(api.respond).toHaveBeenLastCalledWith(
+      "session-scan-followup",
+      "What is this product for, and how should I take it?",
+      "SG-001",
+      "auto",
+      "MOCK-P001",
     );
   });
 

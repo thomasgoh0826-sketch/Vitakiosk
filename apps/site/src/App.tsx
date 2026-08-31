@@ -1,4 +1,5 @@
 import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import {
@@ -16,8 +17,6 @@ import {
   Stethoscope,
   X,
 } from "lucide-react";
-import { InteractiveVitaKioskMiniApp } from "./components/InteractiveVitaKioskMiniApp";
-import { demoProduct } from "./content/interactiveDemoStates";
 import { ShowcaseScene, showcaseScenes } from "./content/showcaseScenes";
 import {
   businessLines,
@@ -34,8 +33,11 @@ import {
   PricingCategory,
   pricingItems,
   manualPaymentNotice,
+  negotiationNotice,
+  legalPricingNotice,
   submissionSuccessMessage,
 } from "./content/pricing";
+import { approvedVitaKioskReference, vitaflowAssets, vitakioskKioskModel } from "./content/demoAssets";
 import {
   defaultFormValues,
   SiteFormKind,
@@ -43,25 +45,177 @@ import {
   validateSiteForm,
 } from "./lib/forms";
 import { createManualConfirmation, submitSiteForm } from "./lib/siteApi";
+import { DraggableShowcaseModel, DraggableTabletModel } from "./components/DraggableTabletModel";
+import { ErpOrbitCarousel } from "./components/ErpOrbitCarousel";
+import { WebsiteAutomationVisual } from "./components/WebsiteAutomationVisual";
+import { AcademyWorkflowVisual } from "./components/AcademyWorkflowVisual";
+import { ErpOperationalLayersVisual } from "./components/ErpOperationalLayersVisual";
+import { CustomerServiceBot } from "./components/CustomerServiceBot";
 
 const routeTitles: Record<string, string> = {
-  "/showcase": "Immersive Showcase",
-  "/solutions": "Solutions",
-  "/vitaflow": "VitaFlow ERP",
-  "/vitakiosk": "VitaKiosk AI Kiosk",
-  "/clinic-pharmacy-partners": "Clinic & Pharmacy Partners",
-  "/ai-website-studio": "AI Website Studio",
-  "/ai-academy": "AI Academy / AI Lessons",
-  "/pricing": "Pricing Framework",
-  "/order": "Order",
-  "/book": "Book Demo",
-  "/contact": "Contact",
+  "/showcase": "VitaKiosk Asia Showcase",
+  "/solutions": "AI Solutions for Pharmacies, Clinics, and SMEs",
+  "/vitaflow": "VitaFlow ERP for Pharmacy Operations",
+  "/vitakiosk": "VitaKiosk AI Pharmacy Kiosk",
+  "/clinic-pharmacy-partners": "Clinic and Pharmacy Partner Campaigns",
+  "/ai-website-studio": "AI Website Studio Malaysia",
+  "/ai-academy": "AI Academy and AI Lessons Malaysia",
+  "/pricing": "VitaKiosk Asia Pricing",
+  "/order": "Request a VitaKiosk or VitaFlow Quote",
+  "/book": "Book a VitaKiosk Asia Demo",
+  "/contact": "Contact VitaKiosk Asia",
   "/about": "About VitaKiosk Asia",
   "/checkout/success": "Manual Confirmation Received",
   "/checkout/cancel": "Manual Confirmation Cancelled",
   "/legal/disclaimer": "Disclaimer",
   "/legal/privacy": "Privacy",
   "/legal/terms": "Terms",
+};
+
+const siteBaseUrl = "https://www.vitakiosk.asia";
+const defaultSeoTitle = "VitaKiosk Asia | AI Pharmacy Kiosk, VitaFlow ERP, AI Websites & Training";
+const defaultSeoDescription =
+  "VitaKiosk Asia builds AI pharmacy kiosks, VitaFlow ERP workflows, AI websites, and practical AI training for pharmacies, clinics, SMEs, and modern businesses.";
+const indexFollowValue = "index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1";
+
+const routeDescriptions: Record<string, string> = {
+  "/showcase":
+    "Explore VitaKiosk Asia product scenes for AI kiosks, VitaFlow ERP, AI websites, training, and clinic or pharmacy partner workflows.",
+  "/solutions":
+    "AI systems and digital workflows for pharmacy product education, clinic front desks, SME websites, bookings, and training.",
+  "/vitaflow":
+    "VitaFlow ERP supports pharmacy inventory, stock movement, product data, price monitoring, promotions, customer follow-up, and reports.",
+  "/vitakiosk":
+    "VitaKiosk is an AI pharmacy kiosk experience for product education, where-to-buy guidance, shelf navigation, promotions, and staff handoff.",
+  "/clinic-pharmacy-partners":
+    "Clinic and pharmacy partner campaign workflows connect product interest to reviewed education, QR direction, and participating pharmacy discovery.",
+  "/ai-website-studio":
+    "AI Website Studio creates landing pages, business websites, chatbot sites, booking flows, lead generation, and launch support.",
+  "/ai-academy":
+    "AI Academy lessons teach Codex workflows, prompting, automation, content operations, AI websites, and practical pharmacy AI workflows.",
+  "/pricing":
+    "View VitaKiosk Asia starting prices for VitaFlow ERP, VitaKiosk, AI Website Studio, and AI Academy with manual quotation options.",
+  "/order":
+    "Submit a VitaKiosk, VitaFlow ERP, AI website, or AI Academy inquiry for manual quote and onboarding discussion.",
+  "/book": "Book a VitaKiosk Asia demo, AI lesson, or consultation for pharmacy, clinic, SME, and website workflows.",
+  "/contact": "Contact VitaKiosk Asia for AI pharmacy kiosk, VitaFlow ERP, AI website, and AI training inquiries.",
+  "/about": "Learn about VitaKiosk Asia and VitaKiosk Labs, an AI systems and experience lab for practical business workflows.",
+  "/legal/disclaimer":
+    "VitaKiosk Asia product education and healthcare safety disclaimer for AI kiosks, pharmacy workflows, and partner campaigns.",
+  "/legal/privacy": "VitaKiosk Asia privacy notice for inquiries, bookings, quote requests, and contact form submissions.",
+  "/legal/terms": "VitaKiosk Asia terms for inquiries, demos, AI website projects, AI lessons, and deployment requests.",
+};
+
+type LegalPageContent = {
+  eyebrow: string;
+  title: string;
+  intro: string;
+  sections: Array<{
+    heading: string;
+    body: string;
+  }>;
+};
+
+const legalPages: Record<string, LegalPageContent> = {
+  "/legal/terms": {
+    eyebrow: "Legal terms",
+    title: "Terms",
+    intro:
+      "These terms apply to VitaKiosk Asia inquiries, demos, AI website projects, AI Academy lessons, VitaFlow ERP discussions, and VitaKiosk deployment requests.",
+    sections: [
+      {
+        heading: "Product education scope",
+        body:
+          "VitaKiosk is positioned for general product education, where-to-buy guidance, campaign display, shelf guidance, queue support, and staff or pharmacist escalation. It is not a diagnosis, prescription consultation, treatment recommendation, or replacement for a healthcare professional.",
+      },
+      {
+        heading: "Healthcare and advertising review",
+        body:
+          "Healthcare, supplement, pharmacy, clinic, hospital, and sponsored campaign content must be reviewed before publication. Claims must be accurate, supportable, clearly labelled where sponsored, and aligned with the applicable local advertising, medicine, medical device, and institutional approval rules for the deployment location.",
+      },
+      {
+        heading: "Orders, quotes, and payment",
+        body:
+          "Public forms create inquiries, bookings, quote requests, or project intake records. Online card payment is not enabled on this website. Fees, invoices, bank transfer, DuitNow, onboarding, schedules, refunds, and cancellation handling are confirmed manually after discussion.",
+      },
+      {
+        heading: "Institutional deployment",
+        body:
+          "Clinic, hospital, pharmacy, or partner placements require the relevant site owner approval, content review, operational handoff rules, staff escalation path, and any required local compliance checks before launch.",
+      },
+      {
+        heading: "Acceptable use",
+        body:
+          "Do not submit patient records, prescription details, payment card data, confidential business records, or emergency medical requests through public website forms. Urgent or medical questions should be directed to a qualified healthcare professional or emergency service.",
+      },
+    ],
+  },
+  "/legal/privacy": {
+    eyebrow: "Privacy notice",
+    title: "Privacy",
+    intro:
+      "This privacy notice explains how VitaKiosk Asia handles personal information submitted through public website inquiries, booking forms, quote requests, and contact forms.",
+    sections: [
+      {
+        heading: "Information collected",
+        body:
+          "We may collect your name, email, phone number, business type, selected service, and message details so we can respond to inquiries, prepare quotations, schedule demos, reserve lessons, and support project onboarding.",
+      },
+      {
+        heading: "How information is used",
+        body:
+          "Information is used for follow-up, scheduling, quotation, manual payment confirmation, service delivery, support, security review, and legal or compliance administration. We do not ask for payment card details on public forms.",
+      },
+      {
+        heading: "Healthcare and patient data",
+        body:
+          "Public website forms are not intended for patient records, diagnosis requests, prescription data, medical history, or sensitive clinical information. If a deployment later requires healthcare data processing, a separate institutional privacy, security, and data handling review is required.",
+      },
+      {
+        heading: "Security",
+        body:
+          "We use access control, environment-based secret handling, transport security where available, and least-necessary data collection. No public website form should be used to transmit secrets, payment card data, or private ERP/customer/sales records.",
+      },
+      {
+        heading: "Your requests",
+        body:
+          "You may request access, correction, or deletion of inquiry data by contacting VitaKiosk Asia through the contact details provided on the website, subject to identity checks and lawful retention needs.",
+      },
+    ],
+  },
+  "/legal/disclaimer": {
+    eyebrow: "Healthcare disclaimer",
+    title: "Disclaimer",
+    intro:
+      "VitaKiosk Asia provides AI systems, websites, and training for pharmacies, clinics, and modern businesses. The public website and kiosk experiences are designed for information support, not medical decision-making.",
+    sections: [
+      {
+        heading: "Not medical advice",
+        body:
+          "VitaKiosk provides general product education and guidance only. It does not provide diagnosis, prescription drug consultation, treatment advice, professional medical advice, or emergency medical support.",
+      },
+      {
+        heading: "No replacement for professionals",
+        body:
+          "The system does not replace pharmacists, doctors, clinic staff, hospital staff, or other qualified professionals. A pharmacist or staff member should be available for questions that require professional judgement.",
+      },
+      {
+        heading: "Product and campaign content",
+        body:
+          "Product information, promotions, where-to-buy guidance, and sponsored education must be reviewed, labelled where required, and kept current. VitaKiosk Asia does not make hospital, doctor, pharmacist, or institution endorsement claims unless properly authorised in writing.",
+      },
+      {
+        heading: "Data and availability",
+        body:
+          "Product facts, stock, price, promotion, branch, and shelf details should come from approved business data sources. If information is unavailable or uncertain, the user should be directed to staff or the relevant business contact.",
+      },
+      {
+        heading: "Local compliance",
+        body:
+          "VitaKiosk Asia applies a deployment checklist covering local healthcare advertising, privacy, security, payment, accessibility, and institutional approval rules for the applicable business, location, product category, and campaign content.",
+      },
+    ],
+  },
 };
 
 type RouteVisualKind = "showcase" | "solutions" | "vitaflow" | "vitakiosk" | "studio" | "academy" | "commerce" | "contact";
@@ -179,7 +333,7 @@ const routeExperiences: Partial<Record<string, {
   "/book": {
     label: "Book a walkthrough",
     title: "Pick the first deployment path.",
-    copy: "Use the mock form to request a demo, lesson, website project, ERP subscription, or kiosk order.",
+    copy: "Use the form to request a demo, lesson, website project, ERP subscription inquiry, or kiosk order discussion.",
     primaryCta: "Open form",
     primaryHref: "#contact",
     secondaryCta: "Explore showcase",
@@ -190,7 +344,7 @@ const routeExperiences: Partial<Record<string, {
   "/contact": {
     label: "Contact sales",
     title: "Tell us what you want to launch.",
-    copy: "The form creates a mock local record and keeps payments, customer data, and provider calls disabled.",
+    copy: "Your inquiry is received for manual follow-up. No card details are collected and no live payment runs.",
     primaryCta: "Open form",
     primaryHref: "#contact",
     secondaryCta: "Book demo",
@@ -211,24 +365,255 @@ const routeExperiences: Partial<Record<string, {
   },
 };
 
+const desktopMotionMediaQuery = "(min-width: 1024px) and (hover: hover) and (pointer: fine)";
+
 function useScrollProgress() {
   const [progress, setProgress] = useState(0);
 
   useEffect(() => {
+    const desktopMotionQuery = window.matchMedia(desktopMotionMediaQuery);
+    let frame = 0;
+    let scrollListenerActive = false;
+
     const update = () => {
+      frame = 0;
+      if (!desktopMotionQuery.matches) {
+        setProgress(0);
+        return;
+      }
       const max = document.documentElement.scrollHeight - window.innerHeight;
       setProgress(max > 0 ? window.scrollY / max : 0);
     };
-    update();
-    window.addEventListener("scroll", update, { passive: true });
-    window.addEventListener("resize", update);
+
+    const requestUpdate = () => {
+      if (!desktopMotionQuery.matches || frame) {
+        return;
+      }
+      frame = window.requestAnimationFrame(update);
+    };
+
+    const addScrollListener = () => {
+      if (scrollListenerActive) {
+        return;
+      }
+      window.addEventListener("scroll", requestUpdate, { passive: true });
+      scrollListenerActive = true;
+    };
+
+    const removeScrollListener = () => {
+      if (!scrollListenerActive) {
+        return;
+      }
+      window.removeEventListener("scroll", requestUpdate);
+      scrollListenerActive = false;
+    };
+
+    const syncMotionMode = () => {
+      if (desktopMotionQuery.matches) {
+        addScrollListener();
+        requestUpdate();
+        return;
+      }
+      removeScrollListener();
+      if (frame) {
+        window.cancelAnimationFrame(frame);
+        frame = 0;
+      }
+      setProgress(0);
+    };
+
+    syncMotionMode();
+    window.addEventListener("resize", syncMotionMode, { passive: true });
+    desktopMotionQuery.addEventListener("change", syncMotionMode);
     return () => {
-      window.removeEventListener("scroll", update);
-      window.removeEventListener("resize", update);
+      removeScrollListener();
+      window.removeEventListener("resize", syncMotionMode);
+      desktopMotionQuery.removeEventListener("change", syncMotionMode);
+      if (frame) {
+        window.cancelAnimationFrame(frame);
+      }
     };
   }, []);
 
   return progress;
+}
+
+function setMetaByName(name: string, content: string) {
+  let meta = document.head.querySelector<HTMLMetaElement>(`meta[name="${name}"]`);
+  if (!meta) {
+    meta = document.createElement("meta");
+    meta.name = name;
+    document.head.append(meta);
+  }
+  meta.content = content;
+}
+
+function setMetaByProperty(property: string, content: string) {
+  let meta = document.head.querySelector<HTMLMetaElement>(`meta[property="${property}"]`);
+  if (!meta) {
+    meta = document.createElement("meta");
+    meta.setAttribute("property", property);
+    document.head.append(meta);
+  }
+  meta.content = content;
+}
+
+function setCanonical(href: string) {
+  let canonical = document.head.querySelector<HTMLLinkElement>('link[rel="canonical"]');
+  if (!canonical) {
+    canonical = document.createElement("link");
+    canonical.rel = "canonical";
+    document.head.append(canonical);
+  }
+  canonical.href = href;
+}
+
+function useDocumentSeo(route: string) {
+  useEffect(() => {
+    const isHome = route === "/";
+    const title = isHome ? defaultSeoTitle : `${routeTitles[route] || "VitaKiosk Asia"} | VitaKiosk Asia`;
+    const description = routeDescriptions[route] || defaultSeoDescription;
+    const canonical = `${siteBaseUrl}${isHome ? "/" : route}`;
+    const schemaId = "vitakiosk-route-schema";
+    const existingSchema = document.getElementById(schemaId);
+
+    document.title = title;
+    setMetaByName("description", description);
+    setMetaByName("robots", indexFollowValue);
+    setMetaByName("googlebot", indexFollowValue);
+    setMetaByProperty("og:title", title);
+    setMetaByProperty("og:description", description);
+    setMetaByProperty("og:url", canonical);
+    setMetaByProperty("og:type", "website");
+    setMetaByName("twitter:title", title);
+    setMetaByName("twitter:description", description);
+    setCanonical(canonical);
+
+    existingSchema?.remove();
+    const schema = document.createElement("script");
+    schema.id = schemaId;
+    schema.type = "application/ld+json";
+    schema.textContent = JSON.stringify({
+      "@context": "https://schema.org",
+      "@type": "WebPage",
+      "@id": `${canonical}#webpage`,
+      url: canonical,
+      name: title,
+      description,
+      isPartOf: { "@id": `${siteBaseUrl}/#website` },
+      about: { "@id": `${siteBaseUrl}/#organization` },
+      inLanguage: "en",
+    });
+    document.head.append(schema);
+
+    return () => {
+      schema.remove();
+    };
+  }, [route]);
+}
+
+const universalRevealSelector = [
+  ".hero-device-shell",
+  ".hero-copy",
+  ".orbit-card",
+  ".scroll-cue",
+  ".scene-copy",
+  ".abstract-device-visual",
+  ".clinic-corridor-stage",
+  ".corridor-copy",
+  ".section-heading",
+  ".video-orbit-shell",
+  ".orbit-caption",
+  ".commerce-console .segment-control",
+  ".commerce-plan-rail",
+  ".commerce-active-panel",
+  ".commerce-orbit-meter",
+  ".lead-console",
+  ".booking-finale",
+  ".safety-band",
+  ".legal-shelf",
+  ".route-experience-copy",
+  ".route-experience-visual",
+  ".legal-detail-card",
+].join(",");
+
+function useUniversalScrollReveal(route: string) {
+  useEffect(() => {
+    const reduceMotionQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const desktopMotionQuery = window.matchMedia(desktopMotionMediaQuery);
+    const candidates = Array.from(document.querySelectorAll<HTMLElement>(universalRevealSelector)).filter(
+      (element) =>
+        !element.closest(".site-header") &&
+        !element.closest(".modal-backdrop") &&
+        !element.closest(".global-glow-backdrop"),
+    );
+    let observer: IntersectionObserver | null = null;
+
+    const revealImmediately = (mode: "revealed" | "static" = "revealed") => {
+      observer?.disconnect();
+      observer = null;
+      candidates.forEach((element) => {
+        element.dataset.scrollReveal = mode;
+        element.style.removeProperty("--reveal-delay");
+      });
+    };
+
+    const startDesktopReveal = () => {
+      observer?.disconnect();
+      candidates.forEach((element, index) => {
+        element.dataset.scrollReveal = "pending";
+        element.style.setProperty("--reveal-delay", `${Math.min(index % 6, 5) * 70}ms`);
+      });
+
+      if (!("IntersectionObserver" in window)) {
+        revealImmediately();
+        return;
+      }
+
+      observer = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((entry) => {
+            if (!entry.isIntersecting) {
+              return;
+            }
+            const element = entry.target as HTMLElement;
+            element.dataset.scrollReveal = "revealed";
+            observer?.unobserve(element);
+          });
+        },
+        {
+          root: null,
+          rootMargin: "0px 0px -10% 0px",
+          threshold: 0.08,
+        },
+      );
+
+      candidates.forEach((element) => observer?.observe(element));
+    };
+
+    const syncRevealMode = () => {
+      if (reduceMotionQuery.matches || !desktopMotionQuery.matches) {
+        revealImmediately("static");
+        return;
+      }
+
+      startDesktopReveal();
+    };
+
+    syncRevealMode();
+    reduceMotionQuery.addEventListener("change", syncRevealMode);
+    desktopMotionQuery.addEventListener("change", syncRevealMode);
+
+    return () => {
+      observer?.disconnect();
+      reduceMotionQuery.removeEventListener("change", syncRevealMode);
+      desktopMotionQuery.removeEventListener("change", syncRevealMode);
+      candidates.forEach((element) => {
+        element.removeAttribute("data-scroll-reveal");
+        element.style.removeProperty("--reveal-delay");
+      });
+    };
+  }, [route]);
 }
 
 function resolveRoute(): string {
@@ -243,14 +628,15 @@ function SmartLink({
   children,
   className,
   ariaLabel,
+  ...props
 }: {
   href: string;
   children: React.ReactNode;
   className?: string;
   ariaLabel?: string;
-}) {
+} & Omit<React.AnchorHTMLAttributes<HTMLAnchorElement>, "href" | "children" | "className" | "aria-label">) {
   return (
-    <a href={href} className={className} aria-label={ariaLabel}>
+    <a href={href} className={className} aria-label={ariaLabel} {...props}>
       {children}
     </a>
   );
@@ -483,29 +869,50 @@ function GlobalGlowRippleBackdrop({ progress, debug = false }: { progress: numbe
   return <div ref={layerRef} className="global-glow-backdrop" data-testid="global-glow-backdrop" aria-hidden="true" />;
 }
 
-function OrbitRibbon() {
+function HeroConnectorLine() {
+  return (
+    <svg
+      className="connection-map"
+      viewBox="0 0 100 100"
+      preserveAspectRatio="none"
+      role="img"
+      aria-label="Animated light path connecting the four business lines"
+    >
+      <path d="M12 56 C22 40 28 39 35 38 C46 36 50 70 61 56 C69 45 75 54 88 42" />
+    </svg>
+  );
+}
+
+function HeroServiceCards() {
   return (
     <div className="business-orbit" aria-label="VitaKiosk Asia business lines">
-      <svg
-        className="connection-map"
-        viewBox="0 0 100 100"
-        preserveAspectRatio="none"
-        role="img"
-        aria-label="Animated light path connecting the four business lines"
-      >
-        <path d="M12 56 C22 40 28 39 35 38 C46 36 50 70 61 56 C69 45 75 54 88 42" />
-      </svg>
+      <HeroConnectorLine />
       {businessLines.map((line, index) => (
         <SmartLink
           key={line.id}
           href={line.href}
           className={`orbit-node orbit-${index + 1}`}
+          ariaLabel={`Explore ${line.title}: ${line.phrase}`}
         >
           <line.Icon size={20} />
           <span>{line.title}</span>
           <small>{line.phrase}</small>
         </SmartLink>
       ))}
+    </div>
+  );
+}
+
+function HeroInterfaceVisual() {
+  return (
+    <div className="hero-visual-zone" aria-label="VitaKiosk Asia interface preview">
+      <div className="hero-device hero-device-code" data-testid="hero-interface-visual">
+        <div className="hero-device-panel avatar-mini" />
+        <div className="hero-device-panel product-mini" />
+        <div className="hero-device-panel map-mini" />
+        <div className="hero-device-panel promo-mini" />
+        <div className="device-glass" />
+      </div>
     </div>
   );
 }
@@ -518,15 +925,12 @@ function HeroPrologueScene({ progress }: { progress: number }) {
         <div className="lab-grid" />
         <div className="light-path path-a" />
         <div className="light-path path-b" />
-        <div className="hero-device hero-device-code">
-          <div className="hero-device-panel avatar-mini" />
-          <div className="hero-device-panel product-mini" />
-          <div className="hero-device-panel map-mini" />
-          <div className="hero-device-panel promo-mini" />
-          <div className="device-glass" />
-        </div>
       </div>
       <div className="hero-copy">
+        <p className="hero-brandline">
+          <strong>VitaKiosk Asia</strong>
+          <span>VitaKiosk Labs | AI Systems & Experience Lab</span>
+        </p>
         <h1>Build smarter pharmacies, clinics, and AI-powered businesses.</h1>
         <p>
           From ERP to AI kiosks, AI websites, and training - we design practical
@@ -546,7 +950,8 @@ function HeroPrologueScene({ progress }: { progress: number }) {
           ))}
         </div>
       </div>
-      <OrbitRibbon />
+      <HeroInterfaceVisual />
+      <HeroServiceCards />
       <div className="scroll-cue">
         <span />
         Scroll into the lab
@@ -564,9 +969,9 @@ function useScrollSceneController(sceneCount: number) {
 
   useEffect(() => {
     const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    const compactViewport = window.matchMedia("(max-width: 980px)").matches;
+    const desktopMotion = window.matchMedia(desktopMotionMediaQuery).matches;
     const root = document.querySelector<HTMLElement>(".authored-journey");
-    if (!root || reduceMotion || compactViewport) {
+    if (!root || reduceMotion || !desktopMotion) {
       return;
     }
 
@@ -666,6 +1071,54 @@ function ScrollSceneController({
 }
 
 function AbstractDeviceVisual({ scene }: { scene: ShowcaseScene }) {
+  if (scene.visual === "tablet") {
+    return (
+      <div className={`abstract-device-visual is-model accent-${scene.accent} visual-${scene.visual}`}>
+        <DraggableTabletModel />
+      </div>
+    );
+  }
+
+  if (scene.visual === "kiosk") {
+    return (
+      <div className={`abstract-device-visual is-model accent-${scene.accent} visual-${scene.visual}`}>
+        <DraggableShowcaseModel
+          modelAsset={vitakioskKioskModel}
+          variant="kiosk"
+          label="3D VitaKiosk large kiosk model"
+          desktopCameraZ={3.75}
+          mobileCameraZ={5.15}
+          scaleTarget={2.0}
+          modelOffsetY={0.14}
+        />
+      </div>
+    );
+  }
+
+  if (scene.visual === "erp") {
+    return (
+      <div className={`abstract-device-visual is-erp-orbit accent-${scene.accent} visual-${scene.visual}`}>
+        <ErpOrbitCarousel images={vitaflowAssets.orbitScreenshots} />
+      </div>
+    );
+  }
+
+  if (scene.visual === "website") {
+    return (
+      <div className={`abstract-device-visual is-website-automation accent-${scene.accent} visual-${scene.visual}`}>
+        <WebsiteAutomationVisual />
+      </div>
+    );
+  }
+
+  if (scene.visual === "academy") {
+    return (
+      <div className={`abstract-device-visual is-academy-workflow accent-${scene.accent} visual-${scene.visual}`}>
+        <AcademyWorkflowVisual />
+      </div>
+    );
+  }
+
   return (
     <div className={`abstract-device-visual accent-${scene.accent} visual-${scene.visual}`} aria-hidden="true">
       <div className="device-orbit-rings" />
@@ -739,12 +1192,14 @@ function VitaKioskDemoStage() {
         <span>Interactive public demo</span>
         <h2>Click inside the kiosk. It responds.</h2>
         <p>Tap voice, product, shelf, promotion, scan, fuzzy match, or staff handoff. No backend, mic, or camera required.</p>
-        <SmartLink href="http://127.0.0.1:5175" className="demo-dev-link" ariaLabel="Open live local demo if running">
+        <SmartLink href="http://127.0.0.1:5177/" className="demo-dev-link" ariaLabel="Open live local demo if running">
           Open live local demo, if running
           <ExternalLink size={16} />
         </SmartLink>
       </div>
-      <InteractiveVitaKioskMiniApp />
+      <figure className="demo-reference-showcase" id="interactive-demo" data-component="VitaKioskDemoImage">
+        <img src={approvedVitaKioskReference.src} alt={approvedVitaKioskReference.alt} />
+      </figure>
     </section>
   );
 }
@@ -761,17 +1216,8 @@ function VitaFlowSourceScene() {
           <ArrowRight size={16} />
         </SmartLink>
       </div>
-      <div className="erp-hologram">
-        <div className="erp-core-board">
-          <span>Product</span>
-          <strong>{demoProduct.name}</strong>
-          <small>Product education</small>
-          <b>{`$${demoProduct.price.toFixed(2)}`}</b>
-        </div>
-        {["Stock 18", "Shelf A-03", "Branch SG-001", "Promotion reviewed"].map((label, index) => (
-          <div key={label} className={`erp-node node-${index + 1}`}>{label}</div>
-        ))}
-        <div className="erp-light-path" />
+      <div className="erp-hologram is-operational-layers">
+        <ErpOperationalLayersVisual />
       </div>
     </section>
   );
@@ -927,19 +1373,19 @@ function VideoPreviewCard({
   const relative = (((logicalIndex - orbitalProgress + total / 2) % total) + total) % total - total / 2;
   const abs = Math.abs(relative);
   const isActive = logicalIndex === activeVideoIndex;
-  const isVisible = compact ? abs <= 1.16 : abs <= 2.28;
-  const isInteractive = (compact ? abs <= 0.64 : abs <= 1.34) && !dragging;
-  const shouldLoad = isActive || hovered;
+  const isVisible = compact ? abs <= 1.18 : abs <= 2.28;
+  const isInteractive = (compact ? isActive : abs <= 1.34) && !dragging;
+  const shouldLoad = hovered || (!compact && isActive);
   const direction = relative === 0 ? 0 : relative > 0 ? 1 : -1;
   const positionAbs = Math.min(abs, compact ? 1.16 : 2.28);
   const sidePush = compact ? 0 : Math.max(0, positionAbs - 0.72) * 120;
   const x = compact
-    ? direction * Math.pow(positionAbs, 0.92) * 185
+    ? direction * Math.pow(positionAbs, 0.9) * 130
     : direction * (Math.pow(positionAbs, 0.9) * 540 + sidePush);
   const z = compact ? 0 : 150 - positionAbs * 210;
-  const scale = compact ? Math.max(0.72, 1 - positionAbs * 0.24) : Math.max(0.45, 1 - positionAbs * 0.36);
-  const tiltAngle = compact ? direction * Math.min(12, positionAbs * 10) : direction * Math.min(54, positionAbs * 24);
-  const opacity = isVisible ? (compact ? Math.max(0.34, 1 - positionAbs * 0.54) : Math.max(0.1, 1 - positionAbs * 0.34)) : 0;
+  const scale = compact ? Math.max(0.66, 1 - positionAbs * 0.22) : Math.max(0.45, 1 - positionAbs * 0.36);
+  const tiltAngle = compact ? direction * Math.min(10, positionAbs * 8) : direction * Math.min(54, positionAbs * 24);
+  const opacity = isVisible ? (compact ? Math.max(0.18, 1 - positionAbs * 0.72) : Math.max(0.1, 1 - positionAbs * 0.34)) : 0;
   const orbitDistance = isActive ? "center" : abs <= (compact ? 1.16 : 1.44) ? "side" : abs <= 2.28 ? "far" : "hidden";
 
   useEffect(() => {
@@ -977,7 +1423,12 @@ function VideoPreviewCard({
       data-orbit-relative={relative.toFixed(3)}
       data-orbit-distance={orbitDistance}
       data-visible={isVisible}
-      onPointerEnter={() => !dragging && onHover(video.id)}
+      data-preview-policy={compact ? "poster-first" : shouldLoad ? "preview-ready" : "poster"}
+      onPointerEnter={(event) => {
+        if (event.pointerType === "mouse" && !dragging) {
+          onHover(video.id);
+        }
+      }}
       onPointerLeave={() => onHover(null)}
       onFocus={() => onHover(video.id)}
       onBlur={() => onHover(null)}
@@ -1002,7 +1453,7 @@ function VideoPreviewCard({
       <img src={video.poster} alt="" loading="lazy" />
       {shouldLoad && (
         <video ref={videoRef} muted playsInline preload="metadata" loop aria-hidden="true">
-          <source src={video.previewSrc} type="video/webm" />
+          <source src={video.previewSrc} type={video.previewType ?? "video/webm"} />
         </video>
       )}
       <span>{video.status}</span>
@@ -1019,6 +1470,25 @@ function VideoViewerModal({
   video: (typeof videoHubItems)[number];
   onClose: () => void;
 }) {
+  const stopViewerEvent = (event: React.MouseEvent | React.PointerEvent | React.TouchEvent) => {
+    event.stopPropagation();
+  };
+
+  const closeFromBackdrop = (event: React.MouseEvent<HTMLDivElement> | React.PointerEvent<HTMLDivElement>) => {
+    if (event.target === event.currentTarget) {
+      event.stopPropagation();
+      onClose();
+    }
+  };
+
+  const closeFromControl = (
+    event: React.MouseEvent<HTMLButtonElement> | React.PointerEvent<HTMLButtonElement> | React.TouchEvent<HTMLButtonElement>,
+  ) => {
+    event.preventDefault();
+    event.stopPropagation();
+    onClose();
+  };
+
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
@@ -1029,21 +1499,23 @@ function VideoViewerModal({
     return () => window.removeEventListener("keydown", onKeyDown);
   }, [onClose]);
 
-  return (
-    <div className="modal-backdrop video-viewer-backdrop" role="presentation" onMouseDown={onClose}>
+  return createPortal(
+    <div className="modal-backdrop video-viewer-backdrop" role="presentation" onMouseDown={closeFromBackdrop} onPointerDown={closeFromBackdrop}>
       <div
         className="video-viewer-modal"
         role="dialog"
         aria-modal="true"
         aria-label={`${video.title} full video viewer`}
-        onMouseDown={(event) => event.stopPropagation()}
+        onMouseDown={stopViewerEvent}
+        onPointerDown={stopViewerEvent}
+        onTouchStart={stopViewerEvent}
       >
-        <button className="icon-button" onClick={onClose}>
+        <button className="icon-button" onPointerUp={closeFromControl} onTouchEnd={closeFromControl} onClick={closeFromControl}>
           <X size={18} />
           <span className="sr-only">Close video viewer</span>
         </button>
         <video controls autoPlay playsInline poster={video.poster}>
-          <source src={video.fullSrc} type="video/webm" />
+          <source src={video.fullSrc} type={video.fullType ?? "video/webm"} />
         </video>
         <div>
           <span>{video.label} / {video.status}</span>
@@ -1051,12 +1523,13 @@ function VideoViewerModal({
           <p>{video.summary}</p>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }
 
 function SphericalVideoCarousel() {
-  const initialVideoIndex = 3;
+  const initialVideoIndex = Math.min(3, Math.max(videoHubItems.length - 1, 0));
   const [orbitalProgress, setOrbitalProgress] = useState(initialVideoIndex);
   const [isCompactOrbit, setIsCompactOrbit] = useState(false);
   const [hoveredCardKey, setHoveredCardKey] = useState<string | null>(null);
@@ -1068,14 +1541,19 @@ function SphericalVideoCarousel() {
   const shellRef = useRef<HTMLDivElement | null>(null);
   const dragRef = useRef({
     pointerId: -1,
+    pointerType: "mouse",
     startX: 0,
+    startY: 0,
     lastX: 0,
+    lastY: 0,
     lastTime: 0,
     velocity: 0,
     startRotation: initialVideoIndex,
     moved: false,
+    cancelledByScroll: false,
   });
   const rotationRef = useRef(initialVideoIndex);
+  const compactOrbitRef = useRef(false);
   const autoStateRef = useRef({
     isUserInteracting: false,
   });
@@ -1084,6 +1562,7 @@ function SphericalVideoCarousel() {
   const pauseUntilRef = useRef(0);
   const suppressNextClick = useRef(false);
   const lastVideoTrigger = useRef<HTMLButtonElement | null>(null);
+  const touchDragPointerId = -101;
   const total = videoHubItems.length;
   const safeClientX = (value: number, fallback = 0) => (Number.isFinite(value) ? value : fallback);
   const normalizeProgress = (value: number) => {
@@ -1096,6 +1575,7 @@ function SphericalVideoCarousel() {
   };
   const activeVideoIndex = wrapIndex(orbitalProgress);
   const isModalOpen = Boolean(openVideo);
+  const touchDragEnabled = true;
   const isUserInteracting =
     isHoveringCarousel || isTouching || isDragging || hasFocusWithin || hoveredCardKey !== null || isModalOpen;
 
@@ -1111,7 +1591,10 @@ function SphericalVideoCarousel() {
 
   useEffect(() => {
     const compactQuery = window.matchMedia("(max-width: 767px)");
-    const updateCompactOrbit = () => setIsCompactOrbit(compactQuery.matches);
+    const updateCompactOrbit = () => {
+      compactOrbitRef.current = compactQuery.matches;
+      setIsCompactOrbit(compactQuery.matches);
+    };
     updateCompactOrbit();
     compactQuery.addEventListener("change", updateCompactOrbit);
     return () => compactQuery.removeEventListener("change", updateCompactOrbit);
@@ -1143,9 +1626,11 @@ function SphericalVideoCarousel() {
       const paused = autoStateRef.current.isUserInteracting || now < pauseUntilRef.current || document.visibilityState === "hidden";
       const wheelVelocity = wheelVelocityRef.current;
       const wheelDelta = Math.abs(wheelVelocity) > 0.0004 ? wheelVelocity * delta * 60 : 0;
+      const mobilePosterDeck = compactOrbitRef.current;
+      const autoStep = delta * (mobilePosterDeck ? 0.055 : 0.11);
       if (!paused) {
-        setOrbitalProgressValue(rotationRef.current + delta * 0.11 + wheelDelta);
-      } else if (wheelDelta) {
+        setOrbitalProgressValue(rotationRef.current + autoStep + (mobilePosterDeck ? 0 : wheelDelta));
+      } else if (wheelDelta && !mobilePosterDeck) {
         setOrbitalProgressValue(rotationRef.current + wheelDelta);
       }
       if (Math.abs(wheelVelocity) > 0.0004) {
@@ -1195,6 +1680,98 @@ function SphericalVideoCarousel() {
     snapToNearest(rotationRef.current + delta);
   };
 
+  const beginOrbitDrag = (clientX: number, clientY: number, pointerId: number, pointerType = "mouse") => {
+    if (isModalOpen) {
+      return;
+    }
+    pointerInsideRef.current = true;
+    pauseAuto();
+    const now = performance.now();
+    dragRef.current = {
+      pointerId,
+      pointerType,
+      startX: clientX,
+      startY: clientY,
+      lastX: clientX,
+      lastY: clientY,
+      lastTime: now,
+      velocity: 0,
+      startRotation: rotationRef.current,
+      moved: false,
+      cancelledByScroll: false,
+    };
+  };
+
+  const moveOrbitDrag = (
+    clientX: number,
+    clientY: number,
+    pointerId: number,
+    target: HTMLElement,
+    preventDefault?: () => void,
+  ) => {
+    const drag = dragRef.current;
+    if (drag.pointerId !== pointerId || isModalOpen) {
+      return;
+    }
+    const now = performance.now();
+    const dt = Math.max(now - drag.lastTime, 16);
+    const dx = clientX - drag.lastX;
+    const totalDelta = clientX - drag.startX;
+    const totalY = clientY - drag.startY;
+    const isTouch = drag.pointerType !== "mouse";
+    const verticalScrollIntent = isTouch
+      ? Math.abs(totalY) > 14 && Math.abs(totalY) > Math.abs(totalDelta) * 1.18
+      : false;
+    const horizontalIntent = isTouch
+      ? Math.abs(totalDelta) > 16 && Math.abs(totalDelta) > Math.abs(totalY) * 1.25
+      : Math.abs(totalDelta) > 5;
+
+    if (!drag.moved && verticalScrollIntent) {
+      drag.cancelledByScroll = true;
+      drag.pointerId = -1;
+      suppressNextClick.current = true;
+      window.setTimeout(() => {
+        suppressNextClick.current = false;
+      }, 180);
+      setIsTouching(false);
+      setIsDragging(false);
+      target.classList.remove("is-dragging");
+      return;
+    }
+
+    if (!drag.moved && !horizontalIntent) {
+      drag.lastX = clientX;
+      drag.lastY = clientY;
+      drag.lastTime = now;
+      return;
+    }
+
+    drag.velocity = Math.max(-2.4, Math.min(2.4, dx / dt));
+    drag.lastX = clientX;
+    drag.lastY = clientY;
+    drag.lastTime = now;
+    drag.moved = true;
+    setOrbitalProgressValue(drag.startRotation - totalDelta / 190);
+
+    if (drag.moved) {
+      preventDefault?.();
+      setIsDragging(true);
+      if (isTouch) {
+        pointerInsideRef.current = true;
+        setIsTouching(true);
+      }
+      setHoveredCardKey(null);
+      target.classList.add("is-dragging");
+      if (typeof target.setPointerCapture === "function" && pointerId >= 0) {
+        try {
+          target.setPointerCapture(pointerId);
+        } catch {
+          // Drag still works without pointer capture in constrained browser/test environments.
+        }
+      }
+    }
+  };
+
   const openViewer = (video: (typeof videoHubItems)[number], trigger?: HTMLButtonElement | null) => {
     if (suppressNextClick.current) {
       suppressNextClick.current = false;
@@ -1232,6 +1809,26 @@ function SphericalVideoCarousel() {
       return;
     }
     const didMove = drag.moved || Math.abs(drag.startX - drag.lastX) > 8;
+    if (drag.cancelledByScroll) {
+      dragRef.current = {
+        pointerId: -1,
+        pointerType: "mouse",
+        startX: 0,
+        startY: 0,
+        lastX: 0,
+        lastY: 0,
+        lastTime: 0,
+        velocity: 0,
+        startRotation: rotationRef.current,
+        moved: false,
+        cancelledByScroll: false,
+      };
+      setIsDragging(false);
+      setIsTouching(false);
+      target?.classList.remove("is-dragging");
+      pauseAuto(600);
+      return;
+    }
     const projected = rotationRef.current - (drag.velocity * 55) / 190;
     if (didMove) {
       suppressNextClick.current = true;
@@ -1257,23 +1854,78 @@ function SphericalVideoCarousel() {
     pauseAuto();
     dragRef.current = {
       pointerId: -1,
+      pointerType: "mouse",
       startX: 0,
+      startY: 0,
       lastX: 0,
+      lastY: 0,
       lastTime: 0,
       velocity: 0,
       startRotation: rotationRef.current,
       moved: false,
+      cancelledByScroll: false,
     };
     setIsDragging(false);
     setHoveredCardKey(null);
     target?.classList.remove("is-dragging");
   };
 
+  useEffect(() => {
+    const shell = shellRef.current;
+    if (!shell) {
+      return;
+    }
+
+    const handleNativeTouchStart = (event: TouchEvent) => {
+      if (isModalOpen || event.touches.length !== 1) {
+        return;
+      }
+      const touch = event.touches[0];
+      setIsHoveringCarousel(false);
+      setHoveredCardKey(null);
+      pointerInsideRef.current = false;
+      pauseAuto(120);
+      beginOrbitDrag(touch.clientX, touch.clientY, touchDragPointerId, "touch");
+    };
+
+    const handleNativeTouchMove = (event: TouchEvent) => {
+      if (event.touches.length !== 1) {
+        return;
+      }
+      const touch = event.touches[0];
+      moveOrbitDrag(touch.clientX, touch.clientY, touchDragPointerId, shell, () => {
+        if (event.cancelable) {
+          event.preventDefault();
+        }
+      });
+    };
+
+    const handleNativeTouchEnd = () => {
+      endDrag(shell);
+      pointerInsideRef.current = false;
+      setIsTouching(false);
+      setIsHoveringCarousel(false);
+      setHoveredCardKey(null);
+    };
+
+    shell.addEventListener("touchstart", handleNativeTouchStart, { passive: true });
+    shell.addEventListener("touchmove", handleNativeTouchMove, { passive: false });
+    shell.addEventListener("touchend", handleNativeTouchEnd, { passive: true });
+    shell.addEventListener("touchcancel", handleNativeTouchEnd, { passive: true });
+
+    return () => {
+      shell.removeEventListener("touchstart", handleNativeTouchStart);
+      shell.removeEventListener("touchmove", handleNativeTouchMove);
+      shell.removeEventListener("touchend", handleNativeTouchEnd);
+      shell.removeEventListener("touchcancel", handleNativeTouchEnd);
+    };
+  }, [isModalOpen]);
+
   return (
     <section className="video-hub spherical-video-scene" id="video" onKeyDown={handleKeyDown} tabIndex={0}>
       <div className="section-heading">
         <span>Video-first content</span>
-        <h2>Drag the media orbit through the product films.</h2>
+        <h2>Why VitaKiosk Asia ?</h2>
       </div>
       <div
         ref={shellRef}
@@ -1284,17 +1936,25 @@ function SphericalVideoCarousel() {
         data-paused={isUserInteracting}
         data-hovering={isHoveringCarousel}
         data-touching={isTouching}
+        data-touch-drag-enabled={touchDragEnabled ? "true" : "false"}
+        data-mouse-drag-enabled="true"
         data-focused={hasFocusWithin}
         data-modal-open={isModalOpen}
         data-layout-mode={isCompactOrbit ? "compact-deck" : "cylindrical-orbit"}
         data-hovered-video={hoveredCardKey ?? ""}
         data-orbital-progress={orbitalProgress.toFixed(3)}
         data-render-buffer={videoHubItems.length}
-        onPointerEnter={() => {
+        onPointerEnter={(event) => {
+          if (event.pointerType !== "mouse") {
+            return;
+          }
           setIsHoveringCarousel(true);
           pauseAuto();
         }}
-        onPointerLeave={() => {
+        onPointerLeave={(event) => {
+          if (event.pointerType !== "mouse") {
+            return;
+          }
           pointerInsideRef.current = false;
           setIsHoveringCarousel(false);
           setHoveredCardKey(null);
@@ -1313,77 +1973,49 @@ function SphericalVideoCarousel() {
           }
         }}
         onPointerDown={(event) => {
+          if (event.pointerType !== "mouse") {
+            return;
+          }
           if (typeof event.button === "number" && event.button !== 0) {
             return;
           }
-          pointerInsideRef.current = true;
-          pauseAuto();
-          if (event.pointerType !== "mouse") {
-            setIsTouching(true);
-          }
           const pointerId = event.pointerId || 1;
-          const clientX = safeClientX(event.clientX);
-          const now = performance.now();
-          dragRef.current = {
+          beginOrbitDrag(
+            safeClientX(event.clientX),
+            Number.isFinite(event.clientY) ? event.clientY : 0,
             pointerId,
-            startX: clientX,
-            lastX: clientX,
-            lastTime: now,
-            velocity: 0,
-            startRotation: rotationRef.current,
-            moved: false,
-          };
+            "mouse",
+          );
         }}
         onPointerMove={(event) => {
-          const drag = dragRef.current;
-          const pointerId = event.pointerId || drag.pointerId;
-          if (drag.pointerId !== pointerId) {
+          if (event.pointerType !== "mouse") {
             return;
           }
-          const clientX = safeClientX(event.clientX, drag.lastX);
-          const now = performance.now();
-          const dt = Math.max(now - drag.lastTime, 16);
-          const dx = clientX - drag.lastX;
-          const totalDelta = clientX - drag.startX;
-          drag.velocity = Math.max(-2.4, Math.min(2.4, dx / dt));
-          drag.lastX = clientX;
-          drag.lastTime = now;
-          drag.moved = Math.abs(totalDelta) > 5;
-          setOrbitalProgressValue(drag.startRotation - totalDelta / 190);
-          if (drag.moved && typeof event.currentTarget.setPointerCapture === "function") {
-            try {
-              event.currentTarget.setPointerCapture(pointerId);
-            } catch {
-              // Drag still works without pointer capture in constrained browser/test environments.
-            }
-          }
-          if (drag.moved) {
-            setIsDragging(true);
-            event.currentTarget.classList.add("is-dragging");
-          }
-          if (drag.moved) {
-            setHoveredCardKey(null);
-          }
+          const pointerId = event.pointerId || dragRef.current.pointerId;
+          moveOrbitDrag(
+            safeClientX(event.clientX, dragRef.current.lastX),
+            Number.isFinite(event.clientY) ? event.clientY : dragRef.current.lastY,
+            pointerId,
+            event.currentTarget,
+            () => event.preventDefault(),
+          );
         }}
         onPointerUp={(event) => {
-          endDrag(event.currentTarget);
           if (event.pointerType !== "mouse") {
-            pointerInsideRef.current = false;
-            setIsTouching(false);
-            setIsHoveringCarousel(false);
-            setHoveredCardKey(null);
+            return;
           }
+          endDrag(event.currentTarget);
         }}
         onPointerCancel={(event) => {
-          endDrag(event.currentTarget);
           if (event.pointerType !== "mouse") {
-            pointerInsideRef.current = false;
-            setIsTouching(false);
-            setIsHoveringCarousel(false);
-            setHoveredCardKey(null);
+            return;
           }
+          endDrag(event.currentTarget);
         }}
         onLostPointerCapture={(event) => {
+          if (dragRef.current.pointerType !== "mouse") {
+            return;
+          }
           pointerInsideRef.current = false;
           setIsTouching(false);
           endDrag(event.currentTarget);
@@ -1413,7 +2045,9 @@ function SphericalVideoCarousel() {
       <div className="orbit-caption">
         <span>{videoHubItems[activeVideoIndex].status}</span>
         <strong data-testid="orbit-active-title">{videoHubItems[activeVideoIndex].title}</strong>
-        <small>Drag or swipe to rotate. Hover previews silently. Click opens the viewer.</small>
+        <small>
+          Swipe sideways to rotate. Tap the active card to open the viewer.
+        </small>
       </div>
       {openVideo && <VideoViewerModal video={openVideo} onClose={closeViewer} />}
     </section>
@@ -1439,8 +2073,9 @@ function PricingSection() {
   return (
     <section className="pricing-section commerce-console" id="pricing">
       <div className="section-heading">
-        <span>Mock commerce framework</span>
-        <h2>Choose a path. No live payment runs.</h2>
+        <span>Manual confirmation framework</span>
+        <h2>Choose a path. We confirm manually first.</h2>
+        <p>{negotiationNotice}</p>
       </div>
       <div className="segment-control" role="tablist" aria-label="Pricing categories">
         {categories.map((category) => (
@@ -1466,6 +2101,7 @@ function PricingSection() {
               <span>{item.cadence}</span>
               <strong>{item.name}</strong>
               <small>{item.priceLabel}</small>
+              {item.nonNegotiableLabel && <em>{item.nonNegotiableLabel}</em>}
             </button>
           ))}
         </div>
@@ -1473,6 +2109,11 @@ function PricingSection() {
           <span>{categoryLabels[active]}</span>
           <h3>{selected.name}</h3>
           <strong>{selected.priceLabel}</strong>
+          <p>{selected.description}</p>
+          <div className="pricing-note-row">
+            <span>{selected.publicStatusLabel}</span>
+            {selected.negotiable ? <small>Negotiable after discussion</small> : <small>Non-negotiable</small>}
+          </div>
           <ul>
             {selected.includes.slice(0, 3).map((entry) => (
               <li key={entry}>
@@ -1481,9 +2122,14 @@ function PricingSection() {
               </li>
             ))}
           </ul>
+          <div className="pricing-plan-notes">
+            {selected.notes.map((note) => (
+              <span key={note}>{note}</span>
+            ))}
+          </div>
           {selected.safetyNote && <p className="safety-note">{selected.safetyNote}</p>}
           <SmartLink href="/order" className="button primary">
-            Start inquiry
+            {selected.ctaLabel}
             <ArrowRight size={16} />
           </SmartLink>
         </article>
@@ -1493,6 +2139,7 @@ function PricingSection() {
           <small>No card storage</small>
         </div>
       </div>
+      <p className="pricing-legal-note">{legalPricingNotice}</p>
     </section>
   );
 }
@@ -1741,7 +2388,6 @@ function LegalShelf() {
         <SmartLink href="/legal/privacy">Privacy</SmartLink>
         <SmartLink href="/legal/terms">Terms</SmartLink>
       </nav>
-      <p>Mock-first local site. No live payment, no real customer data.</p>
     </footer>
   );
 }
@@ -1919,20 +2565,29 @@ function RouteExperienceBody({ route, kind }: { route: string; kind: SiteFormKin
   return <LeadConsole initialKind={kind} />;
 }
 
-function LegalPage({ title }: { title: string }) {
+function LegalPage({ route, fallbackTitle }: { route: string; fallbackTitle: string }) {
+  const content = legalPages[route] || legalPages["/legal/terms"]!;
+
   return (
     <main className="page-shell route-page">
       <GlobalStageBackground progress={0.2} />
       <Header />
-      <section className="route-hero compact-route">
-        <h1>{title}</h1>
-        <p>
-          VitaKiosk Asia uses mock-first product content on this local site. Real
-          deployments must complete local healthcare advertising, privacy,
-          security, payment, and institutional compliance review.
-        </p>
+      <section className="route-hero compact-route legal-route-hero">
+        <span>{content.eyebrow}</span>
+        <h1>{content.title || fallbackTitle}</h1>
+        <p>{content.intro}</p>
+        <div className="legal-detail-grid">
+          {content.sections.map((section) => (
+            <article className="legal-detail-card" key={section.heading}>
+              <ShieldCheck size={18} aria-hidden="true" />
+              <h2>{section.heading}</h2>
+              <p>{section.body}</p>
+            </article>
+          ))}
+        </div>
       </section>
       <SafetyBand />
+      <LegalShelf />
     </main>
   );
 }
@@ -1949,7 +2604,7 @@ function RoutePage({ route }: { route: string }) {
   }, [route]);
 
   if (route.startsWith("/legal")) {
-    return <LegalPage title={title} />;
+    return <LegalPage route={route} fallbackTitle={title} />;
   }
 
   if (route === "/checkout/success" || route === "/checkout/cancel") {
@@ -1966,7 +2621,7 @@ function RoutePage({ route }: { route: string }) {
           <h1>{title}</h1>
           <p>
             {route === "/checkout/success"
-              ? "Manual confirmation was received. No live payment was charged."
+              ? "Manual confirmation was received. We will follow up with scope, schedule, and payment instructions."
               : "Manual confirmation was cancelled. No card data was captured."}
           </p>
           <SmartLink href="/pricing" className="button primary">
@@ -2009,11 +2664,14 @@ function HomeContent({ progress }: { progress: number }) {
 export function App() {
   const route = resolveRoute();
   const progress = useScrollProgress();
+  useDocumentSeo(route);
+  useUniversalScrollReveal(route);
   const debugRipple = typeof window !== "undefined" && new URLSearchParams(window.location.search).has("debugRipple");
   return (
     <div className="site-root">
       <GlobalGlowRippleBackdrop progress={route === "/" ? progress : 0.35} debug={debugRipple} />
       {route !== "/" ? <RoutePage route={route} /> : <HomeContent progress={progress} />}
+      <CustomerServiceBot />
     </div>
   );
 }

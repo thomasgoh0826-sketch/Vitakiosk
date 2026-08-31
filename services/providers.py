@@ -4,6 +4,8 @@ from dataclasses import dataclass
 
 from backend.app.config import Settings
 from services.ai_brain import LiveAIPlaceholder, MockAIBrain
+from services.agnes_ai import AgnesAIBrain
+from services.agnes_vision import AgnesProductVision
 from services.contracts import (
     AIBrain,
     ProductVisionAdapter,
@@ -12,7 +14,8 @@ from services.contracts import (
     VitaFlowAdapter,
 )
 from services.faster_whisper_stt import FasterWhisperSTT
-from services.leaflet_engine import LeafletEngine
+from services.elevenlabs_stt import ElevenLabsSTT
+from services.leaflet_engine import LeafletEngine, VitaFlowLeafletEngine
 from services.ollama_ai import OllamaAIBrain
 from services.openai_stt import OpenAIWhisperSTT
 from services.poster_engine import PosterEngine
@@ -20,8 +23,8 @@ from services.product_vision import BarcodeOCRVision, LocalProductScanVision, Mo
 from services.promotion_engine import PromotionEngine
 from services.safety_guardrails import SafetyGuardrails
 from services.vitaflow_api import MockVitaFlowAPI, ReadOnlyVitaFlowAPI
-from services.voice_ai import ElevenLabsTTS, MockSTT, MockTTS
-from services.workflows import EscalationStore, PurchasingQueryStore
+from services.voice_ai import ElevenLabsTTS, MockSTT, MockTTS, PiperTTS
+from services.workflows import EscalationStore, PurchasingQueryStore, VitaFlowEscalationStore
 
 
 @dataclass(frozen=True)
@@ -36,7 +39,7 @@ class ProviderBundle:
     poster_engine: PosterEngine
     guardrails: SafetyGuardrails
     purchasing_store: PurchasingQueryStore
-    escalation_store: EscalationStore
+    escalation_store: EscalationStore | VitaFlowEscalationStore
     summary: dict[str, str]
 
 
@@ -59,13 +62,28 @@ def create_provider_bundle(settings: Settings) -> ProviderBundle:
     settings.validate()
 
     promotion_engine = PromotionEngine()
-    leaflet_engine = LeafletEngine()
     poster_engine = PosterEngine(promotion_engine)
     guardrails = SafetyGuardrails()
     purchasing_store = PurchasingQueryStore()
-    escalation_store = EscalationStore()
 
     vitaflow = _create_vitaflow(settings)
+    leaflet_engine = (
+        VitaFlowLeafletEngine(vitaflow)
+        if isinstance(vitaflow, ReadOnlyVitaFlowAPI)
+        else LeafletEngine()
+    )
+    if settings.vitaflow_assistance_provider == "vitaflow_api":
+        if settings.vitaflow_provider != "readonly_api" or not isinstance(
+            vitaflow,
+            ReadOnlyVitaFlowAPI,
+        ):
+            raise RuntimeError(
+                "VITAFLOW_ASSISTANCE_PROVIDER=vitaflow_api requires "
+                "VITAFLOW_PROVIDER=readonly_api"
+            )
+        escalation_store = VitaFlowEscalationStore(vitaflow)
+    else:
+        escalation_store = EscalationStore()
     stt = _create_stt(settings)
     tts = _create_tts(settings)
     vision = _create_vision(settings)
@@ -106,6 +124,16 @@ def _create_stt(settings: Settings) -> STTAdapter:
                 "STT_PROVIDER=openai_whisper",
             ),
         )
+    if settings.stt_provider == "elevenlabs":
+        return ElevenLabsSTT(
+            api_key=_require(
+                settings.elevenlabs_api_key,
+                "ELEVENLABS_API_KEY",
+                "STT_PROVIDER=elevenlabs",
+            ),
+            model_id=settings.elevenlabs_stt_model_id,
+            low_confidence_threshold=settings.stt_low_confidence_threshold,
+        )
     return FasterWhisperSTT(
         model_size=settings.faster_whisper_model_size,
         device=settings.faster_whisper_device,
@@ -119,6 +147,13 @@ def _create_stt(settings: Settings) -> STTAdapter:
 def _create_tts(settings: Settings) -> TTSAdapter:
     if settings.tts_provider == "mock":
         return MockTTS()
+    if settings.tts_provider == "piper":
+        return PiperTTS(
+            command=settings.piper_command,
+            model_path=settings.piper_model_path,
+            config_path=settings.piper_config_path,
+            speaker=settings.piper_speaker,
+        )
     return ElevenLabsTTS(
         api_key=_require(
             settings.elevenlabs_api_key,
@@ -142,7 +177,7 @@ def _create_ai_brain(
     leaflet_engine: LeafletEngine,
     guardrails: SafetyGuardrails,
     purchasing_store: PurchasingQueryStore,
-    escalation_store: EscalationStore,
+    escalation_store: EscalationStore | VitaFlowEscalationStore,
 ) -> AIBrain:
     if settings.ai_provider == "mock":
         return MockAIBrain(
@@ -171,6 +206,23 @@ def _create_ai_brain(
             model=settings.ollama_model,
             timeout_seconds=settings.ollama_timeout_seconds,
         )
+    if settings.ai_provider == "agnes":
+        return AgnesAIBrain(
+            vitaflow=vitaflow,
+            promotion_engine=promotion_engine,
+            leaflet_engine=leaflet_engine,
+            guardrails=guardrails,
+            purchasing_store=purchasing_store,
+            escalation_store=escalation_store,
+            api_key=_require(
+                settings.agnes_api_key,
+                "AGNES_API_KEY",
+                "AI_PROVIDER=agnes",
+            ),
+            base_url=settings.agnes_base_url,
+            model=settings.agnes_model,
+            timeout_seconds=settings.agnes_timeout_seconds,
+        )
     return LiveAIPlaceholder(
         provider_name=settings.ai_provider,
         guardrails=guardrails,
@@ -187,6 +239,7 @@ def _create_vitaflow(settings: Settings) -> VitaFlowAdapter:
             "VITAFLOW_API_BASE_URL",
             "VITAFLOW_PROVIDER=readonly_api",
         ),
+        token=settings.vitaflow_api_token,
     )
 
 
@@ -195,4 +248,16 @@ def _create_vision(settings: Settings) -> ProductVisionAdapter:
         return MockProductVision()
     if settings.vision_provider == "local_product_scan":
         return LocalProductScanVision()
+    if settings.vision_provider == "agnes":
+        return AgnesProductVision(
+            api_key=_require(
+                settings.agnes_api_key,
+                "AGNES_API_KEY",
+                "VISION_PROVIDER=agnes",
+            ),
+            base_url=settings.agnes_base_url,
+            model=settings.agnes_vision_model,
+            timeout_seconds=settings.agnes_timeout_seconds,
+            fallback=LocalProductScanVision(),
+        )
     return BarcodeOCRVision()

@@ -50,6 +50,7 @@ Mock mode requires no key. Keep these secret fields empty for the demo:
 - `OLLAMA_MODEL=qwen2.5:7b`
 - `OLLAMA_TIMEOUT_SECONDS=20`
 - `VITAFLOW_API_BASE_URL`
+- `VITAFLOW_API_TOKEN` optional local pairing token for ERP catalog access
 - `VITE_API_BASE_URL=http://127.0.0.1:8000`
 - `VITE_WS_BASE_URL=ws://127.0.0.1:8000`
 - `VITE_AVATAR_RENDERER` may be left empty for the default Lottie avatar; set `VITE_AVATAR_RENDERER=threejs` or `VITE_AVATAR_RENDERER=vrm` only for reviewed local 3D avatar testing.
@@ -129,7 +130,7 @@ Use `docs/local-vrm-startup.md` when you want one repeatable command after a PC 
 
 ```powershell
 # Backend
-python -m uvicorn backend.app.main:app --reload --host 127.0.0.1 --port 8001
+.\.venv\Scripts\python.exe -m uvicorn backend.app.main:app --reload --host 127.0.0.1 --port 8001
 
 # Frontend
 npm.cmd run dev --prefix frontend -- --host 127.0.0.1 --port 5175 --strictPort
@@ -150,6 +151,20 @@ You can also start both local demo processes from one PowerShell prompt:
 ```powershell
 .\scripts\start-local-vrm-demo.ps1
 ```
+
+For the reviewed Agnes + ElevenLabs + read-only VitaFlow ERP profile, put the
+credentials directly in the ignored root `.env`, start VitaFlow ERP on port
+3100, then run:
+
+```powershell
+.\scripts\start-live-demo.ps1
+```
+
+The live launcher checks secret presence without displaying values, verifies
+the approved provider selectors and JK branch, reuses healthy fixed-port
+processes or starts hidden background processes on 8001 and 5175, then requires
+safe Agnes and VitaFlow readiness booleans before reporting success. It never
+creates or edits `.env` files.
 
 The helper checks fixed ports 8001 and 5175, verifies the frontend VRM env values, starts the backend and frontend in separate terminals, and does not modify or print secrets.
 
@@ -240,6 +255,7 @@ This endpoint returns provider names, Ollama reachability, and the selected Olla
 | GET | `/api/products/search` | Searches fictional branch-scoped products |
 | GET | `/api/promotions/match` | Filters active branch-aware promotions |
 | GET | `/api/posters/idle` | Returns eligible idle posters |
+| GET | `/api/leaflets/active` | Returns current active leaflets for one branch |
 | POST | `/api/purchasing-query` | Creates an in-memory mock query |
 | POST | `/api/escalate-pharmacist` | Creates an in-memory mock escalation |
 | WS | `/ws/kiosk/{session_id}` | Sends session-scoped avatar states |

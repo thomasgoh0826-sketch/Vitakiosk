@@ -5,18 +5,23 @@ from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 
 from backend.app.config import Settings
-from backend.app.routes import actions, ai, catalog, vision, voice
 from backend.app.websocket_manager import AVATAR_STATES, manager
 
 
 settings = Settings.from_environment()
 settings.validate()
 
+from backend.app.routes import actions, ai, catalog, site, vision, voice  # noqa: E402
+
 LOCAL_DEV_CORS_ORIGINS = [
     "http://localhost:5173",
     "http://127.0.0.1:5173",
     "http://localhost:5175",
     "http://127.0.0.1:5175",
+    "http://localhost:5176",
+    "http://127.0.0.1:5176",
+    "http://localhost:5177",
+    "http://127.0.0.1:5177",
 ]
 
 app = FastAPI(title="VitaKiosk API", version="0.1.0")
@@ -31,6 +36,7 @@ app.include_router(voice.router)
 app.include_router(ai.router)
 app.include_router(catalog.router)
 app.include_router(actions.router)
+app.include_router(site.router)
 app.include_router(vision.router)
 
 
@@ -57,6 +63,66 @@ def check_ollama_reachable(active_settings: Settings) -> bool:
         return False
 
 
+def check_agnes_reachable(active_settings: Settings) -> bool:
+    if (
+        active_settings.ai_provider != "agnes"
+        and active_settings.vision_provider != "agnes"
+    ):
+        return False
+    if not active_settings.agnes_api_key:
+        return False
+
+    base_url = active_settings.agnes_base_url.rstrip("/")
+    if base_url.endswith("/v1/chat/completions"):
+        base_url = base_url[: -len("/chat/completions")]
+    elif base_url.endswith("/chat/completions"):
+        base_url = base_url[: -len("/chat/completions")]
+    elif not base_url.endswith("/v1"):
+        base_url = f"{base_url}/v1"
+    endpoint = f"{base_url}/models"
+    timeout_seconds = min(max(active_settings.agnes_timeout_seconds, 1), 3)
+    try:
+        response = httpx.get(
+            endpoint,
+            headers={"Authorization": f"Bearer {active_settings.agnes_api_key}"},
+            timeout=timeout_seconds,
+        )
+        if not 200 <= response.status_code < 300:
+            return False
+        payload = response.json()
+        return isinstance(payload, dict) and isinstance(payload.get("data"), list)
+    except (httpx.HTTPError, ValueError):
+        return False
+
+
+def check_vitaflow_reachable(active_settings: Settings) -> bool:
+    if active_settings.vitaflow_provider != "readonly_api":
+        return False
+    if not active_settings.vitaflow_api_base_url:
+        return False
+
+    headers = {}
+    if active_settings.vitaflow_api_token:
+        headers["Authorization"] = f"Bearer {active_settings.vitaflow_api_token}"
+    try:
+        response = httpx.get(
+            f"{active_settings.vitaflow_api_base_url.rstrip('/')}/api/vitakiosk/catalog/products/search",
+            headers=headers,
+            params={
+                "branchCode": "JK",
+                "q": "__vitakiosk_readiness_probe_no_match__",
+                "limit": 1,
+            },
+            timeout=3,
+        )
+        if not 200 <= response.status_code < 300:
+            return False
+        payload = response.json()
+        return isinstance(payload, dict) and payload.get("ok") is True
+    except (httpx.HTTPError, ValueError):
+        return False
+
+
 @app.get("/api/runtime/status")
 def runtime_status() -> dict[str, object]:
     return {
@@ -66,7 +132,13 @@ def runtime_status() -> dict[str, object]:
         "vitaflow_provider": settings.vitaflow_provider,
         "vision_provider": settings.vision_provider,
         "ollama_reachable": check_ollama_reachable(settings),
-        "model": settings.ollama_model,
+        "agnes_reachable": check_agnes_reachable(settings),
+        "vitaflow_reachable": check_vitaflow_reachable(settings),
+        "model": (
+            settings.agnes_model
+            if settings.ai_provider == "agnes"
+            else settings.ollama_model
+        ),
     }
 
 

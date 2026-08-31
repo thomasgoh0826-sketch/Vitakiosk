@@ -31,6 +31,7 @@ describe("VrmAvatarRenderer", () => {
       <VrmAvatarRenderer
         state="speaking"
         audioActivity={0.75}
+        vrmModelKey="vita"
         vrmModelUrl="/assets/avatar/vita.vrm"
       />,
     );
@@ -101,31 +102,70 @@ describe("VrmAvatarRenderer", () => {
   });
 
   it.each([
-    ["idle", "Ready", "relaxed", "closed", "calm", "off"],
-    ["listening", "Listening", "attentive", "closed", "listening", "off"],
-    ["thinking", "Thinking", "focused", "closed", "scanning", "active"],
-    ["speaking", "Speaking", "friendly", "audio-reactive", "speaking", "off"],
-    ["error", "Try Again", "concerned", "closed", "warning", "off"],
+    ["idle", "Ready", "relaxed", "neutral_idle", "center", "none", "closed", "calm", "off"],
+    ["listening", "Listening", "attentive", "neutral_idle", "center", "none", "closed", "listening", "off"],
+    ["thinking", "Thinking", "focused", "neutral_idle", "center", "none", "closed", "scanning", "active"],
+    ["speaking", "Speaking", "friendly", "neutral_idle", "center", "none", "audio-reactive", "speaking", "off"],
+    ["error", "Try Again", "concerned", "neutral_idle", "center", "none", "closed", "warning", "off"],
     [
       "pharmacist_escalation",
       "Pharmacist Requested",
       "serious",
+      "neutral_idle",
+      "center",
+      "none",
       "closed",
       "safety",
       "off",
     ],
   ] as const)(
     "exposes the approved VRM behavior contract for %s",
-    (state, label, expression, mouth, glow, scan) => {
+    (state, label, expression, presentationExpression, focusTarget, gesture, mouth, glow, scan) => {
       const behavior = getVrmAvatarBehavior(state, state === "speaking" ? 0.72 : 0.42);
 
       expect(behavior.customerLabel).toBe(label);
       expect(behavior.expression).toBe(expression);
+      expect(behavior.presentationExpression).toBe(presentationExpression);
+      expect(behavior.focusTarget).toBe(focusTarget);
+      expect(behavior.gesture).toBe(gesture);
       expect(behavior.mouth).toBe(mouth);
       expect(behavior.glow).toBe(glow);
       expect(behavior.scan).toBe(scan);
     },
   );
+
+  it.each([
+    ["product details", "friendly_explaining", "product", "present_product", "friendly"],
+    ["promotion leaflet", "happy_highlight", "promotion", "present_promotion", "happy_highlight"],
+    ["shelf map", "focused_guidance", "shelf", "guide_shelf", "focused_guidance"],
+    ["pharmacist safety", "safety_alert", "pharmacist", "safety_handoff", "serious"],
+  ] as const)(
+    "maps %s presentation to expressive VRM behavior",
+    (_label, expressionState, focusTarget, gesture, expression) => {
+      const behavior = getVrmAvatarBehavior("speaking", 0.72, {
+        expression: expressionState,
+        focusTarget,
+        gesture,
+      });
+
+      expect(behavior.expression).toBe(expression);
+      expect(behavior.presentationExpression).toBe(expressionState);
+      expect(behavior.focusTarget).toBe(focusTarget);
+      expect(behavior.gesture).toBe(gesture);
+    },
+  );
+
+  it("keeps the mouth closed and expression neutral after returning to ready from a promotion action", () => {
+    const behavior = getVrmAvatarBehavior("idle", 0, {
+      expression: "happy_highlight",
+      focusTarget: "promotion",
+      gesture: "present_promotion",
+    });
+
+    expect(behavior.customerLabel).toBe("Ready");
+    expect(behavior.expression).toBe("relaxed");
+    expect(behavior.mouth).toBe("closed");
+  });
 
   it("uses approved customer-facing labels and behavior attributes instead of technical labels", () => {
     render(
@@ -138,6 +178,9 @@ describe("VrmAvatarRenderer", () => {
 
     const avatar = screen.getByLabelText(/vrm character ai avatar: pharmacist requested/i);
     expect(avatar).toHaveAttribute("data-vrm-expression", "serious");
+    expect(avatar).toHaveAttribute("data-vrm-presentation", "neutral_idle");
+    expect(avatar).toHaveAttribute("data-vrm-focus-target", "center");
+    expect(avatar).toHaveAttribute("data-vrm-gesture", "none");
     expect(avatar).toHaveAttribute("data-vrm-mouth", "closed");
     expect(avatar).toHaveAttribute("data-vrm-glow", "safety");
     expect(avatar).toHaveAttribute("data-vrm-scan", "off");

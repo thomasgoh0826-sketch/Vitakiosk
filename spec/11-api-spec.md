@@ -20,15 +20,23 @@ Expose typed mock contracts for the kiosk without provider-specific route logic.
 - Product search responses include exact `items`, fuzzy `candidates`, mock
   provenance, and a purchasing-query ID only when neither exact products nor
   candidates are available.
+- `GET /api/vitaflow-assets/{asset_path}` is a read-only same-origin image
+  relay for configured VitaFlow product, leaflet, and map assets. It rejects
+  empty/traversal paths, redirects, non-image responses, and unavailable
+  upstream data with controlled errors and never accepts an arbitrary host.
 - `POST /api/vision/scan-product` accepts one uploaded image plus `branch_id`
   and optional scan `mode`; it returns `provider`, `scanSignals`, candidate
   products, confirmation requirement, OCR/correction metadata when available,
   and controlled errors for malformed images or unavailable local scan
   configuration. The route must not save raw camera frames by default and must
-  return only VitaFlow/mock-backed product facts.
+  return only VitaFlow/mock-backed product facts. Cloud vision identity fields
+  are extraction hints: any field that is not visible may be null without
+  invalidating other visible brand/product/label signals, and all resulting
+  candidates must still resolve through the configured VitaFlow adapter.
 - AI responses include customer-safe text plus structured `ui_actions`, active
   branch-valid leaflet data, and `product_candidates` when the workflow needs a
   customer to confirm a near product match.
+- `POST /api/ai/respond` accepts optional `current_product_id` only as a contextual pointer after an authoritative scan confirmation. The backend resolves that ID again through the current-branch VitaFlow adapter before answering; a missing, invalid, or wrong-branch ID cannot supply product facts or bypass the normal scan/search and pharmacist-safety flows.
 - `ui_actions` must be from the approved action set; no free-form click target,
   URL, selector, or raw UI instruction is accepted. Product detail,
   promotion-modal, and shelf-map open actions must include enough adapter-backed

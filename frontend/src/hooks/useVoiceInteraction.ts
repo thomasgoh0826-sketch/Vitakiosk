@@ -30,6 +30,38 @@ export const SILENCE_RMS_THRESHOLD = 0.018;
 const SILENCE_SAMPLE_INTERVAL_MS = 100;
 type AudioContextConstructor = new () => AudioContext;
 
+function getAudioContextConstructor() {
+  const browserWindow = window as typeof window & {
+    webkitAudioContext?: AudioContextConstructor;
+  };
+  const globalScope = globalThis as typeof globalThis & {
+    AudioContext?: AudioContextConstructor;
+    webkitAudioContext?: AudioContextConstructor;
+  };
+  return globalScope.AudioContext
+    ?? window.AudioContext
+    ?? globalScope.webkitAudioContext
+    ?? browserWindow.webkitAudioContext;
+}
+
+function readBlobAsArrayBuffer(blob: Blob): Promise<ArrayBuffer> {
+  if (typeof blob.arrayBuffer === "function") {
+    return blob.arrayBuffer();
+  }
+  if (typeof Response !== "undefined") {
+    return new Response(blob).arrayBuffer();
+  }
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result as ArrayBuffer);
+    reader.onerror = () => reject(reader.error ?? new Error("Unable to read audio data."));
+    reader.readAsArrayBuffer(blob);
+  });
+}
+
+const SILENT_WAV_DATA_URI =
+  "data:audio/wav;base64,UklGRigAAABXQVZFZm10IBAAAAABAAEAESsAACJWAAACABAAZGF0YQQAAAAAAA==";
+
 function isAutoplayBlockedError(error: unknown) {
   return (
     error instanceof DOMException && error.name === "NotAllowedError"
@@ -42,8 +74,24 @@ function waitForAudioPlayback(audio: HTMLAudioElement): Promise<void> {
   return new Promise<void>((resolve, reject) => {
     audio.onended = () => resolve();
     audio.onerror = () => reject(new Error("Audio playback failed"));
-    void audio.play().catch(reject);
+    const tryPlay = (remainingRetries: number) => {
+      void audio.play().catch((caught) => {
+        if (isAutoplayBlockedError(caught) && remainingRetries > 0) {
+          window.setTimeout(() => tryPlay(remainingRetries - 1), 150);
+          return;
+        }
+        reject(caught);
+      });
+    };
+    tryPlay(2);
   });
+}
+
+function prepareKioskAudio(audio: HTMLAudioElement) {
+  audio.preload = "auto";
+  (audio as HTMLAudioElement & { playsInline?: boolean }).playsInline = true;
+  audio.muted = false;
+  audio.volume = 1;
 }
 
 function useVoiceInteraction({
@@ -56,6 +104,7 @@ function useVoiceInteraction({
 }: UseVoiceInteractionOptions) {
   const [state, setState] = useState<AvatarState>("idle");
   const [product, setProduct] = useState<Product | null>(null);
+  const productContextRef = useRef<Product | null>(null);
   const [productCandidates, setProductCandidates] = useState<ProductSearchCandidate[]>([]);
   const [promotions, setPromotions] = useState<Promotion[]>([]);
   const [leaflets, setLeaflets] = useState<Leaflet[]>([]);
@@ -79,11 +128,18 @@ function useVoiceInteraction({
   const silenceStartedAtRef = useRef<number | null>(null);
   const inputAudioContextRef = useRef<AudioContext | null>(null);
   const inputAudioSourceRef = useRef<MediaStreamAudioSourceNode | null>(null);
+  const playbackAudioContextRef = useRef<AudioContext | null>(null);
+  const playbackSourceRef = useRef<AudioBufferSourceNode | null>(null);
   const stopRecordingRef = useRef<(() => Promise<void>) | null>(null);
   const blockedAudioRef = useRef<HTMLAudioElement | null>(null);
+  const unlockedAudioRef = useRef<HTMLAudioElement | null>(null);
+  const audioUnlockedRef = useRef(false);
   const autoStopInProgressRef = useRef(false);
+  const [webAudioActivity, setWebAudioActivity] = useState(0);
   const playbackAudioActivity = useAudioActivity(audioElement);
-  const audioActivity = state === "listening" ? micActivity : playbackAudioActivity;
+  const audioActivity = state === "listening"
+    ? micActivity
+    : Math.max(playbackAudioActivity, webAudioActivity);
 
   useEffect(() => {
     if (serverState === "idle") {
@@ -106,6 +162,42 @@ function useVoiceInteraction({
     void inputContext?.close();
   }, []);
 
+  const unlockAudioPlayback = useCallback(() => {
+    if (audioUnlockedRef.current && unlockedAudioRef.current) {
+      return unlockedAudioRef.current;
+    }
+
+    const Context = getAudioContextConstructor();
+    if (Context) {
+      const context = playbackAudioContextRef.current ?? new Context();
+      playbackAudioContextRef.current = context;
+      const maybeResumable = context as AudioContext & {
+        resume?: () => Promise<void>;
+      };
+      const resumePromise = maybeResumable.resume?.() ?? Promise.resolve();
+      void resumePromise
+        .then(() => {
+          audioUnlockedRef.current = true;
+        })
+        .catch(() => undefined);
+    }
+
+    const primer = unlockedAudioRef.current ?? (new Audio(SILENT_WAV_DATA_URI) as HTMLAudioElement);
+    unlockedAudioRef.current = primer;
+    primer.src = SILENT_WAV_DATA_URI;
+    prepareKioskAudio(primer);
+    primer.volume = 0;
+    void primer.play()
+      .then(() => {
+        audioUnlockedRef.current = true;
+        primer.pause();
+      })
+      .catch(() => {
+        audioUnlockedRef.current = false;
+      });
+    return primer;
+  }, []);
+
   const releaseMedia = useCallback(() => {
     for (const track of streamRef.current?.getTracks() ?? []) {
       track.stop();
@@ -119,6 +211,8 @@ function useVoiceInteraction({
       stopSilenceMonitor();
       releaseMedia();
       audioElement?.pause?.();
+      playbackSourceRef.current?.stop();
+      void playbackAudioContextRef.current?.close();
       if (audioUrlRef.current) {
         URL.revokeObjectURL(audioUrlRef.current);
       }
@@ -128,10 +222,7 @@ function useVoiceInteraction({
 
   const startSilenceMonitor = useCallback((stream: MediaStream) => {
     stopSilenceMonitor();
-    const browserWindow = window as typeof window & {
-      webkitAudioContext?: AudioContextConstructor;
-    };
-    const Context = window.AudioContext ?? browserWindow.webkitAudioContext;
+    const Context = getAudioContextConstructor();
     if (!Context) {
       return;
     }
@@ -194,12 +285,16 @@ function useVoiceInteraction({
       audioElement.pause?.();
       audioElement.currentTime = 0;
     }
+    playbackSourceRef.current?.stop();
+    playbackSourceRef.current = null;
+    setWebAudioActivity(0);
     if (audioUrlRef.current) {
       URL.revokeObjectURL(audioUrlRef.current);
       audioUrlRef.current = null;
     }
     chunksRef.current = [];
     setState("idle");
+    productContextRef.current = null;
     setProduct(null);
     setProductCandidates([]);
     setPromotions([]);
@@ -230,6 +325,9 @@ function useVoiceInteraction({
       audioElement.currentTime = 0;
       setAudioElement(null);
     }
+    playbackSourceRef.current?.stop();
+    playbackSourceRef.current = null;
+    setWebAudioActivity(0);
     if (audioUrlRef.current) {
       URL.revokeObjectURL(audioUrlRef.current);
       audioUrlRef.current = null;
@@ -246,11 +344,46 @@ function useVoiceInteraction({
   const finishSuccessfulPlayback = useCallback(() => {
     clearCurrentAudioUrl();
     blockedAudioRef.current = null;
+    playbackSourceRef.current = null;
+    setWebAudioActivity(0);
     setAudioElement(null);
     setAudioPlaybackBlocked(false);
     setState("idle");
     sendState("idle");
   }, [clearCurrentAudioUrl, sendState]);
+
+  const playSpeechWithWebAudio = useCallback(async (speech: Blob) => {
+    const Context = getAudioContextConstructor();
+    if (!Context) {
+      throw new Error("Web Audio playback is not supported.");
+    }
+    const context = playbackAudioContextRef.current ?? new Context();
+    playbackAudioContextRef.current = context;
+    const maybeResumable = context as AudioContext & {
+      resume?: () => Promise<void>;
+    };
+    await (maybeResumable.resume?.() ?? Promise.resolve());
+    const buffer = await context.decodeAudioData(await readBlobAsArrayBuffer(speech));
+    const source = context.createBufferSource();
+    playbackSourceRef.current?.stop();
+    playbackSourceRef.current = source;
+    source.buffer = buffer;
+    source.connect(context.destination);
+    setWebAudioActivity(0.45);
+    return await new Promise<void>((resolve, reject) => {
+      source.onended = () => {
+        source.disconnect();
+        setWebAudioActivity(0);
+        resolve();
+      };
+      try {
+        source.start();
+      } catch (caught) {
+        setWebAudioActivity(0);
+        reject(caught);
+      }
+    });
+  }, []);
 
   const playBlockedAudio = useCallback(async () => {
     const audio = blockedAudioRef.current;
@@ -284,6 +417,56 @@ function useVoiceInteraction({
     }
   }, [clearCurrentAudioUrl, finishSuccessfulPlayback, sendState]);
 
+  const playSpeechBlob = useCallback(async (speech: Blob) => {
+    setAudioElement(null);
+    setState("speaking");
+    sendState("speaking");
+
+    try {
+      await playSpeechWithWebAudio(speech);
+      finishSuccessfulPlayback();
+    } catch (webAudioError) {
+      if (import.meta.env.DEV) {
+        console.warn("VitaKiosk Web Audio TTS playback fallback", webAudioError);
+      }
+      const audioUrl = URL.createObjectURL(speech);
+      audioUrlRef.current = audioUrl;
+      const audio = unlockedAudioRef.current ?? (new Audio(audioUrl) as HTMLAudioElement);
+      unlockedAudioRef.current = audio;
+      audio.src = audioUrl;
+      audio.currentTime = 0;
+      prepareKioskAudio(audio);
+      audio.load?.();
+      setAudioElement(audio);
+      try {
+        await waitForAudioPlayback(audio);
+        finishSuccessfulPlayback();
+      } catch {
+        clearCurrentAudioUrl();
+        blockedAudioRef.current = null;
+        setAudioElement(null);
+        setAudioPlaybackBlocked(false);
+        setState("idle");
+        setError(null);
+        sendState("idle");
+      }
+    }
+  }, [
+    clearCurrentAudioUrl,
+    finishSuccessfulPlayback,
+    playSpeechWithWebAudio,
+    sendState,
+  ]);
+
+  const playSynthesizedMessage = useCallback(async (message: string) => {
+    const speech = await api.synthesize(sessionId, message);
+    await playSpeechBlob(speech);
+  }, [
+    api,
+    playSpeechBlob,
+    sessionId,
+  ]);
+
   const runTextWorkflow = useCallback(async (
     workflowTranscript: string,
     displayTranscript = workflowTranscript,
@@ -293,6 +476,7 @@ function useVoiceInteraction({
       return;
     }
 
+    unlockAudioPlayback();
     stopSilenceMonitor();
     releaseMedia();
     stopCurrentAudio();
@@ -300,20 +484,46 @@ function useVoiceInteraction({
     setError(null);
     setAudioPlaybackBlocked(false);
     setTranscript(displayTranscript);
+    setProductCandidates([]);
+    setUiActions([]);
+    setPoster(null);
+    setEscalationId(null);
+    setHasResult(false);
     setResponseText("Preparing answer...");
     setState("thinking");
     sendState("thinking");
 
     try {
-      const response = await api.respond(
-        sessionId,
-        safeTranscript,
-        branchId,
-        preferredLanguage,
-      );
+      const currentProductId = productContextRef.current?.id;
+      const response = currentProductId
+        ? await api.respond(
+          sessionId,
+          safeTranscript,
+          branchId,
+          preferredLanguage,
+          currentProductId,
+        )
+        : await api.respond(
+          sessionId,
+          safeTranscript,
+          branchId,
+          preferredLanguage,
+        );
       setHasResult(true);
-      setProduct(response.product);
-      setProductCandidates(response.product_candidates ?? []);
+      const nextProductCandidates = response.product_candidates ?? [];
+      setProductCandidates(nextProductCandidates);
+      let nextProduct = productContextRef.current;
+      if (response.product) {
+        nextProduct = response.product;
+      } else if (response.intent === "unknown_product" || nextProductCandidates.length > 0) {
+        nextProduct = null;
+      } else if (response.intent === "product_search") {
+        // A fresh product-identification/search response without an authoritative
+        // match must not leave the previous customer's/product query on screen.
+        nextProduct = null;
+      }
+      productContextRef.current = nextProduct;
+      setProduct(nextProduct);
       setPromotions(response.promotions);
       setLeaflets(response.leaflets ?? []);
       setUiActions(response.ui_actions ?? []);
@@ -327,36 +537,21 @@ function useVoiceInteraction({
         return;
       }
 
-      const [speech, posters] = await Promise.all([
+      const [speechResult, postersResult] = await Promise.allSettled([
         api.synthesize(sessionId, response.message),
         api.idlePosters(branchId),
       ]);
-      setPoster(posters.items[0] ?? null);
-      const audioUrl = URL.createObjectURL(speech);
-      audioUrlRef.current = audioUrl;
-      const audio = new Audio(audioUrl) as HTMLAudioElement;
-      setAudioElement(audio);
-      setState("speaking");
-      sendState("speaking");
-
-      try {
-        await waitForAudioPlayback(audio);
-        finishSuccessfulPlayback();
-      } catch (playbackError) {
-        if (isAutoplayBlockedError(playbackError)) {
-          blockedAudioRef.current = audio;
-          setAudioElement(null);
-          setAudioPlaybackBlocked(true);
-          setState("idle");
-          sendState("idle");
-          return;
-        }
-        clearCurrentAudioUrl();
-        blockedAudioRef.current = null;
+      if (postersResult.status === "fulfilled") {
+        setPoster(postersResult.value.items[0] ?? null);
+      }
+      if (speechResult.status === "rejected") {
         setAudioElement(null);
         setAudioPlaybackBlocked(false);
-        throw playbackError;
+        setState("idle");
+        sendState("idle");
+        return;
       }
+      await playSpeechBlob(speechResult.value);
     } catch (caught) {
       releaseMedia();
       setState("error");
@@ -373,9 +568,12 @@ function useVoiceInteraction({
     finishSuccessfulPlayback,
     stopCurrentAudio,
     stopSilenceMonitor,
+    unlockAudioPlayback,
+    playSpeechBlob,
   ]);
 
   const startRecording = useCallback(async () => {
+    unlockAudioPlayback();
     setError(null);
     autoStopInProgressRef.current = false;
     if (!navigator.mediaDevices?.getUserMedia || typeof MediaRecorder === "undefined") {
@@ -406,7 +604,7 @@ function useVoiceInteraction({
       setState("error");
       setError("Microphone permission is required to use voice assistance.");
     }
-  }, [releaseMedia, sendState, startSilenceMonitor, stopSilenceMonitor]);
+  }, [releaseMedia, sendState, startSilenceMonitor, stopSilenceMonitor, unlockAudioPlayback]);
 
   const stopRecording = useCallback(async () => {
     const recorder = mediaRecorderRef.current;
@@ -434,6 +632,8 @@ function useVoiceInteraction({
         transcription.clarification_needed
         || workflowTranscript.trim().length === 0
       ) {
+        const clarificationMessage = "I did not catch that clearly. Please tap to speak and try again.";
+        productContextRef.current = null;
         setProduct(null);
         setProductCandidates([]);
         setPromotions([]);
@@ -443,11 +643,13 @@ function useVoiceInteraction({
         setPurchasingQueryId(null);
         setEscalationId(null);
         setHasResult(false);
-        setResponseText(
-          "I did not catch that clearly. Please tap to speak and try again.",
-        );
-        setState("idle");
-        sendState("idle");
+        setResponseText(clarificationMessage);
+        try {
+          await playSynthesizedMessage(clarificationMessage);
+        } catch {
+          setState("idle");
+          sendState("idle");
+        }
         return;
       }
       await runTextWorkflow(workflowTranscript, transcription.transcript);
@@ -456,13 +658,18 @@ function useVoiceInteraction({
       setState("error");
       setError(caught instanceof Error ? caught.message : "Voice request failed.");
     }
-  }, [api, releaseMedia, runTextWorkflow, sendState, sessionId, stopSilenceMonitor]);
+  }, [api, playSynthesizedMessage, releaseMedia, runTextWorkflow, sendState, sessionId, stopSilenceMonitor]);
 
   stopRecordingRef.current = stopRecording;
 
-  const submitText = useCallback(async (text: string) => {
-    await runTextWorkflow(text);
+  const submitText = useCallback(async (text: string, displayText = text) => {
+    await runTextWorkflow(text, displayText);
   }, [runTextWorkflow]);
+
+  const adoptConfirmedProduct = useCallback((confirmedProduct: Product) => {
+    productContextRef.current = confirmedProduct;
+    setProduct(confirmedProduct);
+  }, []);
 
   return {
     state,
@@ -484,6 +691,7 @@ function useVoiceInteraction({
     startRecording,
     stopRecording,
     submitText,
+    adoptConfirmedProduct,
     playBlockedAudio,
     reset,
   };

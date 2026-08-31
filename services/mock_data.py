@@ -1,6 +1,17 @@
 from datetime import UTC, datetime
 
-from services.models import Leaflet, LeafletKind, Poster, Product, ProductImage, Promotion
+from services.models import (
+    BranchShelfMap,
+    Leaflet,
+    LeafletKind,
+    Poster,
+    Product,
+    ProductImage,
+    ProductLocation,
+    Promotion,
+    ShelfMapPoint,
+    ShelfMapRegion,
+)
 
 
 MOCK_PRODUCTS: tuple[Product, ...] = (
@@ -12,6 +23,17 @@ MOCK_PRODUCTS: tuple[Product, ...] = (
         price=12.50,
         stock=18,
         shelf_location="A-03",
+        location=ProductLocation(
+            regionName="Aisle 03",
+            areaZone="Pain relief",
+            shelfRackBay="A-03",
+            rowLevel="02",
+            binPosition="Front bay",
+            locationCode="SG001-A03-L02",
+            locationNote="Topical relief shelf near the right-side aisle.",
+            pinX=82,
+            pinY=27,
+        ),
         barcode="9550000000019",
         imageUrl="/assets/mock-products/relief-balm-front.svg",
         thumbnailUrl="/assets/mock-products/relief-balm-front.svg",
@@ -65,6 +87,17 @@ MOCK_PRODUCTS: tuple[Product, ...] = (
         price=8.90,
         stock=24,
         shelf_location="B-07",
+        location=ProductLocation(
+            regionName="Hydration Bay",
+            areaZone="Wellness",
+            shelfRackBay="B-07",
+            rowLevel="01",
+            binPosition="Middle bay",
+            locationCode="SG001-B07-L01",
+            locationNote="Hydration products near the pharmacist counter.",
+            pinX=52,
+            pinY=55,
+        ),
         barcode="9550000000026",
         imageUrl="/assets/mock-products/hydration-salts-front.svg",
         thumbnailUrl="/assets/mock-products/hydration-salts-front.svg",
@@ -96,6 +129,16 @@ MOCK_PRODUCTS: tuple[Product, ...] = (
         price=10.20,
         stock=11,
         shelf_location="C-02",
+        location=ProductLocation(
+            regionName="Skin Care",
+            areaZone="Dermatology",
+            shelfRackBay="C-02",
+            rowLevel="01",
+            binPosition="Left bay",
+            locationCode="SG002-C02-L01",
+            pinX=38,
+            pinY=40,
+        ),
         barcode="9550000000033",
         imageUrl="/assets/mock-products/gentle-skin-wash-front.svg",
         thumbnailUrl="/assets/mock-products/gentle-skin-wash-front.svg",
@@ -116,6 +159,33 @@ MOCK_PRODUCTS: tuple[Product, ...] = (
                 "en": "Mock skin wash product record. Ask the pharmacist for personal advice."
             },
         },
+    ),
+)
+
+MOCK_BRANCH_SHELF_MAPS: tuple[BranchShelfMap, ...] = (
+    BranchShelfMap(
+        branch_id="SG-001",
+        map_id="MOCK-MAP-SG-001",
+        name="Mock VitaFlow SG-001 pharmacy map",
+        source="mock_vitaflow",
+        entrance=ShelfMapPoint(x=8, y=84, label="Entrance"),
+        regions=(
+            ShelfMapRegion(id="mock-aisle-01", name="Aisle 01", type="aisle", x=18, y=25, width=14, height=36, label="01"),
+            ShelfMapRegion(id="mock-aisle-02", name="Aisle 02", type="aisle", x=43, y=25, width=14, height=36, label="02"),
+            ShelfMapRegion(id="mock-aisle-03", name="Aisle 03", type="aisle", x=68, y=25, width=14, height=36, label="03"),
+            ShelfMapRegion(id="mock-pharmacist", name="Pharmacist", type="counter", x=78, y=82, width=16, height=6, label="Pharmacist"),
+        ),
+    ),
+    BranchShelfMap(
+        branch_id="SG-002",
+        map_id="MOCK-MAP-SG-002",
+        name="Mock VitaFlow SG-002 pharmacy map",
+        source="mock_vitaflow",
+        entrance=ShelfMapPoint(x=10, y=80, label="Entrance"),
+        regions=(
+            ShelfMapRegion(id="mock-sg2-skin", name="Skin Care", type="aisle", x=34, y=28, width=18, height=32, label="C"),
+            ShelfMapRegion(id="mock-sg2-counter", name="Pharmacist", type="counter", x=72, y=82, width=18, height=6, label="Pharmacist"),
+        ),
     ),
 )
 

@@ -21,6 +21,7 @@ async def respond(request: AIRequest) -> dict[str, Any]:
         request.branch_id,
         session_id=request.session_id,
         preferred_language=request.preferred_language,
+        current_product_id=request.current_product_id,
     )
     if result.requires_pharmacist:
         await manager.broadcast_state(

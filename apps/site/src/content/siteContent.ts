@@ -92,7 +92,7 @@ export const storyScenes = [
     title: "VitaKiosk answers before the counter.",
     summary:
       "The kiosk explains general product information, shows reviewed promotion material, guides to shelf or QR, and escalates to staff when needed.",
-    visual: "Tablet and large kiosk mode with mock product facts.",
+    visual: "Tablet and large kiosk mode with approved product education.",
     Icon: Bot,
   },
   {
@@ -100,7 +100,7 @@ export const storyScenes = [
     number: "03",
     title: "VitaFlow remains the source of truth.",
     summary:
-      "Stock, product facts, shelf location, prices, promotions, purchasing queries, reports, and analytics come from ERP or approved mock data.",
+      "Stock, product facts, shelf location, prices, promotions, purchasing queries, reports, and analytics come from reviewed business data.",
     visual: "ERP provenance and branch-aware operations.",
     Icon: ShieldCheck,
   },
@@ -215,6 +215,6 @@ export const formTypes = [
 
 export const safetyDisclaimers = [
   "VitaKiosk provides general product education, where-to-buy guidance, and staff/pharmacist escalation. It does not provide diagnosis, prescription drug consultation, or professional medical advice.",
-  "Sponsored product education must be clearly labelled and reviewed before display. Real deployment must follow local healthcare advertising and institutional compliance rules.",
+  "Sponsored product education must be clearly labelled, reviewed before display, and aligned with applicable healthcare advertising and institutional approval rules.",
   "Missing authoritative data is shown as unavailable. Product facts, stock, price, promotions, and shelf location must not be invented.",
 ];

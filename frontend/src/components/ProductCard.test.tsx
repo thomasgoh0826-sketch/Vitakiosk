@@ -14,6 +14,29 @@ const product: Product = {
   shelf_location: "A-03",
   source: "mock_vitaflow",
   unavailable_reason: null,
+  productSummary: {
+    ingredient: {
+      en: "Menthol, camphor, herbal soothing ingredients",
+      zh: "Menthol、camphor、草本舒缓成分",
+      ms: "Menthol, camphor, bahan herba yang menenangkan",
+    },
+    howToUse: {
+      en: "Apply externally to the affected area as needed.",
+      zh: "外用，适量涂抹在需要舒缓的部位。",
+      ms: "Sapu secara luaran pada bahagian yang diperlukan.",
+    },
+    bestFor: {
+      en: "Muscle discomfort, shoulder tension, general soothing use.",
+      zh: "肌肉不适、肩颈紧绷、日常舒缓。",
+      ms: "Ketidakselesaan otot, ketegangan bahu, kegunaan luaran umum.",
+    },
+    size: { en: "30g", zh: "30g", ms: "30g" },
+    description: {
+      en: "Cooling relief balm. Easy to apply. For external use only.",
+      zh: "清凉舒缓膏，方便外用。只供外用。",
+      ms: "Balm rasa sejuk untuk kegunaan luaran. Mudah digunakan.",
+    },
+  },
 };
 
 const productWithBackendImage = {
@@ -53,6 +76,47 @@ describe("ProductCard futuristic summary transform", () => {
 
     expect(image).toHaveAttribute("src", "/assets/mock-products/relief-balm-front.svg");
     expect(within(panel).queryByText("RE")).not.toBeInTheDocument();
+  });
+
+  it("labels readonly ERP products as VitaFlow ERP instead of mock data", () => {
+    render(
+      <ProductCard
+        product={{ ...productWithBackendImage, source: "vitaflow_erp" }}
+        purchasingQueryId={null}
+        labels={translations.en}
+        language="en"
+      />,
+    );
+
+    const panel = screen.getByRole("region", { name: "Product" });
+    expect(within(panel).getAllByText("VitaFlow ERP").length).toBeGreaterThan(0);
+    expect(within(panel).queryByText("Mock VitaFlow")).not.toBeInTheDocument();
+  });
+
+  it("shows unavailable instead of invented summary facts for an ERP product", () => {
+    vi.useFakeTimers();
+    try {
+      render(
+        <ProductCard
+          product={{ ...productWithBackendImage, source: "vitaflow_erp", productSummary: undefined }}
+          purchasingQueryId={null}
+          labels={translations.en}
+          language="en"
+        />,
+      );
+
+      const panel = screen.getByRole("region", { name: "Product" });
+      clickAndSettle(panel);
+
+      expect(panel).toHaveAttribute("data-product-mode", "summary");
+      expect(within(panel).getAllByText("Unavailable")).toHaveLength(5);
+      expect(within(panel).queryByText(/Menthol|camphor/i)).not.toBeInTheDocument();
+      expect(within(panel).queryByText(/Apply externally/i)).not.toBeInTheDocument();
+      expect(within(panel).queryByText(/Muscle discomfort/i)).not.toBeInTheDocument();
+      expect(within(panel).queryByText("30g")).not.toBeInTheDocument();
+    } finally {
+      vi.useRealTimers();
+    }
   });
 
   it("falls back to premium initials when the backend product image is missing or fails", () => {
@@ -109,7 +173,7 @@ describe("ProductCard futuristic summary transform", () => {
       render(<ProductCard product={product} purchasingQueryId={null} labels={translations.en} language="en" />);
 
       const panel = screen.getByRole("region", { name: "Product" });
-      expect(within(panel).getByText("$12.50")).toBeInTheDocument();
+      expect(within(panel).getByText("RM12.50")).toBeInTheDocument();
       expect(within(panel).getByText("A-03")).toBeInTheDocument();
 
       clickAndSettle(panel);
@@ -145,7 +209,7 @@ describe("ProductCard futuristic summary transform", () => {
       clickAndSettle(panel);
 
       expect(panel).toHaveAttribute("data-product-mode", "details");
-      expect(within(panel).getByText("$12.50")).toBeInTheDocument();
+      expect(within(panel).getByText("RM12.50")).toBeInTheDocument();
       expect(within(panel).getAllByText("Mock VitaFlow").length).toBeGreaterThan(0);
     } finally {
       vi.useRealTimers();
@@ -200,7 +264,7 @@ describe("ProductCard futuristic summary transform", () => {
       expect(within(panel).getByText("Bahan")).toBeInTheDocument();
       expect(within(panel).getByText("Cara guna")).toBeInTheDocument();
       expect(within(panel).getByText("English-only safe ingredient")).toBeInTheDocument();
-      expect(within(panel).getByText("Sapu secara luaran pada bahagian yang diperlukan.")).toBeInTheDocument();
+      expect(within(panel).getAllByText(translations.ms.unavailable)).toHaveLength(4);
       expect(within(panel).getByText("Relief Balm")).toBeInTheDocument();
     } finally {
       vi.useRealTimers();
@@ -234,7 +298,7 @@ describe("ProductCard futuristic summary transform", () => {
       const dialog = screen.getByRole("dialog", { name: /enlarged product details/i });
       expect(dialog).toHaveAttribute("data-product-view", "details");
       expect(dialog).toHaveTextContent("Relief Balm");
-      expect(dialog).toHaveTextContent("$12.50");
+      expect(dialog).toHaveTextContent("RM12.50");
       expect(dialog).toHaveTextContent("A-03");
       expect(screen.queryByText("Back to product details")).not.toBeInTheDocument();
     } finally {
@@ -262,6 +326,34 @@ describe("ProductCard futuristic summary transform", () => {
     }
   });
 
+  it("opens an enlarged summary view from the controlled summary token", () => {
+    const { rerender } = render(
+      <ProductCard
+        product={product}
+        purchasingQueryId={null}
+        labels={translations.en}
+        language="en"
+        openSummaryToken={0}
+      />,
+    );
+
+    rerender(
+      <ProductCard
+        product={product}
+        purchasingQueryId={null}
+        labels={translations.en}
+        language="en"
+        openSummaryToken={1}
+      />,
+    );
+
+    const dialog = screen.getByRole("dialog", { name: /enlarged product summary/i });
+    expect(dialog).toHaveAttribute("data-product-view", "summary");
+    expect(dialog).toHaveTextContent("Ingredient");
+    expect(dialog).toHaveTextContent("How to use");
+    expect(dialog).toHaveTextContent("Apply externally to the affected area as needed.");
+  });
+
   it("toggles enlarged product details and summary with one inside click using holographic morph state", () => {
     vi.useFakeTimers();
     try {
@@ -287,7 +379,7 @@ describe("ProductCard futuristic summary transform", () => {
       dialog = screen.getByRole("dialog", { name: /enlarged product details/i });
       stage = within(dialog).getByTestId("product-viewer-stage");
       expect(stage).toHaveAttribute("data-product-view", "details");
-      expect(stage).toHaveTextContent("$12.50");
+      expect(stage).toHaveTextContent("RM12.50");
       expect(stage).toHaveTextContent("Mock VitaFlow");
     } finally {
       vi.useRealTimers();
@@ -300,10 +392,19 @@ describe("ProductCard futuristic summary transform", () => {
 
     fireEvent.doubleClick(panel);
     const dialog = screen.getByRole("dialog", { name: /enlarged product details/i });
+    fireEvent.pointerDown(within(dialog).getByTestId("product-viewer-stage"));
+    expect(screen.getByRole("dialog", { name: /enlarged product details/i })).toBeInTheDocument();
     fireEvent.mouseDown(within(dialog).getByTestId("product-viewer-stage"));
     expect(screen.getByRole("dialog", { name: /enlarged product details/i })).toBeInTheDocument();
 
-    fireEvent.mouseDown(dialog);
+    fireEvent.pointerDown(dialog);
+    fireEvent.click(dialog);
+    expect(screen.queryByRole("dialog", { name: /enlarged product details/i })).not.toBeInTheDocument();
+
+    fireEvent.doubleClick(panel);
+    expect(screen.getByRole("dialog", { name: /enlarged product details/i })).toBeInTheDocument();
+    fireEvent.mouseDown(screen.getByRole("dialog", { name: /enlarged product details/i }));
+    fireEvent.click(screen.getByRole("dialog", { name: /enlarged product details/i }));
     expect(screen.queryByRole("dialog", { name: /enlarged product details/i })).not.toBeInTheDocument();
 
     fireEvent.doubleClick(panel);
@@ -326,6 +427,7 @@ describe("ProductCard futuristic summary transform", () => {
     expect(document.documentElement).toHaveClass("product-expanded");
 
     fireEvent.mouseDown(screen.getByRole("dialog", { name: /enlarged product details/i }));
+    fireEvent.click(screen.getByRole("dialog", { name: /enlarged product details/i }));
 
     expect(document.body).not.toHaveClass("product-expanded");
     expect(document.documentElement).not.toHaveClass("product-expanded");

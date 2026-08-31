@@ -8,6 +8,7 @@ import {
 } from "react";
 import { createPortal } from "react-dom";
 
+import { formatCurrencyRm } from "../formatters";
 import { translations, type KioskLanguage, type KioskTranslations } from "../i18n";
 import type { LocalizedProductText, Product, ProductSummary } from "../types";
 import ProductImage from "./ProductImage";
@@ -19,6 +20,7 @@ interface ProductCardProps {
   language?: KioskLanguage;
   hasActivePromotion?: boolean;
   openDetailsToken?: number;
+  openSummaryToken?: number;
 }
 
 type ProductViewMode = "details" | "summary";
@@ -26,34 +28,6 @@ type ProductSummaryKey = keyof ProductSummary;
 
 const SINGLE_TAP_DELAY_MS = 220;
 const DOUBLE_TAP_WINDOW_MS = 280;
-
-const DEFAULT_PRODUCT_SUMMARY: ProductSummary = {
-  ingredient: {
-    en: "Menthol, camphor, herbal soothing ingredients",
-    zh: "Menthol、camphor、草本舒缓成分",
-    ms: "Menthol, camphor, bahan herba yang menenangkan",
-  },
-  howToUse: {
-    en: "Apply externally to the affected area as needed.",
-    zh: "外用，适量涂抹在需要舒缓的部位。",
-    ms: "Sapu secara luaran pada bahagian yang diperlukan.",
-  },
-  bestFor: {
-    en: "Muscle discomfort, shoulder tension, general soothing use.",
-    zh: "肌肉不适、肩颈紧绷、日常舒缓。",
-    ms: "Ketidakselesaan otot, ketegangan bahu, kegunaan luaran umum.",
-  },
-  size: {
-    en: "30g",
-    zh: "30g",
-    ms: "30g",
-  },
-  description: {
-    en: "Cooling relief balm. Easy to apply. For external use only.",
-    zh: "清凉舒缓膏，方便外用。只供外用。",
-    ms: "Balm rasa sejuk untuk kegunaan luaran. Mudah digunakan.",
-  },
-};
 
 const SUMMARY_FIELDS: Array<{ key: ProductSummaryKey; labelKey: keyof KioskTranslations }> = [
   { key: "ingredient", labelKey: "ingredient" },
@@ -71,33 +45,13 @@ function displayValue(
   return value ?? `${labels.unavailable} from VitaFlow${reason ? ` · ${reason}` : ""}`;
 }
 
-function mergeLocalizedField(
-  fallback: LocalizedProductText,
-  override?: Partial<LocalizedProductText>,
-): LocalizedProductText {
-  if (!override) {
-    return fallback;
-  }
-
-  return {
-    en: override?.en ?? fallback.en,
-    zh: override.zh,
-    ms: override.ms,
-  };
-}
-
-function getProductSummary(product: Product): ProductSummary {
-  return {
-    ingredient: mergeLocalizedField(DEFAULT_PRODUCT_SUMMARY.ingredient, product.productSummary?.ingredient),
-    howToUse: mergeLocalizedField(DEFAULT_PRODUCT_SUMMARY.howToUse, product.productSummary?.howToUse),
-    bestFor: mergeLocalizedField(DEFAULT_PRODUCT_SUMMARY.bestFor, product.productSummary?.bestFor),
-    size: mergeLocalizedField(DEFAULT_PRODUCT_SUMMARY.size, product.productSummary?.size),
-    description: mergeLocalizedField(DEFAULT_PRODUCT_SUMMARY.description, product.productSummary?.description),
-  };
-}
-
-function localizedText(field: LocalizedProductText, language: KioskLanguage) {
-  return field[language] ?? field.en;
+function localizedText(
+  field: Partial<LocalizedProductText> | undefined,
+  language: KioskLanguage,
+  unavailable: string,
+) {
+  const value = field?.[language] ?? field?.en;
+  return typeof value === "string" && value.trim() ? value : unavailable;
 }
 
 function ProductCard({
@@ -107,12 +61,15 @@ function ProductCard({
   language = "en",
   hasActivePromotion = false,
   openDetailsToken = 0,
+  openSummaryToken = 0,
 }: ProductCardProps) {
   const [isSummaryVisible, setIsSummaryVisible] = useState(false);
   const [enlargedView, setEnlargedView] = useState<ProductViewMode | null>(null);
   const singleTapTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const lastTouchTapAt = useRef(0);
   const suppressNextClick = useRef(false);
+  const productViewerStageRef = useRef<HTMLElement | null>(null);
+  const outsideViewerPointerStartedRef = useRef(false);
 
   const clearPendingToggle = () => {
     if (singleTapTimer.current) {
@@ -135,6 +92,16 @@ function ProductCard({
     clearPendingToggle();
     setEnlargedView("details");
   }, [openDetailsToken, product]);
+
+  useEffect(() => {
+    if (!product || openSummaryToken <= 0) {
+      return;
+    }
+
+    clearPendingToggle();
+    setIsSummaryVisible(true);
+    setEnlargedView("summary");
+  }, [openSummaryToken, product]);
 
   useEffect(() => () => clearPendingToggle(), []);
 
@@ -171,9 +138,14 @@ function ProductCard({
     ? SUMMARY_FIELDS.map(({ key, labelKey }) => ({
         key,
         label: String(labels[labelKey]),
-        value: localizedText(getProductSummary(product)[key], language),
+        value: localizedText(product.productSummary?.[key], language, labels.unavailable),
       }))
     : [];
+  const sourceLabel = product
+    ? product.source === "vitaflow_erp"
+      ? labels.vitaFlowErp
+      : labels.mockVitaFlow
+    : null;
 
   const toggleSummary = () => {
     if (!product) {
@@ -207,6 +179,38 @@ function ProductCard({
       }
       return current === "details" ? "summary" : "details";
     });
+  };
+
+  const isInsideProductViewerStage = (target: EventTarget | null) => {
+    const stage = productViewerStageRef.current;
+    return Boolean(stage && target instanceof Node && stage.contains(target));
+  };
+
+  const trackViewerOutsidePointerStart = (event: PointerEvent<HTMLDivElement>) => {
+    outsideViewerPointerStartedRef.current = !isInsideProductViewerStage(event.target);
+    if (outsideViewerPointerStartedRef.current) {
+      event.preventDefault();
+      event.stopPropagation();
+    }
+  };
+
+  const trackViewerOutsideMouseStart = (event: MouseEvent<HTMLDivElement>) => {
+    outsideViewerPointerStartedRef.current = !isInsideProductViewerStage(event.target);
+    if (outsideViewerPointerStartedRef.current) {
+      event.preventDefault();
+      event.stopPropagation();
+    }
+  };
+
+  const closeViewerFromOutsideClick = (event: MouseEvent<HTMLDivElement>) => {
+    const startedOutside = outsideViewerPointerStartedRef.current;
+    outsideViewerPointerStartedRef.current = false;
+    if (!startedOutside || isInsideProductViewerStage(event.target)) {
+      return;
+    }
+    event.preventDefault();
+    event.stopPropagation();
+    setEnlargedView(null);
   };
 
   const handlePanelClick = (event: MouseEvent<HTMLElement>) => {
@@ -266,7 +270,7 @@ function ProductCard({
       <div><dt>{labels.stock}</dt><dd>{displayValue(product?.stock ?? null, labels, product?.unavailable_reason)}</dd></div>
       <div><dt>{labels.branch}</dt><dd>{product?.branch_id}</dd></div>
       <div><dt>{labels.shelf}</dt><dd>{displayValue(product?.shelf_location ?? null, labels, product?.unavailable_reason)}</dd></div>
-      <div><dt>{labels.source}</dt><dd>{labels.mockVitaFlow}</dd></div>
+      <div><dt>{labels.source}</dt><dd>{sourceLabel}</dd></div>
     </dl>
   );
 
@@ -297,10 +301,13 @@ function ProductCard({
           aria-modal="true"
           className="product-viewer-backdrop"
           data-product-view={enlargedView}
-          onMouseDown={() => setEnlargedView(null)}
+          onPointerDown={trackViewerOutsidePointerStart}
+          onMouseDown={trackViewerOutsideMouseStart}
+          onClick={closeViewerFromOutsideClick}
           role="dialog"
         >
           <article
+            ref={productViewerStageRef}
             className="product-viewer-stage"
             data-product-morph="holographic"
             data-product-view={enlargedView}
@@ -317,6 +324,7 @@ function ProductCard({
               event.preventDefault();
               toggleEnlargedView();
             }}
+            onPointerDown={(event) => event.stopPropagation()}
             onMouseDown={(event) => event.stopPropagation()}
           >
             {enlargedView === "details" ? (
@@ -330,7 +338,7 @@ function ProductCard({
                     <span className="product-promotion-badge">{labels.promotion}</span>
                   ) : null}
                   <strong>
-                    {product.price === null ? labels.unavailable : `$${product.price.toFixed(2)}`}
+                    {formatCurrencyRm(product.price, labels.unavailable)}
                   </strong>
                   <small>{labels.currentProductPrice}</small>
                   {renderProductFacts("product-viewer-facts")}
@@ -366,7 +374,7 @@ function ProductCard({
       >
         <div className="panel-title-row">
           <h2>{labels.product}</h2>
-          <span className="source-label">{labels.mockVitaFlow}</span>
+          {sourceLabel ? <span className="source-label">{sourceLabel}</span> : null}
         </div>
         {product ? (
           <div className="product-transform-shell" aria-live="polite">
@@ -388,7 +396,7 @@ function ProductCard({
                     <span className="eyebrow">{labels.productVerified}</span>
                     <h3>{product.name}</h3>
                     <p>{product.id}</p>
-                    <strong>{product.price === null ? labels.unavailable : `$${product.price.toFixed(2)}`}</strong>
+                    <strong>{formatCurrencyRm(product.price, labels.unavailable)}</strong>
                     <small>{labels.currentProductPrice}</small>
                   </div>
                 </div>

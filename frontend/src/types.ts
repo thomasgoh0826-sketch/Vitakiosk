@@ -6,6 +6,26 @@ export type AvatarState =
   | "error"
   | "pharmacist_escalation";
 
+export type AvatarExpressionState =
+  | "neutral_idle"
+  | "friendly_explaining"
+  | "happy_highlight"
+  | "focused_guidance"
+  | "safety_alert";
+
+export type AvatarFocusTarget =
+  | "center"
+  | "product"
+  | "promotion"
+  | "shelf"
+  | "pharmacist";
+
+export interface AvatarPresentation {
+  expression: AvatarExpressionState;
+  focusTarget: AvatarFocusTarget;
+  gesture: "none" | "present_product" | "present_promotion" | "guide_shelf" | "safety_handoff";
+}
+
 export interface LocalizedProductText {
   en: string;
   zh?: string;
@@ -28,7 +48,7 @@ export interface Product {
   price: number | null;
   stock: number | null;
   shelf_location: string | null;
-  source: "mock_vitaflow";
+  source: "mock_vitaflow" | "vitaflow_erp";
   unavailable_reason: string | null;
   productSummary?: Partial<ProductSummary>;
   barcode?: string | null;
@@ -40,6 +60,58 @@ export interface Product {
     isPrimary: boolean;
     alt?: string | null;
   }>;
+  location?: ProductLocation | null;
+}
+
+export interface ProductLocation {
+  regionName: string | null;
+  areaZone: string | null;
+  shelfRackBay: string | null;
+  rowLevel: string | null;
+  binPosition: string | null;
+  locationCode: string | null;
+  locationNote: string | null;
+  pinX: number | null;
+  pinY: number | null;
+}
+
+export interface ShelfMapPoint {
+  x: number;
+  y: number;
+  label: string;
+}
+
+export interface ShelfMapRegion {
+  id: string;
+  name: string;
+  type: string;
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  label: string | null;
+  color?: string | null;
+  shape?: "rounded" | "square" | "pill";
+  rotation?: number;
+  z_index?: number;
+  layer_kind?: string | null;
+}
+
+export interface BranchShelfMap {
+  branch_id: string;
+  map_id: string;
+  name: string;
+  source: "mock_vitaflow" | "vitaflow_erp";
+  image_url: string | null;
+  entrance: ShelfMapPoint | null;
+  regions: ShelfMapRegion[];
+  unavailable_reason: string | null;
+}
+
+export interface ShelfMapResponse {
+  map: BranchShelfMap | null;
+  source: string;
+  unavailable_reason: string | null;
 }
 
 export interface ProductSearchCandidate {
@@ -70,6 +142,8 @@ export interface ProductScanResponse {
   barcodeResult: string | null;
   ocrText: string | null;
   correctedText: string | null;
+  purchasingQueryId: string | null;
+  purchasingRequestStatus: string | null;
 }
 
 export interface Promotion {
@@ -80,7 +154,7 @@ export interface Promotion {
   active: boolean;
   valid_from: string;
   valid_to: string;
-  source: "mock_vitaflow";
+  source: "mock_vitaflow" | "vitaflow_erp";
 }
 
 export type LeafletKind = "promotion" | "campaign";
@@ -98,13 +172,14 @@ export interface Leaflet {
   product_ids: string[];
   category_tags: string[];
   display_priority: number;
-  source: "mock_vitaflow";
+  source: "mock_vitaflow" | "vitaflow_erp";
 }
 
 export type UiAction =
   | { type: "SHOW_PRODUCT"; productId: string }
   | { type: "HIGHLIGHT_PRODUCT"; productId: string }
   | { type: "OPEN_PRODUCT_DETAIL"; productId: string }
+  | { type: "OPEN_PRODUCT_SUMMARY"; productId: string }
   | { type: "SHOW_PROMOTION_LEAFLET"; promotionId: string }
   | { type: "HIGHLIGHT_PROMOTION"; productId?: string; promotionId?: string }
   | { type: "OPEN_PROMOTION_LEAFLET"; promotionId: string }
@@ -117,6 +192,8 @@ export type UiAction =
   | { type: "SHOW_LEAFLET_GALLERY" }
   | { type: "HIGHLIGHT_SHELF_ROUTE"; productId: string; shelf?: string | null }
   | { type: "OPEN_SHELF_MAP"; productId: string; shelf?: string | null }
+  | { type: "OPEN_PRODUCT_SCAN" }
+  | { type: "START_PRODUCT_SCAN" }
   | { type: "ASK_PHARMACIST_CONFIRMATION" }
   | { type: "REQUEST_PHARMACIST_ASSISTANCE"; reason?: string | null }
   | { type: "CLOSE_ACTIVE_OVERLAY" }
@@ -128,7 +205,7 @@ export interface Poster {
   branch_id: string;
   promotion_id: string;
   asset_path: string;
-  source: "mock_vitaflow";
+  source: "mock_vitaflow" | "vitaflow_erp";
 }
 
 export interface AvatarStateEvent {
@@ -147,6 +224,8 @@ export interface AIResponse {
     | "promotion_check"
     | "campaign_check"
     | "shelf_location"
+    | "greeting"
+    | "general_conversation"
     | "unknown_product"
     | "red_flag";
   message: string;
@@ -184,6 +263,8 @@ export interface RuntimeStatusResponse {
   vitaflow_provider: string;
   vision_provider: string;
   ollama_reachable: boolean;
+  agnes_reachable: boolean;
+  vitaflow_reachable: boolean;
   model: string;
 }
 
@@ -219,10 +300,12 @@ export interface ItemListResponse<T> {
 export interface ProductSearchResponse extends ItemListResponse<Product> {
   candidates: ProductSearchCandidate[];
   purchasing_query_id: string | null;
+  purchasing_request_status?: string | null;
+  message?: string | null;
 }
 
 export interface MockActionResponse {
   id: string;
   status: string;
-  source: "mock_memory";
+  source: "mock_memory" | "vitaflow_erp";
 }

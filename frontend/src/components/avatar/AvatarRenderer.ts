@@ -1,6 +1,6 @@
 import type { ComponentType } from "react";
 
-import type { AvatarState } from "../../types";
+import type { AvatarPresentation, AvatarState } from "../../types";
 
 
 export type AvatarRendererKind = "lottie" | "threejs" | "vrm";
@@ -8,6 +8,7 @@ export type AvatarRendererKind = "lottie" | "threejs" | "vrm";
 export interface AvatarRendererProps {
   state: AvatarState;
   audioActivity: number;
+  presentation?: AvatarPresentation;
 }
 
 export type AvatarRendererComponent = ComponentType<AvatarRendererProps>;

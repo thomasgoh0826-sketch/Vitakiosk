@@ -20,12 +20,12 @@ import {
 import { GLTFLoader, type GLTF } from "three/examples/jsm/loaders/GLTFLoader.js";
 
 import {
-  getAvatarExpressionForState,
+  getAvatarExpressionForPresentation,
   useAvatarIdleMotion,
   type AvatarExpression,
 } from "../../hooks/useAvatarIdleMotion";
 import { getMouthOpenAmount, useAvatarLipSync } from "../../hooks/useAvatarLipSync";
-import type { AvatarState } from "../../types";
+import type { AvatarPresentation, AvatarState } from "../../types";
 import type { AvatarRendererProps } from "./AvatarRenderer";
 import { getDefaultVrmAvatarModelKey, getDefaultVrmAvatarModelUrl, type VrmAvatarModelKey } from "./AvatarModel";
 
@@ -46,10 +46,19 @@ type VrmScanBehavior = "off" | "active";
 export interface VrmAvatarBehavior {
   customerLabel: string;
   expression: AvatarExpression;
+  presentationExpression: AvatarPresentation["expression"];
+  focusTarget: AvatarPresentation["focusTarget"];
+  gesture: AvatarPresentation["gesture"];
   mouth: VrmMouthBehavior;
   glow: VrmGlowBehavior;
   scan: VrmScanBehavior;
 }
+
+const DEFAULT_PRESENTATION: AvatarPresentation = {
+  expression: "neutral_idle",
+  focusTarget: "center",
+  gesture: "none",
+};
 
 const GLOW_BY_STATE: Record<AvatarState, VrmGlowBehavior> = {
   idle: "calm",
@@ -63,10 +72,14 @@ const GLOW_BY_STATE: Record<AvatarState, VrmGlowBehavior> = {
 export function getVrmAvatarBehavior(
   state: AvatarState,
   audioActivity: number,
+  presentation: AvatarPresentation = DEFAULT_PRESENTATION,
 ): VrmAvatarBehavior {
   return {
     customerLabel: STATE_LABELS[state],
-    expression: getAvatarExpressionForState(state),
+    expression: getAvatarExpressionForPresentation(state, presentation),
+    presentationExpression: presentation.expression,
+    focusTarget: presentation.focusTarget,
+    gesture: presentation.gesture,
     mouth: getMouthOpenAmount({ audioActivity, state }) > 0 ? "audio-reactive" : "closed",
     glow: GLOW_BY_STATE[state],
     scan: state === "thinking" ? "active" : "off",
@@ -262,6 +275,7 @@ interface VrmCharacterSceneProps {
   audioActivity: number;
   reducedMotion: boolean;
   modelUrl: string;
+  presentation: AvatarPresentation;
 }
 
 function VrmFullBodyCamera() {
@@ -281,13 +295,14 @@ function VrmCharacterScene({
   audioActivity,
   reducedMotion,
   modelUrl,
+  presentation,
 }: VrmCharacterSceneProps) {
   const root = useRef<Group>(null);
   const scanner = useRef<Group>(null);
   const vrm = useVrmModel(modelUrl);
   const visual = STATE_VISUALS[state];
   const activity = clamp01(audioActivity);
-  const behavior = getVrmAvatarBehavior(state, activity);
+  const behavior = getVrmAvatarBehavior(state, activity, presentation);
 
   useEffect(() => {
     VRMUtils.rotateVRM0(vrm);
@@ -297,7 +312,7 @@ function VrmCharacterScene({
     setVrmMaterialGlow(vrm.scene, state, activity);
   }, [activity, state, vrm]);
 
-  useAvatarIdleMotion({ reducedMotion, rootRef: root, state, vrm });
+  useAvatarIdleMotion({ reducedMotion, rootRef: root, state, vrm, presentation });
   useAvatarLipSync({ audioActivity: activity, state, vrm });
 
   useFrame(({ clock }, delta) => {
@@ -504,6 +519,7 @@ interface VrmAvatarRendererProps extends AvatarRendererProps {
 function VrmAvatarRenderer({
   state,
   audioActivity,
+  presentation = DEFAULT_PRESENTATION,
   vrmModelUrl = getDefaultVrmAvatarModelUrl(),
   vrmModelKey = getDefaultVrmAvatarModelKey(),
 }: VrmAvatarRendererProps) {
@@ -511,7 +527,7 @@ function VrmAvatarRenderer({
   const webglAvailable = useMemo(canUseWebGL, []);
   const visual = STATE_VISUALS[state];
   const activity = clamp01(audioActivity);
-  const behavior = getVrmAvatarBehavior(state, activity);
+  const behavior = getVrmAvatarBehavior(state, activity, presentation);
   const stateLabel = STATE_LABELS[state];
   const resolvedVrmModelUrl = vrmModelUrl ?? null;
   const hasVrmModel = resolvedVrmModelUrl !== null;
@@ -561,6 +577,9 @@ function VrmAvatarRenderer({
       data-camera-target={usesPortraitStage ? "full-body" : "fallback"}
       data-avatar-orbit-layer={usesPortraitStage ? "background" : "fallback"}
       data-vrm-expression={behavior.expression}
+      data-vrm-presentation={behavior.presentationExpression}
+      data-vrm-focus-target={behavior.focusTarget}
+      data-vrm-gesture={behavior.gesture}
       data-vrm-mouth={behavior.mouth}
       data-vrm-glow={behavior.glow}
       data-vrm-scan={behavior.scan}
@@ -609,6 +628,7 @@ function VrmAvatarRenderer({
                     audioActivity={activity}
                     reducedMotion={reducedMotion}
                     modelUrl={resolvedVrmModelUrl}
+                    presentation={presentation}
                   />
                 </Suspense>
               </AvatarSceneBoundary>

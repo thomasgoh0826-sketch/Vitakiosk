@@ -42,7 +42,7 @@ export const MOCK_LEAFLETS: Leaflet[] = [
     valid_from: "2025-01-01T00:00:00Z",
     valid_to: "2030-12-31T23:59:00Z",
     image_url: "/assets/leaflets/mock-hydration-campaign.svg",
-    product_ids: ["MOCK-P002"],
+    product_ids: [],
     category_tags: ["hydration", "wellness"],
     display_priority: 30,
     source: "mock_vitaflow",

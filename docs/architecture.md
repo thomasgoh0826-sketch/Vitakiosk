@@ -66,8 +66,9 @@ product, showing/opening a promotion leaflet, showing/opening a campaign leaflet
 showing galleries, asking for pharmacist confirmation, requesting pharmacist
 assistance, or resetting the kiosk.
 
-Promotion and campaign leaflets are selected from mock VitaFlow-ready data with
-`active=true`, exact branch match, and current validity dates. Product-specific
+Promotion and campaign leaflets are selected from the configured VitaFlow adapter with
+`active=true`, exact branch match, and current validity dates. Mock mode uses fictional
+VitaFlow-ready records; `readonly_api` mode uses only VitaFlow API records. Product-specific
 leaflets also require product ID membership; category-linked leaflets use
 adapter-provided tags only. The AI response may reference only those selected
 IDs and must not invent promotion, campaign, price, stock, shelf, or product
@@ -132,11 +133,11 @@ FastAPI `/health` exposes a provider summary for basic diagnostics. FastAPI `/ap
 
 If Ollama is offline or returns invalid/unsafe JSON, the backend falls back safely while the frontend keeps the selected VRM renderer. If VRM model loading fails, the frontend falls back to the holographic assistant and logs the fallback reason while the backend keeps the configured safe provider mode.
 
-The first VitaFlow live integration is constrained to `readonly_api`: it may read approved product, stock, price, promotion, and shelf fields from a reviewed API only. It must not write sales, stock, purchasing, promotion, customer, or shelf data, and it must not inspect the ERP release directory or database directly.
+The first VitaFlow live catalog integration is constrained to `readonly_api`: it may read approved product, stock, price, promotion, campaign, and shelf fields from a reviewed API only. It must not write sales, stock, purchasing, promotion, customer, or shelf data, and it must not inspect the ERP release directory or database directly. A separate explicitly reviewed `VITAFLOW_ASSISTANCE_PROVIDER=vitaflow_api` selector may POST only the minimal pharmacist-assistance case payload; the Kiosk shows success only after VitaFlow returns an authoritative case code.
 
 ## Data and persistence
 
-Products, promotions, posters, purchasing queries, and escalations are fictional. Action stores are in process memory and reset on restart. No customer identity, sales record, database, log archive, or recording is persisted.
+Mock mode products, promotions, posters, purchasing queries, and escalations are fictional and reset with the process. In reviewed live mode, approved product/leaflet facts come from VitaFlow and pharmacist-assistance cases are persisted by VitaFlow without customer identity, transcript, sales, or recording data.
 
 ## Protected boundary
 

@@ -115,6 +115,18 @@ describe("typed input layout CSS contract", () => {
     expect(normalizedStyles).not.toContain("fog");
   });
 
+  it("keeps the avatar state text visually isolated from background scan lines", () => {
+    expect(normalizedStyles).toMatch(
+      /\.avatar-state-label\s*\{[\s\S]*padding: clamp\(2px, 0\.35dvh, 4px\) clamp\(9px, 0\.8dvw, 13px\);/,
+    );
+    expect(normalizedStyles).toMatch(
+      /\.avatar-state-label\s*\{[\s\S]*background: rgba\(3, 10, 24, 0\.9\);/,
+    );
+    expect(normalizedStyles).toMatch(
+      /\.avatar-state-label\s*\{[\s\S]*border-radius: 999px;/,
+    );
+  });
+
   it("protects measured subtitle-to-product spacing in landscape kiosk mode", () => {
     expect(normalizedStyles).toContain("--deck-card-gap: clamp(16px, 1.2dvw, 22px);");
     expect(normalizedStyles).toContain("minmax(clamp(108px, 14dvh, 158px), 0.34fr)");
@@ -124,6 +136,64 @@ describe("typed input layout CSS contract", () => {
     );
     expect(normalizedStyles).not.toMatch(/\.clinical-deck\s*\{[\s\S]*margin-top:\s*-/);
     expect(normalizedStyles).not.toMatch(/\.product-panel\s*\{[\s\S]*margin-top:\s*-/);
+  });
+
+  it("keeps the complete short iPad deck visible without a scrolling middle column", () => {
+    expect(normalizedStyles).toMatch(
+      /@media \(min-width: 851px\) and \(max-height: 820px\) and \(orientation: landscape\)\s*\{[\s\S]*--deck-card-gap: clamp\(5px, 1dvh, 8px\);[\s\S]*--product-panel-min-height: clamp\(112px, 19dvh, 132px\);[\s\S]*--shelf-panel-min-height: clamp\(196px, 33dvh, 248px\);/,
+    );
+    expect(normalizedStyles).toMatch(
+      /@media \(min-width: 851px\) and \(max-height: 820px\) and \(orientation: landscape\)\s*\{[\s\S]*\.clinical-deck\s*\{[^}]*minmax\(clamp\(82px, 13dvh, 96px\), 0\.34fr\)[^}]*minmax\(48px, 52px\)[^}]*minmax\(50px, 56px\);[^}]*overflow: hidden;[^}]*touch-action: manipulation;/,
+    );
+    expect(normalizedStyles).toMatch(
+      /@media \(min-width: 851px\) and \(max-height: 820px\) and \(orientation: landscape\)\s*\{[\s\S]*\.conversation-panel\s*\{[^}]*height: 96px;[^}]*min-height: 96px;[^}]*padding: 5px 7px;/,
+    );
+    expect(normalizedStyles).toMatch(
+      /@media \(min-width: 851px\) and \(max-height: 820px\) and \(orientation: landscape\)\s*\{[\s\S]*\.ai-subtitle-panel\s*\{[^}]*height: 84px;[^}]*min-height: 84px;/,
+    );
+    expect(normalizedStyles).toMatch(
+      /@media \(min-width: 851px\) and \(max-height: 820px\) and \(orientation: landscape\)\s*\{[\s\S]*\.product-panel\[data-product-mode="empty"\] \.empty-product\s*\{[^}]*height: 80px;[^}]*min-height: 0;/,
+    );
+    expect(normalizedStyles).toMatch(
+      /@media \(min-width: 851px\) and \(max-height: 820px\) and \(orientation: landscape\)\s*\{[\s\S]*\.product-panel\s*\{[^}]*padding: 7px 9px;/,
+    );
+    expect(normalizedStyles).toMatch(
+      /@media \(min-width: 851px\) and \(max-height: 820px\) and \(orientation: landscape\)\s*\{[\s\S]*\.product-panel\[data-product-mode="details"\] \.product-transform-shell\s*\{[^}]*grid-template-columns: minmax\(0, 3fr\) minmax\(180px, 2fr\);/,
+    );
+    expect(normalizedStyles).toMatch(
+      /@media \(min-width: 851px\) and \(max-height: 820px\) and \(orientation: landscape\)\s*\{[\s\S]*\.product-panel\[data-product-mode="details"\] \.product-facts\s*\{[^}]*grid-template-columns: repeat\(2, minmax\(0, 1fr\)\);[^}]*margin: 0;/,
+    );
+    expect(normalizedStyles).toMatch(
+      /@media \(min-width: 851px\) and \(max-height: 820px\) and \(orientation: landscape\)\s*\{[\s\S]*\.shelf-map-panel\s*\{[^}]*grid-template-columns: minmax\(0, 5fr\) minmax\(150px, 3fr\);/,
+    );
+    expect(normalizedStyles).toMatch(
+      /@media \(min-width: 851px\) and \(max-height: 820px\) and \(orientation: landscape\)\s*\{[\s\S]*\.shelf-map-panel > \.shelf-map-canvas\s*\{[^}]*grid-column: 1;[^}]*grid-row: 2 \/ span 3;[^}]*width: 100%;[^}]*height: auto;[^}]*aspect-ratio: 5 \/ 3;/,
+    );
+    expect(normalizedStyles).toMatch(
+      /@media \(min-width: 851px\) and \(max-height: 820px\) and \(orientation: landscape\)\s*\{[\s\S]*\.shelf-map-panel > \.map-location-data\s*\{[^}]*grid-column: 2;[^}]*grid-template-columns: 1fr;/,
+    );
+    expect(normalizedStyles).toMatch(
+      /@media \(min-width: 851px\) and \(max-height: 820px\) and \(orientation: landscape\)\s*\{[\s\S]*\.scan-product-rail\s*\{[^}]*height: 100%;[^}]*min-height: 50px;[^}]*max-height: 56px;/,
+    );
+    expect(normalizedStyles).not.toMatch(/\.clinical-deck::-webkit-scrollbar\s*\{/);
+    expect(normalizedStyles).not.toContain("min-height: 118px;");
+  });
+
+  it("keeps compact authoritative map labels readable without breaking words", () => {
+    expect(normalizedStyles).toMatch(
+      /\.shelf-map-canvas\[data-map-density="compact"\] \.map-erp-region\s*\{[^}]*padding: 1px 2px;[^}]*font-size: 0\.43rem;[^}]*letter-spacing: 0\.015em;/,
+    );
+    expect(normalizedStyles).toMatch(
+      /\.shelf-map-canvas\[data-map-density="compact"\] \.map-erp-region strong\s*\{[^}]*overflow-wrap: normal;[^}]*word-break: normal;/,
+    );
+    expect(normalizedStyles).toMatch(
+      /\.shelf-map-canvas\[data-map-density="compact"\] \.map-marker small\s*\{[^}]*display: none;/,
+    );
+  });
+
+  it("keeps authoritative route and position markers above map fixtures", () => {
+    expect(normalizedStyles).toMatch(/\.map-route-line\s*\{[^}]*z-index: 20;/);
+    expect(normalizedStyles).toMatch(/\.map-marker\s*\{[^}]*z-index: 30;/);
   });
 
   it("keeps the product source badge inside a normal product header row", () => {
@@ -201,8 +271,10 @@ describe("typed input layout CSS contract", () => {
     expect(normalizedStyles).toMatch(/\.shelf-map-viewer-backdrop\s*\{[^}]*position: fixed;[^}]*z-index: 880;/);
     expect(normalizedStyles).toMatch(/\.shelf-map-viewer-backdrop\s*\{[^}]*place-items: center;/);
     expect(normalizedStyles).toMatch(/\.shelf-map-viewer-stage\s*\{[^}]*transform-origin: center;[^}]*animation: shelf-viewer-rise/);
+    expect(normalizedStyles).toMatch(/\.shelf-map-viewer-stage\s*\{[^}]*overflow-x: hidden;[^}]*overflow-y: auto;[^}]*scrollbar-width: none;[^}]*touch-action: pan-y;/);
     expect(normalizedStyles).toContain("@keyframes shelf-viewer-rise");
-    expect(normalizedStyles).toMatch(/\.shelf-map-viewer-stage \.shelf-map-canvas\s*\{[^}]*min-height: clamp\(360px, 58dvh, 620px\);/);
+    expect(normalizedStyles).toMatch(/\.shelf-map-viewer-stage \.shelf-map-canvas\s*\{[^}]*width: min\(100%, 96\.6667dvh\);[^}]*height: auto;[^}]*min-height: 0;[^}]*aspect-ratio: 5 \/ 3;[^}]*justify-self: center;/);
+    expect(normalizedStyles).toMatch(/\.shelf-map-viewer-stage::-webkit-scrollbar\s*\{[^}]*display: none;/);
     expect(normalizedStyles).not.toContain(".shelf-map-modal");
   });
 
@@ -236,10 +308,10 @@ describe("typed input layout CSS contract", () => {
     expect(normalizedStyles).toMatch(/\.leaflet-display-grid\s*\{[\s\S]*display: grid;/);
     expect(normalizedStyles).toContain("grid-template-columns: minmax(0, 1fr);");
     expect(normalizedStyles).toMatch(/\.leaflet-display-grid \.leaflet-poster:nth-child\(n \+ 2\)\s*\{[\s\S]*display: none;/);
-    expect(normalizedStyles).toMatch(/@container \(min-width: 400px\) and \(min-height: 310px\)\s*\{[\s\S]*\.leaflet-display-grid\s*\{[\s\S]*grid-template-columns: repeat\(2, minmax\(0, 1fr\)\);/);
-    expect(normalizedStyles).toMatch(/@container \(min-width: 720px\) and \(min-height: 340px\)\s*\{[\s\S]*\.leaflet-display-grid\s*\{[\s\S]*grid-template-columns: repeat\(3, minmax\(0, 1fr\)\);/);
-    expect(normalizedStyles).toMatch(/@container \(min-width: 400px\) and \(min-height: 310px\)\s*\{[\s\S]*\.leaflet-display-grid \.leaflet-poster:nth-child\(2\)\s*\{[\s\S]*display: grid;/);
-    expect(normalizedStyles).toMatch(/@container \(min-width: 720px\) and \(min-height: 340px\)\s*\{[\s\S]*\.leaflet-display-grid \.leaflet-poster:nth-child\(3\)\s*\{[\s\S]*display: grid;/);
+    expect(normalizedStyles).toMatch(/@container \(min-width: 360px\) and \(min-height: 210px\)\s*\{[\s\S]*\.leaflet-display-grid\s*\{[\s\S]*grid-template-columns: repeat\(2, minmax\(0, 1fr\)\);/);
+    expect(normalizedStyles).toMatch(/@container \(min-width: 620px\) and \(min-height: 230px\)\s*\{[\s\S]*\.leaflet-display-grid\s*\{[\s\S]*grid-template-columns: repeat\(3, minmax\(0, 1fr\)\);/);
+    expect(normalizedStyles).toMatch(/@container \(min-width: 360px\) and \(min-height: 210px\)\s*\{[\s\S]*\.leaflet-display-grid \.leaflet-poster:nth-child\(2\)\s*\{[\s\S]*display: grid;/);
+    expect(normalizedStyles).toMatch(/@container \(min-width: 620px\) and \(min-height: 230px\)\s*\{[\s\S]*\.leaflet-display-grid \.leaflet-poster:nth-child\(3\)\s*\{[\s\S]*display: grid;/);
     expect(normalizedStyles).toMatch(/\.leaflet-display-grid \.leaflet-poster\s*\{[\s\S]*display: grid;/);
     expect(normalizedStyles).not.toMatch(/\.leaflet-display-grid \.leaflet-poster:nth-child\(4\)\s*\{[\s\S]*display: grid;/);
     expect(normalizedStyles).toMatch(/\.leaflet-display-grid \.leaflet-image-stage\s*\{[\s\S]*--leaflet-stage-padding: clamp\(8px, 1cqw, 14px\);[\s\S]*aspect-ratio: 3 \/ 4;[\s\S]*overflow: hidden;/);

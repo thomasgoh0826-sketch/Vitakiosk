@@ -148,6 +148,40 @@ This helper checks that root `.env` and `frontend/.env.local` exist, verifies th
 
 Open [http://127.0.0.1:5175](http://127.0.0.1:5175).
 
+## Reviewed live demo profile
+
+Keep the mock safety envelope and enable only the reviewed provider layers in
+the ignored root `.env`:
+
+```dotenv
+VITAKIOSK_PROVIDER_MODE=mock
+STT_PROVIDER=elevenlabs
+TTS_PROVIDER=elevenlabs
+AI_PROVIDER=agnes
+VISION_PROVIDER=agnes
+VITAFLOW_PROVIDER=readonly_api
+VITAFLOW_API_BASE_URL=http://127.0.0.1:3100
+AGNES_API_KEY=
+AGNES_BASE_URL=https://apihub.agnes-ai.com
+AGNES_MODEL=agnes-2.0-flash
+AGNES_VISION_MODEL=agnes-2.0-flash
+ELEVENLABS_API_KEY=
+ELEVENLABS_VOICE_ID=
+ELEVENLABS_STT_MODEL_ID=scribe_v2
+ELEVENLABS_MODEL_ID=eleven_flash_v2_5
+```
+
+Set `VITE_BRANCH_ID=JK`, `VITE_AVATAR_RENDERER=vrm`, and
+`VITE_VRM_MODEL=vita-new` in ignored `frontend/.env.local`. With VitaFlow ERP
+already listening on 3100, launch and verify the fixed demo URLs with:
+
+```powershell
+.\scripts\start-live-demo.ps1
+```
+
+The launcher reports only boolean readiness and provider names. It never prints
+credentials or customer/provider response bodies.
+
 Vite reads `frontend/.env.local` only at startup. If the browser still shows the holographic assistant after editing `frontend/.env.local`, stop the existing 5175 frontend process and restart it with one of the commands above.
 
 Port 5175 is fixed. If it is occupied, Vite must fail instead of switching to a higher port. Check the existing listener and close the old dev server before restarting:

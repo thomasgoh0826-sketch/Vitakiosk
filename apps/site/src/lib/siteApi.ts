@@ -48,6 +48,20 @@ export interface ManualConfirmationResponse {
   record?: SiteFormResponse;
 }
 
+export interface SiteChatResponse {
+  ok: boolean;
+  answer: string;
+  topic_allowed: boolean;
+  live_provider: boolean;
+  provider?: string;
+  safety_note?: string;
+}
+
+export interface SiteChatMessage {
+  role: "assistant" | "user";
+  text: string;
+}
+
 export async function submitSiteForm(values: SiteFormValues): Promise<SiteFormResponse> {
   const endpointByKind: Record<SiteFormValues["kind"], string> = {
     lead: "/api/site/lead",
@@ -133,4 +147,15 @@ export async function createManualConfirmation(
   });
 }
 
-export const createMockCheckout = createManualConfirmation;
+export async function sendSiteChatMessage(
+  message: string,
+  history: SiteChatMessage[] = [],
+): Promise<SiteChatResponse> {
+  return postJson<SiteChatResponse>("/api/site/chat", {
+    message: sanitizeText(message),
+    history: history.slice(-6).map((item) => ({
+      role: item.role,
+      text: sanitizeText(item.text).slice(0, 800),
+    })),
+  });
+}

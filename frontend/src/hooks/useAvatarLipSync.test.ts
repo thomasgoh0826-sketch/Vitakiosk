@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { getMouthOpenAmount } from "./useAvatarLipSync";
+import { getMouthOpenAmount, getSpeechMouthShapeWeights } from "./useAvatarLipSync";
 
 
 describe("avatar lip sync helpers", () => {
@@ -22,5 +22,32 @@ describe("avatar lip sync helpers", () => {
     expect(getMouthOpenAmount({ audioActivity: 0.9, state: "thinking" })).toBe(0);
     expect(getMouthOpenAmount({ audioActivity: 0.9, state: "error" })).toBe(0);
     expect(getMouthOpenAmount({ audioActivity: 0.9, state: "pharmacist_escalation" })).toBe(0);
+  });
+
+  it("creates varied mouth shapes while speaking instead of one static open-mouth value", () => {
+    const first = getSpeechMouthShapeWeights({
+      audioActivity: 0.72,
+      elapsed: 0.2,
+      state: "speaking",
+    });
+    const later = getSpeechMouthShapeWeights({
+      audioActivity: 0.72,
+      elapsed: 0.42,
+      state: "speaking",
+    });
+
+    expect(first.jaw).toBeGreaterThan(0);
+    expect(first.aa).toBeGreaterThan(0);
+    expect(first.oh).toBeGreaterThan(0);
+    expect(first.ee + first.ih + first.ou).toBeGreaterThan(0);
+    expect(later).not.toEqual(first);
+  });
+
+  it("returns every mouth shape smoothly to rest when audio stops", () => {
+    expect(getSpeechMouthShapeWeights({
+      audioActivity: 0,
+      elapsed: 1,
+      state: "speaking",
+    })).toEqual({ aa: 0, ee: 0, ih: 0, oh: 0, ou: 0, jaw: 0 });
   });
 });

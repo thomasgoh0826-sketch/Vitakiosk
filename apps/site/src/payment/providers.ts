@@ -83,15 +83,15 @@ class DisabledLiveProvider extends MockPaymentProvider {
 }
 
 class ManualBankTransferProvider extends MockPaymentProvider {
-  readonly name: PaymentProviderName = "manual_mock";
+  readonly name: PaymentProviderName = "manual_bank_transfer";
 
   createCheckoutSession(order: CheckoutOrder): CheckoutSession {
     const referenceId = `VKA-${order.orderId}`;
     return {
       provider: this.name,
-      checkoutUrl: `/checkout/success?ref=${encodeURIComponent(referenceId)}&provider=manual_mock`,
+      checkoutUrl: `/checkout/success?ref=${encodeURIComponent(referenceId)}&provider=manual_bank_transfer`,
       paymentId: `MANUAL-${order.orderId}`,
-      status: order.mode === "subscription" || order.mode === "quote" ? "quote_requested" : "manual_payment_pending",
+      status: "manual_payment_pending",
       livePayment: false,
       referenceId,
       nextStep:

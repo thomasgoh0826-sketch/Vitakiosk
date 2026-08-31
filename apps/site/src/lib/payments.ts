@@ -1,4 +1,4 @@
-export type PaymentProviderName = "mock" | "stripe" | "billplz" | "manual";
+export type PaymentProviderName = "manual" | "stripe" | "billplz";
 
 export interface CheckoutRequest {
   mode: "subscription" | "deposit" | "one_time" | "quote";
@@ -10,7 +10,7 @@ export interface CheckoutRequest {
 export interface CheckoutSession {
   id: string;
   provider: PaymentProviderName;
-  status: "checkout_created" | "manual_review" | "mock_success" | "mock_cancel";
+  status: "manual_payment_pending" | "quote_requested" | "manual_review";
   url: string;
   message: string;
 }
@@ -25,41 +25,41 @@ export interface PaymentProvider {
   refundPayment(sessionId: string): Promise<{ status: string; sessionId: string }>;
 }
 
-function makeMockSession(request: CheckoutRequest): CheckoutSession {
+function makeManualSession(request: CheckoutRequest): CheckoutSession {
   const suffix = Math.random().toString(36).slice(2, 9);
   return {
-    id: `mock_${request.mode}_${suffix}`,
-    provider: "mock",
-    status: request.mode === "quote" ? "manual_review" : "checkout_created",
-    url: `/checkout/success?provider=mock&item=${encodeURIComponent(request.itemId)}`,
+    id: `manual_${request.mode}_${suffix}`,
+    provider: "manual",
+    status: request.mode === "quote" ? "quote_requested" : "manual_payment_pending",
+    url: `/checkout/success?provider=manual&item=${encodeURIComponent(request.itemId)}`,
     message:
       request.mode === "quote"
-        ? "Mock quote request created. No payment was attempted."
-        : "Mock checkout session created. No live charge was attempted.",
+        ? "Quote request received. Payment will be confirmed manually after discussion."
+        : "Manual payment confirmation request received. No live payment was attempted.",
   };
 }
 
-export class MockPaymentProvider implements PaymentProvider {
-  readonly name = "mock" as const;
+export class ManualPaymentProvider implements PaymentProvider {
+  readonly name = "manual" as const;
 
   async createCheckoutSession(request: CheckoutRequest): Promise<CheckoutSession> {
-    return makeMockSession(request);
+    return makeManualSession(request);
   }
 
   async createSubscriptionCheckout(request: CheckoutRequest): Promise<CheckoutSession> {
-    return makeMockSession({ ...request, mode: "subscription" });
+    return makeManualSession({ ...request, mode: "subscription" });
   }
 
   async createOneTimeCheckout(request: CheckoutRequest): Promise<CheckoutSession> {
-    return makeMockSession({ ...request, mode: "one_time" });
+    return makeManualSession({ ...request, mode: "one_time" });
   }
 
   async verifyWebhook(): Promise<{ ok: boolean; provider: PaymentProviderName }> {
-    return { ok: true, provider: "mock" };
+    return { ok: true, provider: "manual" };
   }
 
   async getPaymentStatus(sessionId: string): Promise<{ status: string; sessionId: string }> {
-    return { status: "mock_success", sessionId };
+    return { status: "manual_payment_pending", sessionId };
   }
 
   async refundPayment(sessionId: string): Promise<{ status: string; sessionId: string }> {
@@ -70,7 +70,7 @@ export class MockPaymentProvider implements PaymentProvider {
 export class DisabledLivePaymentProvider implements PaymentProvider {
   readonly name: PaymentProviderName;
 
-  constructor(name: Exclude<PaymentProviderName, "mock">) {
+  constructor(name: Exclude<PaymentProviderName, "manual">) {
     this.name = name;
   }
 
@@ -100,10 +100,10 @@ export class DisabledLivePaymentProvider implements PaymentProvider {
 }
 
 export function createPaymentProvider(
-  provider: PaymentProviderName = "mock",
+  provider: PaymentProviderName = "manual",
 ): PaymentProvider {
-  if (provider === "mock") {
-    return new MockPaymentProvider();
+  if (provider === "manual") {
+    return new ManualPaymentProvider();
   }
   return new DisabledLivePaymentProvider(provider);
 }

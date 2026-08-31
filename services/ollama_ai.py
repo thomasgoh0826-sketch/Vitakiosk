@@ -36,6 +36,10 @@ _PRICE_PATTERN = re.compile(r"(?<![A-Za-z])(?:RM|\$)\s*\d+(?:\.\d{1,2})?", re.I)
 _STOCK_PATTERN = re.compile(r"\b\d+\s*(?:units?|boxes?|packs?|bottles?)\b", re.I)
 _SHELF_PATTERN = re.compile(r"\b(?:shelf|aisle|level)\s+[A-Z0-9-]+", re.I)
 _PROMO_PATTERN = re.compile(r"\b(?:promotion|promo|discount|offer)\b", re.I)
+_SUMMARY_QUANTITY_PATTERN = re.compile(
+    r"\b\d+(?:\.\d+)?\s*(?:mcg|mg|g|ml|tablets?|capsules?|hours?|times?)\b",
+    re.I,
+)
 
 
 class OllamaAIBrain:
@@ -79,12 +83,17 @@ class OllamaAIBrain:
             escalation_store=escalation_store,
         )
 
+    @property
+    def fallback_source(self) -> str:
+        return f"{self.provider_name}_fallback_mock"
+
     def respond(
         self,
         text: str,
         branch_id: str,
         session_id: str | None = None,
         preferred_language: str = "auto",
+        current_product_id: str | None = None,
     ) -> AIResult:
         safe_text = " ".join(text.split())
         correction = correct_transcript(safe_text)
@@ -95,16 +104,23 @@ class OllamaAIBrain:
                 corrected_text,
                 branch_id=branch_id,
                 session_id=session_id,
+                preferred_language=preferred_language,
+                current_product_id=current_product_id,
             )
 
         base_result = self._fallback.respond(
             corrected_text,
             branch_id=branch_id,
             session_id=session_id,
+            preferred_language=preferred_language,
+            current_product_id=current_product_id,
         )
         if base_result.requires_pharmacist:
-            return replace(base_result, source="ollama_fallback_mock")
+            return replace(base_result, source=self.fallback_source)
+        if self._should_use_deterministic_workflow(base_result):
+            return replace(base_result, source=self.fallback_source)
 
+        expected_language = MockAIBrain._response_language(preferred_language, corrected_text)
         payload = self._build_request_payload(
             original_transcript=safe_text,
             corrected_transcript=corrected_text,
@@ -117,13 +133,42 @@ class OllamaAIBrain:
         )
         model_output = self._call_ollama(payload)
         if model_output is None:
-            return replace(base_result, source="ollama_fallback_mock")
+            return replace(base_result, source=self.fallback_source)
 
-        answer = self._validated_answer(model_output, base_result)
+        answer = self._validated_answer(
+            model_output,
+            base_result,
+            expected_language=expected_language,
+        )
         if answer is None:
-            return replace(base_result, source="ollama_fallback_mock")
+            return replace(base_result, source=self.fallback_source)
 
         return replace(base_result, message=answer, source=self.provider_name)
+
+    @staticmethod
+    def _should_use_deterministic_workflow(base_result: AIResult) -> bool:
+        """Keep kiosk UI actions responsive and source-of-truth safe.
+
+        Ollama is a wording layer, not the owner of kiosk navigation. When the
+        deterministic workflow already knows the customer-facing action
+        (promotion deck, shelf map, product detail, scan, greeting, or safety
+        handoff), returning it immediately prevents slow local model calls from
+        making the kiosk look frozen or from delaying whitelisted UI actions.
+        """
+
+        action_types = {action.type for action in base_result.ui_actions}
+        if (
+            base_result.intent is Intent.PRODUCT_SEARCH
+            and UiActionType.OPEN_PRODUCT_DETAIL in action_types
+        ):
+            return True
+        return base_result.intent in {
+            Intent.GREETING,
+            Intent.GENERAL_CONVERSATION,
+            Intent.PROMOTION_CHECK,
+            Intent.CAMPAIGN_CHECK,
+            Intent.SHELF_LOCATION,
+        }
 
     def _build_request_payload(
         self,
@@ -169,7 +214,8 @@ class OllamaAIBrain:
             "intent": (
                 "product_search | product_counselling | price_check | "
                 "stock_check | promotion_check | campaign_check | "
-                "shelf_location | unknown_product | red_flag | clarification"
+                "shelf_location | greeting | general_conversation | "
+                "unknown_product | red_flag | clarification"
             ),
             "answer": "customer-facing safe answer",
             "emotion": "neutral | friendly | thinking | serious | concerned",
@@ -239,23 +285,47 @@ class OllamaAIBrain:
         self,
         payload: dict[str, object],
         base_result: AIResult,
+        *,
+        expected_language: str,
     ) -> str | None:
-        if not self._schema_is_valid(payload, base_result):
+        if not self._schema_is_valid(payload, base_result, expected_language=expected_language):
             return None
 
         answer = str(payload["answer"]).strip()
         if len(answer) > SAFE_ANSWER_MAX_CHARS:
             return None
+        if not self._answer_matches_expected_language(answer, expected_language):
+            return None
+        if self._answer_steers_to_wrong_leaflet_flow(answer, base_result):
+            return None
         if not self._guardrails.evaluate(answer).allowed:
+            return None
+        if base_result.purchasing_query_id is None and re.search(r"\bPQ-\d+\b|purchasing query|purchase query|采购查询|购买查询", answer, re.I):
             return None
         if self._answer_invents_facts(answer, base_result):
             return None
         return answer
 
+    @staticmethod
+    def _answer_steers_to_wrong_leaflet_flow(answer: str, base_result: AIResult) -> bool:
+        if base_result.product is None:
+            return False
+        if base_result.intent in {Intent.PROMOTION_CHECK, Intent.CAMPAIGN_CHECK}:
+            return False
+        normalized = answer.casefold()
+        return bool(
+            re.search(
+                r"\b(promotion|promo|campaign|leaflet|enlarge|open the leaflet|show the leaflet)\b|促销|优惠|单张|传单|活动|promosi|risalah|kempen",
+                normalized,
+            )
+        )
+
     def _schema_is_valid(
         self,
         payload: dict[str, object],
         base_result: AIResult,
+        *,
+        expected_language: str,
     ) -> bool:
         language = payload.get("language")
         answer = payload.get("answer")
@@ -266,6 +336,10 @@ class OllamaAIBrain:
         intent = payload.get("intent")
 
         if not isinstance(language, str) or language not in ALLOWED_RESPONSE_LANGUAGES:
+            return False
+        if expected_language in {"zh", "ms"} and language not in {expected_language, "mixed"}:
+            return False
+        if expected_language == "en" and language not in {"en", "mixed"}:
             return False
         if not isinstance(intent, str) or intent not in {item.value for item in Intent} | {"clarification"}:
             return False
@@ -284,6 +358,39 @@ class OllamaAIBrain:
         if not isinstance(safety_notes, list):
             return False
         return self._ui_actions_are_safe(ui_actions, base_result.ui_actions)
+
+    @staticmethod
+    def _answer_matches_expected_language(answer: str, expected_language: str) -> bool:
+        if expected_language == "zh":
+            return any("\u4e00" <= char <= "\u9fff" for char in answer)
+        if expected_language == "ms":
+            normalized = answer.casefold()
+            malay_markers = {
+                "ada",
+                "ahli",
+                "anda",
+                "bantuan",
+                "boleh",
+                "cawangan",
+                "dalam",
+                "daripada",
+                "farmasi",
+                "harga",
+                "ini",
+                "jumpa",
+                "lokasi",
+                "produk",
+                "promosi",
+                "rak",
+                "risalah",
+                "saya",
+                "sila",
+                "stok",
+                "tiada",
+                "untuk",
+            }
+            return any(re.search(rf"\b{re.escape(marker)}\b", normalized) for marker in malay_markers)
+        return True
 
     @staticmethod
     def _intent_is_compatible(model_intent: str, workflow_intent: Intent) -> bool:
@@ -326,6 +433,8 @@ class OllamaAIBrain:
         allowed_fragments = self._allowed_fact_fragments(base_result)
         for pattern in (_PRICE_PATTERN, _STOCK_PATTERN, _SHELF_PATTERN):
             for match in pattern.findall(answer):
+                if match.casefold() == "shelf location":
+                    continue
                 if match.casefold() not in allowed_fragments:
                     return True
 
@@ -336,7 +445,22 @@ class OllamaAIBrain:
             or "no active branch promotions" in base_result.message.casefold()
         ):
             return True
+        summary_text = self._product_summary_text(base_result.product)
+        for match in _SUMMARY_QUANTITY_PATTERN.findall(answer):
+            if match.casefold() not in summary_text:
+                return True
         return False
+
+    @staticmethod
+    def _product_summary_text(product: Product | None) -> str:
+        if product is None or not isinstance(product.productSummary, dict):
+            return ""
+        values: list[str] = []
+        for localized in product.productSummary.values():
+            if not isinstance(localized, dict):
+                continue
+            values.extend(str(value).casefold() for value in localized.values() if value)
+        return " ".join(values)
 
     @staticmethod
     def _allowed_fact_fragments(base_result: AIResult) -> set[str]:
@@ -344,7 +468,7 @@ class OllamaAIBrain:
         product = base_result.product
         if product is not None:
             if product.price is not None:
-                fragments.add(f"${product.price:.2f}".casefold())
+                fragments.add(f"RM{product.price:.2f}".casefold())
                 fragments.add(f"rm {product.price:.2f}".casefold())
             if product.stock is not None:
                 fragments.add(f"{product.stock} units".casefold())
@@ -368,6 +492,8 @@ class OllamaAIBrain:
             "shelf_location": product.shelf_location,
             "source": product.source,
             "unavailable_reason": product.unavailable_reason,
+            "kiosk_category": product.kiosk_category,
+            "product_summary": product.productSummary,
         }
 
     @classmethod

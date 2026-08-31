@@ -9,7 +9,10 @@ const trackedFiles = execFileSync("git", ["ls-files"], { encoding: "utf8" })
 const providerKeys = [
   "OPENAI_API_KEY",
   "ELEVENLABS_API_KEY",
-  "VITAFLOW_API_BASE_URL",
+  "AGNES_API_KEY",
+  "VITAFLOW_API_TOKEN",
+  "SUPABASE_SERVICE_ROLE_KEY",
+  "STRIPE_SECRET_KEY",
 ];
 
 const valueStopChars = new Set(["", " ", "\t", "\r", "\n", "`", "\"", "'", "<", ">"]);
