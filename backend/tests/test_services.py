@@ -432,7 +432,8 @@ def test_local_product_scan_reads_real_ocr_text_and_uses_vitaflow_facts() -> Non
             ("BLACKMORES", 0.99),
             ("BUFFEREDC", 0.98),
             ("SUSTAINED RELEASE", 0.94),
-        )
+        ),
+        barcode_reader=lambda image: (),
     )
 
     result = scanner.scan_product(
@@ -553,7 +554,8 @@ def test_local_product_scan_ignores_kiosk_copy_and_matches_other_erp_brands() ->
             ("FISHERMANS", 0.99),
             ("FRIEND", 0.99),
             ("LEMON", 0.96),
-        )
+        ),
+        barcode_reader=lambda image: (),
     )
 
     result = scanner.scan_product(
